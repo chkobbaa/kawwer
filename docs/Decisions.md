@@ -176,3 +176,28 @@
 
 ---
 
+## D-023
+
+**Decision:** Kawwer follows Clean Architecture with CQRS.
+
+**Reason:** Separating business rules from infrastructure allows the application to remain maintainable, testable, and scalable as new features are added.
+
+---
+
+## D-024
+
+**Decision:** The mobile application communicates exclusively with the backend API.
+
+**Reason:** Keeping all business logic on the server simplifies maintenance, improves security, and allows future clients (such as a web application) to reuse the same backend.
+
+---
+
+## D-025
+
+**Decision:** All APIs follow a shared REST standard with versioning and standardized responses.
+
+**Reason:** Consistent APIs simplify development, testing, documentation, and future client applications.
+
+---
+
+
