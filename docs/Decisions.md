@@ -29,3 +29,11 @@
 **Decision:** Use a single `MatchParticipant` entity instead of separate Invitation, WaitingList, Attendance, and Payment entities.
 
 **Reason:** A participant's lifecycle naturally evolves through invitation, response, payment, attendance, and rating. Keeping this information in one entity reduces duplication and simplifies queries.
+
+---
+
+## D-005
+
+**Decision:** Football fields are independent reusable entities.
+
+**Reason:** A football field can host many matches and should only be entered once. Price changes must not affect previously created matches.

@@ -96,6 +96,10 @@ Represents membership of users inside groups.
 
 # Football Fields
 
+See:
+
+docs/FootballField.md
+
 Represents football fields where matches are played.
 
 | Field | Type | Required | Notes |
