@@ -165,3 +165,14 @@
 **Decision:** Calendar integration synchronizes accepted matches with the user's device calendar.
 
 **Reason:** Players often rely on their device calendar for reminders. Synchronizing match information reduces missed matches and keeps schedule changes consistent.
+
+---
+
+## D-022
+
+**Decision:** Statistics are derived automatically from completed matches and cannot be edited manually.
+
+**Reason:** Automatically generated statistics provide a trustworthy record of player and organizer activity while preventing manipulation.
+
+---
+
