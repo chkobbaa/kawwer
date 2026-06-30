@@ -72,3 +72,19 @@
 
 ---
 
+## D-010
+
+**Decision:** The Organizer Dashboard is part of Version 1.
+
+**Reason:** Organizers need a central place to monitor player confirmations, payments, reminders, and match progress. This is a core workflow rather than an optional enhancement.
+
+---
+
+## D-011
+
+**Decision:** Match Templates and Recurring Matches are postponed to Version 2.
+
+**Reason:** They improve convenience but are not required for the initial release. Delaying them keeps Version 1 focused while leaving room for future expansion.
+
+---
+
