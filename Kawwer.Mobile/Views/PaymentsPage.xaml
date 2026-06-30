@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.PaymentsPage"
+             x:Name="PageRoot"
+             Title="Payments"
+             BackgroundColor="{StaticResource BackgroundLight}">
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+                <Border Padding="16" StrokeShape="RoundRectangle 16" BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Collection summary" FontAttributes="Bold" FontSize="18" />
+                        <Label Text="{Binding Summary.SharePerPlayer, StringFormat='Share per player: {0} TND'}" />
+                        <Label Text="{Binding Summary.CollectedAmount, StringFormat='Collected: {0} TND'}" />
+                        <Label Text="{Binding Summary.MissingAmount, StringFormat='Missing: {0} TND'}" TextColor="{StaticResource Warning}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <HorizontalStackLayout Spacing="8">
+                    <Button Text="Start collection" Command="{Binding StartCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White" />
+                    <Button Text="Finish" Command="{Binding FinishCommand}" BackgroundColor="{StaticResource Success}" TextColor="White" />
+                </HorizontalStackLayout>
+
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}" />
+
+                <CollectionView ItemsSource="{Binding Players}" EmptyView="No accepted players to collect from.">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding User.FullName}" FontAttributes="Bold" />
+                                        <Label TextColor="{StaticResource Gray500}">
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="{}{0}/{1} TND">
+                                                    <Binding Path="PaidAmount" />
+                                                    <Binding Path="Share" />
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1" Text="{Binding Status}" VerticalOptions="Center" TextColor="{StaticResource Gray500}" />
+                                    <Button Grid.Column="2" Text="Paid"
+                                            Command="{Binding BindingContext.MarkPaidCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding UserId}"
+                                            BackgroundColor="{StaticResource Success}" TextColor="White" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

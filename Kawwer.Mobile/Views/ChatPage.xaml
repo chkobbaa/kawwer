@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.ChatPage"
+             Title="Match chat"
+             BackgroundColor="{StaticResource BackgroundLight}">
+    <Grid RowDefinitions="*,Auto">
+        <CollectionView Grid.Row="0" ItemsSource="{Binding Messages}" Margin="12" EmptyView="No messages yet.">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <VerticalStackLayout Padding="6">
+                        <Label Text="{Binding SenderName}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Secondary}"
+                               IsVisible="{Binding SenderName}" />
+                        <Label Text="{Binding Content}" />
+                        <Label Text="{Binding CreatedAt, StringFormat='{0:HH:mm}'}" FontSize="10" TextColor="{StaticResource Gray400}" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Padding="8" ColumnSpacing="8" BackgroundColor="{StaticResource SurfaceLight}">
+            <Entry Placeholder="Type a message" Text="{Binding Draft}" />
+            <Button Grid.Column="1" Text="Send" Command="{Binding SendCommand}"
+                    BackgroundColor="{StaticResource Primary}" TextColor="White" />
+        </Grid>
+    </Grid>
+</ContentPage>

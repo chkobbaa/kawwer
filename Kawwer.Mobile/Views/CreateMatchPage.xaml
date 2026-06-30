@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.CreateMatchPage"
+             Title="Create match"
+             BackgroundColor="{StaticResource BackgroundLight}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Label Text="Football field" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding Fields}" SelectedItem="{Binding SelectedField}" ItemDisplayBinding="{Binding Name}" Title="Select a field" />
+
+            <Label Text="Title" FontAttributes="Bold" />
+            <Entry Text="{Binding MatchTitle}" />
+
+            <Label Text="Description (optional)" FontAttributes="Bold" />
+            <Entry Text="{Binding Description}" />
+
+            <Label Text="Date" FontAttributes="Bold" />
+            <DatePicker Date="{Binding MatchDate}" />
+
+            <Label Text="Start time" FontAttributes="Bold" />
+            <TimePicker Time="{Binding StartTime}" />
+
+            <Label Text="Max players (incl. you)" FontAttributes="Bold" />
+            <Stepper Minimum="2" Maximum="30" Increment="1" Value="{Binding MaxPlayers}" />
+            <Label Text="{Binding MaxPlayers, StringFormat='{0} players'}" />
+
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Text="Public match" VerticalOptions="Center" FontAttributes="Bold" />
+                <Switch Grid.Column="1" IsToggled="{Binding IsPublic}" />
+            </Grid>
+
+            <Label Text="Invite friends" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding Friends}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="Auto,*" Padding="4">
+                            <CheckBox IsChecked="{Binding IsSelected}" />
+                            <Label Grid.Column="1" Text="{Binding User.FullName}" VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}" />
+
+            <Button Text="Publish match" Command="{Binding CreateCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}"
+                    BackgroundColor="{StaticResource Primary}" TextColor="White" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

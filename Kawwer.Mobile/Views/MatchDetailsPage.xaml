@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.MatchDetailsPage"
+             x:Name="PageRoot"
+             Title="Match"
+             BackgroundColor="{StaticResource BackgroundLight}">
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+                <Label Text="{Binding Match.Title}" FontSize="24" FontAttributes="Bold" />
+                <Label Text="{Binding Match.WhenLabel}" TextColor="{StaticResource Secondary}" FontSize="16" />
+                <Label Text="{Binding Match.Field.Name}" TextColor="{StaticResource Gray500}" />
+                <Label Text="{Binding Match.Field.Address}" TextColor="{StaticResource Gray500}" />
+                <Label Text="{Binding Match.PlayersLabel}" TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                <Label Text="{Binding Match.SharePerPlayer, StringFormat='Share per player: {0} TND'}" />
+
+                <!-- Player actions -->
+                <HorizontalStackLayout Spacing="8">
+                    <Button Text="Accept" Command="{Binding AcceptCommand}" BackgroundColor="{StaticResource Success}" TextColor="White" />
+                    <Button Text="Decline" Command="{Binding DeclineCommand}" BackgroundColor="{StaticResource Warning}" TextColor="White" />
+                    <Button Text="Leave" Command="{Binding LeaveCommand}" BackgroundColor="{StaticResource Error}" TextColor="White" />
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Spacing="8">
+                    <Button Text="💬 Chat" Command="{Binding OpenChatCommand}" BackgroundColor="{StaticResource Secondary}" TextColor="White" />
+                    <Button Text="💰 Payments" Command="{Binding OpenPaymentsCommand}" BackgroundColor="{StaticResource Secondary}" TextColor="White" />
+                </HorizontalStackLayout>
+
+                <!-- Organizer actions -->
+                <VerticalStackLayout Spacing="8" IsVisible="{Binding IsOrganizer}">
+                    <Label Text="Organizer controls" FontAttributes="Bold" Margin="0,8,0,0" />
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Start live" Command="{Binding StartLiveCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White" />
+                        <Button Text="Finish" Command="{Binding FinishCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White" />
+                        <Button Text="Cancel" Command="{Binding CancelCommand}" BackgroundColor="{StaticResource Error}" TextColor="White" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <Label Text="Players" FontSize="18" FontAttributes="Bold" Margin="0,8,0,0" />
+                <CollectionView ItemsSource="{Binding Participants}" EmptyView="No players yet.">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto" Padding="8">
+                                <Label Text="{Binding User.FullName}" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="{Binding StatusLabel}" TextColor="{StaticResource Gray500}" VerticalOptions="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

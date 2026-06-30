@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.ProfilePage"
+             Title="Profile"
+             BackgroundColor="{StaticResource BackgroundLight}">
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="14">
+                <Label Text="{Binding User.FullName}" FontSize="24" FontAttributes="Bold" />
+                <Label Text="{Binding User.Username, StringFormat='@{0}'}" TextColor="{StaticResource Gray500}" />
+                <Label Text="{Binding Badge}" FontSize="16" />
+
+                <Border Padding="16" StrokeShape="RoundRectangle 16" BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Statistics" FontAttributes="Bold" FontSize="18" />
+                        <Label Text="{Binding Statistics.Reputation, StringFormat='Reputation: {0}'}" />
+                        <Label Text="{Binding Statistics.MatchesPlayed, StringFormat='Matches played: {0}'}" />
+                        <Label Text="{Binding Statistics.MatchesOrganized, StringFormat='Matches organized: {0}'}" />
+                        <Label Text="{Binding Statistics.AttendanceRate, StringFormat='Attendance rate: {0:P0}'}" />
+                        <Label Text="{Binding Statistics.PaymentReliability, StringFormat='Payment reliability: {0:P0}'}" />
+                        <Label Text="{Binding Statistics.AverageRating, StringFormat='Average rating: {0}/5'}" />
+                        <Label Text="{Binding Statistics.Friends, StringFormat='Friends: {0}'}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Button Text="Log out" Command="{Binding LogoutCommand}"
+                        BackgroundColor="{StaticResource Error}" TextColor="White" Margin="0,16,0,0" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>
