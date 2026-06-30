@@ -200,4 +200,12 @@
 
 ---
 
+## D-026
+
+**Decision:** The application uses a five-tab bottom navigation layout.
+
+**Reason:** The core features of Kawwer can be reached in one or two taps while remaining familiar to Android and iOS users.
+
+---
+
 
