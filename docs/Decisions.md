@@ -88,3 +88,19 @@
 
 ---
 
+## D-012
+
+**Decision:** Invitations are represented through the MatchParticipant entity instead of a dedicated Invitation entity.
+
+**Reason:** A participant naturally progresses through invitation, response, waiting list, attendance, payment, and rating. A single lifecycle entity avoids duplication and simplifies implementation.
+
+---
+
+## D-013
+
+**Decision:** Waiting lists use a strict first-accepted, first-promoted policy.
+
+**Reason:** This approach is transparent, predictable, and easy for users to understand while preventing disputes about promotion order.
+
+---
+
