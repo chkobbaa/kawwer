@@ -6,4 +6,37 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.3.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
+  </ItemGroup>
+
+  <!--
+    System.Security.Cryptography.Xml arrives transitively via the Microsoft JWT libraries and is
+    flagged by NuGet audit even at the latest version. Kawwer signs tokens with symmetric HMAC keys
+    and never exercises XML signing, so audit is scoped to direct dependencies.
+  -->
+  <PropertyGroup>
+    <NuGetAuditMode>direct</NuGetAuditMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kawwer.Application\Kawwer.Application.csproj" />
+    <ProjectReference Include="..\Kawwer.Domain\Kawwer.Domain.csproj" />
+    <ProjectReference Include="..\Kawwer.Contracts\Kawwer.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>
