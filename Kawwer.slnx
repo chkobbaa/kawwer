@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="Kawwer.Api/Kawwer.Api.csproj" />
+  <Project Path="Kawwer.Application/Kawwer.Application.csproj" />
+  <Project Path="Kawwer.Contracts/Kawwer.Contracts.csproj" />
+  <Project Path="Kawwer.Domain/Kawwer.Domain.csproj" />
+  <Project Path="Kawwer.Infrastructure/Kawwer.Infrastructure.csproj" />
+  <Project Path="Kawwer.Mobile/Kawwer.Mobile.csproj" />
+  <Project Path="Kawwer.Tests/Kawwer.Tests.csproj" />
+</Solution>
