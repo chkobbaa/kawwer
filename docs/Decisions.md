@@ -53,3 +53,11 @@
 **Decision:** Friendships are mutual relationships created through a friend request process.
 
 **Reason:** Organizers frequently invite the same players. Maintaining a friend list reduces repetitive searching while preserving user privacy.
+
+---
+
+## D-008
+
+**Decision:** Groups are private and owned by a single organizer.
+
+**Reason:** Groups exist only to simplify player selection during match creation. Shared ownership introduces unnecessary complexity for Version 1.
