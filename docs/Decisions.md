@@ -216,4 +216,12 @@
 
 ---
 
+## D-028
+
+**Decision:** Kawwer uses a centralized design system shared across every screen.
+
+**Reason:** A unified design system improves usability, reduces UI inconsistencies, and enables faster feature development.
+
+---
+
 
