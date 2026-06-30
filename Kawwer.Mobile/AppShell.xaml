@@ -3,12 +3,31 @@
     x:Class="kawwer.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:kawwer"
-    Title="kawwer">
+    xmlns:views="clr-namespace:Kawwer.Mobile.Views"
+    Title="Kawwer"
+    FlyoutBehavior="Disabled">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Route="login"
+        ContentTemplate="{DataTemplate views:LoginPage}"
+        Shell.NavBarIsVisible="False" />
+
+    <TabBar Route="main">
+        <Tab Title="Home">
+            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" Route="home" />
+        </Tab>
+        <Tab Title="Discover">
+            <ShellContent ContentTemplate="{DataTemplate views:DiscoverPage}" Route="discover" />
+        </Tab>
+        <Tab Title="Calendar">
+            <ShellContent ContentTemplate="{DataTemplate views:CalendarPage}" Route="calendar" />
+        </Tab>
+        <Tab Title="Friends">
+            <ShellContent ContentTemplate="{DataTemplate views:FriendsPage}" Route="friends" />
+        </Tab>
+        <Tab Title="Profile">
+            <ShellContent ContentTemplate="{DataTemplate views:ProfilePage}" Route="profile" />
+        </Tab>
+    </TabBar>
 
 </Shell>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.CalendarPage"
+             x:Name="PageRoot"
+             Title="Calendar"
+             BackgroundColor="{StaticResource BackgroundLight}">
+    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+        <CollectionView ItemsSource="{Binding Matches}" EmptyView="No matches scheduled.">
+            <CollectionView.Header>
+                <Label Text="Your schedule" FontSize="20" FontAttributes="Bold" Padding="16,16,16,0" />
+            </CollectionView.Header>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="16,8" Padding="14" StrokeShape="RoundRectangle 16"
+                            BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding BindingContext.OpenMatchCommand, Source={x:Reference PageRoot}}"
+                                CommandParameter="{Binding Id}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="{Binding WhenLabel}" FontAttributes="Bold" TextColor="{StaticResource Secondary}" />
+                            <Label Text="{Binding Title}" FontSize="16" />
+                            <Label Text="{Binding Field.Name}" TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </RefreshView>
+</ContentPage>
