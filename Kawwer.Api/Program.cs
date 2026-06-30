@@ -1,41 +1,144 @@
+using System.Text;
+using Kawwer.Api.Middleware;
+using Kawwer.Api.Realtime;
+using Kawwer.Application;
+using Kawwer.Application.Common.Interfaces;
+using Kawwer.Infrastructure;
+using Kawwer.Infrastructure.Identity;
+using Kawwer.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// ----- Services -----
+builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSignalR();
+
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// IRealtimeNotifier is backed by SignalR, which lives in the API host.
+builder.Services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
+
+// ----- Authentication -----
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+if (string.IsNullOrWhiteSpace(jwtOptions.SigningKey))
+{
+    // A development fallback so the app boots without secrets configured. Override in production.
+    jwtOptions.SigningKey = "kawwer-development-signing-key-change-me-please-32+";
+}
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidAudience = jwtOptions.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+
+        // Allow the SignalR hub to authenticate via the access_token query string.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.AllowAnyHeader().AllowAnyMethod().SetIsOriginAllowed(_ => true).AllowCredentials());
+});
+
+// ----- Swagger / OpenAPI -----
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Kawwer API", Version = "v1" });
+
+    var scheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter the JWT access token.",
+        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+    };
+
+    options.AddSecurityDefinition("Bearer", scheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement { [scheme] = Array.Empty<string>() });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ----- Pipeline -----
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.MapControllers();
+app.MapHub<MatchHub>("/hubs/match");
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).AllowAnonymous();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+// Apply migrations on startup. Logged (not fatal) so the host still boots if the DB is unavailable.
+await ApplyMigrationsAsync(app);
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+static async Task ApplyMigrationsAsync(WebApplication app)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    if (app.Configuration.GetValue("Database:AutoMigrate", true) is false)
+    {
+        return;
+    }
+
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<KawwerDbContext>();
+        await context.Database.MigrateAsync();
+        logger.LogInformation("Database migrations applied.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to apply database migrations on startup.");
+    }
 }
+
+// Exposed so the integration test host (WebApplicationFactory) can reference the entry point.
+public partial class Program;

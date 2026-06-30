@@ -7,7 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kawwer.Application\Kawwer.Application.csproj" />
+    <ProjectReference Include="..\Kawwer.Infrastructure\Kawwer.Infrastructure.csproj" />
+    <ProjectReference Include="..\Kawwer.Contracts\Kawwer.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
