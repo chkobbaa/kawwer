@@ -45,3 +45,11 @@
 **Decision:** Version 1 authentication uses email/username and password with JWT access and refresh tokens.
 
 **Reason:** This provides a secure authentication mechanism while keeping the initial implementation simple. Social login can be added later without changing the domain model.
+
+---
+
+## D-007
+
+**Decision:** Friendships are mutual relationships created through a friend request process.
+
+**Reason:** Organizers frequently invite the same players. Maintaining a friend list reduces repetitive searching while preserving user privacy.

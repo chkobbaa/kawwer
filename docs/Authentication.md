@@ -178,3 +178,15 @@ Refresh tokens:
 - Passkeys
 - Device management
 - Login history
+
+
+# Acceptance Criteria
+
+- A user can register successfully.
+- Duplicate usernames are rejected.
+- Duplicate emails are rejected.
+- Invalid passwords are rejected.
+- Passwords are stored only as hashes.
+- Login returns valid JWT tokens.
+- Refresh tokens generate new access tokens.
+- Logged-out users cannot access protected endpoints.
