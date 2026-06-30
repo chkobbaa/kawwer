@@ -128,3 +128,11 @@
 
 ---
 
+## D-017
+
+**Decision:** Reputation is calculated automatically using match participation and ratings.
+
+**Reason:** Organizers need a simple indicator of player reliability without exposing complex scoring algorithms.
+
+---
+
