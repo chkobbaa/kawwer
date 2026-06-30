@@ -136,6 +136,48 @@ Publishing a match immediately:
 
 ---
 
+# Organizer Dashboard
+
+After publishing a match, the organizer is redirected to the Organizer Dashboard.
+
+The dashboard provides a live overview of all matches organized by the user.
+
+For each upcoming match, the following information is displayed:
+
+| Information | Description |
+|------------|-------------|
+| Match Title | Match name |
+| Date | Match date |
+| Time | Match start time |
+| Football Field | Selected football field |
+| Accepted Players | Current accepted player count |
+| Waiting List | Number of waiting players |
+| Still Thinking | Number of undecided players |
+| Declined | Number of declined invitations |
+| Money Remaining | Amount still to collect |
+| Match Status | Draft, Published, Full, Playing, Finished, Cancelled |
+
+The organizer may open any match directly from the dashboard.
+
+The dashboard updates automatically whenever participant statuses change.
+
+---
+
+# Dashboard Actions
+
+The organizer can:
+
+- Open a match
+- Edit a match
+- Cancel a match
+- Start collecting money
+- Start live location sharing
+- Send a reminder notification
+- View match chat
+- View attendance
+
+---
+
 # Editing
 
 The organizer may edit:

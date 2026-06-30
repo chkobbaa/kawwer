@@ -104,3 +104,11 @@
 
 ---
 
+## D-014
+
+**Decision:** Version 1 supports cash payments only.
+
+**Reason:** Football matches in Tunisia are typically paid in cash immediately before play. Supporting this workflow keeps the application simple and closely aligned with real-world usage.
+
+---
+
