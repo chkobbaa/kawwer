@@ -112,3 +112,11 @@
 
 ---
 
+## D-015
+
+**Decision:** Replace a standalone GPS feature with a Live Match control center.
+
+**Reason:** Organizers need more than location tracking. Combining attendance, payments, reminders and optional live location into a single screen creates a much more useful match-day experience.
+
+---
+
