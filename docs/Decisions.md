@@ -61,3 +61,14 @@
 **Decision:** Groups are private and owned by a single organizer.
 
 **Reason:** Groups exist only to simplify player selection during match creation. Shared ownership introduces unnecessary complexity for Version 1.
+
+---
+
+## D-009
+
+**Decision:** Match creation is a guided workflow that automatically loads field information.
+
+**Reason:** Organizers create matches frequently. Automatic loading reduces repetitive data entry and minimizes mistakes.
+
+---
+
