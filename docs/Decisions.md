@@ -208,4 +208,12 @@
 
 ---
 
+## D-027
+
+**Decision:** Every major feature receives its own dedicated screen rather than combining multiple responsibilities into a single page.
+
+**Reason:** Smaller, focused screens improve usability, simplify maintenance, and make future enhancements easier.
+
+---
+
 
