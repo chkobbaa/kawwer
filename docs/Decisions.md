@@ -37,3 +37,11 @@
 **Decision:** Football fields are independent reusable entities.
 
 **Reason:** A football field can host many matches and should only be entered once. Price changes must not affect previously created matches.
+
+---
+
+## D-006
+
+**Decision:** Version 1 authentication uses email/username and password with JWT access and refresh tokens.
+
+**Reason:** This provides a secure authentication mechanism while keeping the initial implementation simple. Social login can be added later without changing the domain model.
