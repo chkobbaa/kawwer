@@ -120,3 +120,11 @@
 
 ---
 
+## D-016
+
+**Decision:** Every push notification also creates a persistent in-app notification.
+
+**Reason:** Users may dismiss push notifications accidentally. Keeping a history inside the application ensures important information remains accessible.
+
+---
+
