@@ -136,3 +136,32 @@
 
 ---
 
+## D-018
+
+**Decision:** Public matches require organizer approval by default.
+
+**Reason:** Football groups in Tunisia are generally built on trust. Organizer approval allows public discovery while preserving control over who joins a match.
+
+---
+
+## D-019
+
+**Decision:** Automatic acceptance is an optional organizer setting.
+
+**Reason:** Some organizers may prefer faster filling of matches, while others prioritize player reliability and familiarity.
+
+---
+
+## D-020
+
+**Decision:** Every match has its own temporary chat room.
+
+**Reason:** Communication should remain focused on the specific match and automatically disappear from active use after the match ends.
+
+---
+
+## D-021
+
+**Decision:** Calendar integration synchronizes accepted matches with the user's device calendar.
+
+**Reason:** Players often rely on their device calendar for reminders. Synchronizing match information reduces missed matches and keeps schedule changes consistent.
