@@ -129,3 +129,6 @@ _ReSharper*/
 
 *.bak
 *.orig
+# Notion CLI skill install artifacts
+.claude/
+skills-lock.json
