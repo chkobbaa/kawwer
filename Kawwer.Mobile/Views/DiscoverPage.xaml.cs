@@ -15,6 +15,11 @@ public partial class DiscoverPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        _viewModel.LoadCommand.Execute(null);
+
+        // Show cached content instantly; only re-fetch when the data is stale.
+        if (_viewModel.IsStale(TimeSpan.FromSeconds(30)))
+        {
+            _viewModel.LoadCommand.Execute(null);
+        }
     }
 }

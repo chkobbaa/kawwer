@@ -37,10 +37,22 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
         _unitOfWork = unitOfWork;
     }
 
+    /// <summary>
+    /// How long a just-rotated refresh token stays usable. Concurrent refreshes happen
+    /// legitimately (multiple in-flight requests, the Android notification-action process,
+    /// or an app killed before it persisted the new token); without this grace window those
+    /// races revoke the session and randomly log the user out.
+    /// </summary>
+    private static readonly TimeSpan RotationGracePeriod = TimeSpan.FromMinutes(10);
+
     public async Task<AuthResponse> HandleAsync(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         var stored = await _refreshTokens.GetByTokenAsync(request.RefreshToken, cancellationToken);
-        if (stored is null || !stored.IsActive)
+        var withinGrace = stored is { RevokedAt: not null }
+                          && DateTime.UtcNow - stored.RevokedAt.Value < RotationGracePeriod
+                          && stored.ExpiresAt > DateTime.UtcNow;
+
+        if (stored is null || (!stored.IsActive && !withinGrace))
         {
             throw new ForbiddenException("Invalid or expired refresh token.");
         }
@@ -52,7 +64,10 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
         }
 
         // Rotate: revoke the used token and issue a fresh one.
-        stored.Revoke();
+        if (stored.IsActive)
+        {
+            stored.Revoke();
+        }
         var newRefreshToken = _jwt.GenerateRefreshToken();
         _refreshTokens.Add(new RefreshToken(user.Id, newRefreshToken, _jwt.GetRefreshTokenExpiry()));
 

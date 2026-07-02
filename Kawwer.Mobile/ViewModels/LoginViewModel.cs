@@ -20,6 +20,9 @@ public sealed partial class LoginViewModel : BaseViewModel
     [ObservableProperty]
     private string _password = string.Empty;
 
+    [ObservableProperty]
+    private bool _rememberMe = true;
+
     [RelayCommand]
     private Task LoginAsync() => RunAsync(async () =>
     {
@@ -29,8 +32,8 @@ public sealed partial class LoginViewModel : BaseViewModel
             return;
         }
 
-        await _auth.LoginAsync(UsernameOrEmail.Trim(), Password);
-        await Shell.Current.GoToAsync("//main");
+        await _auth.LoginAsync(UsernameOrEmail.Trim(), Password, RememberMe);
+        await Shell.Current.GoToAsync("//main/hometab");
     });
 
     [RelayCommand]

@@ -4,62 +4,158 @@
              x:Class="Kawwer.Mobile.Views.FriendsPage"
              x:Name="PageRoot"
              Title="Friends"
-             BackgroundColor="{StaticResource BackgroundLight}">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="14">
+        <VerticalStackLayout Padding="16,12,16,24" Spacing="10">
+
             <Grid ColumnDefinitions="*,Auto">
-                <Label Text="Friends" FontSize="24" FontAttributes="Bold" VerticalOptions="Center" />
-                <Button Grid.Column="1" Text="Groups" Command="{Binding OpenGroupsCommand}"
-                        BackgroundColor="{StaticResource Secondary}" TextColor="White" />
+                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                    <Label Text="Squad" Style="{StaticResource ScreenTitle}" />
+                    <Label Text="Friends, requests and groups" FontSize="14" TextColor="{StaticResource Gray500}" />
+                </VerticalStackLayout>
+                <Button Grid.Column="1" Text="Groups" FontSize="13" FontAttributes="Bold" CornerRadius="20"
+                        HeightRequest="40" Padding="18,0" VerticalOptions="Center"
+                        BackgroundColor="{StaticResource Ink}" TextColor="{StaticResource Volt}"
+                        Command="{Binding OpenGroupsCommand}" />
             </Grid>
 
+            <!-- Search -->
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                <Entry Placeholder="Search players by name" Text="{Binding SearchTerm}" />
-                <Button Grid.Column="1" Text="Search" Command="{Binding SearchCommand}"
-                        BackgroundColor="{StaticResource Primary}" TextColor="White" />
+                <Border Style="{StaticResource InputBorder}">
+                    <Entry Style="{StaticResource FormEntry}" Placeholder="Search players by name"
+                           Text="{Binding SearchTerm}" ReturnCommand="{Binding SearchCommand}" ReturnType="Search" />
+                </Border>
+                <Border Grid.Column="1" BackgroundColor="{StaticResource Ink}" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12" WidthRequest="48" HeightRequest="48"
+                        SemanticProperties.Description="Search">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SearchCommand}" />
+                    </Border.GestureRecognizers>
+                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconSearch}" Fill="{StaticResource Volt}"
+                          HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
             </Grid>
 
             <CollectionView ItemsSource="{Binding SearchResults}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid ColumnDefinitions="*,Auto" Padding="8">
-                            <Label Text="{Binding FullName}" VerticalOptions="Center" />
-                            <Button Grid.Column="1" Text="Add"
-                                    Command="{Binding BindingContext.SendRequestCommand, Source={x:Reference PageRoot}}"
-                                    CommandParameter="{Binding Id}"
-                                    BackgroundColor="{StaticResource Primary}" TextColor="White" />
-                        </Grid>
+                        <Border Margin="0,4" Style="{StaticResource StatTile}" Padding="10">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding BindingContext.OpenProfileCommand, Source={x:Reference PageRoot}}"
+                                    CommandParameter="{Binding Id}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource Avatar}">
+                                    <Label Style="{StaticResource AvatarLabel}" Text="{Binding Initials}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                    <Label Text="{Binding FullName}" FontAttributes="Bold" FontSize="15" />
+                                    <Label Text="{Binding Username, StringFormat='@{0}'}" FontSize="12" TextColor="{StaticResource Gray500}" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="2" Text="Add" FontAttributes="Bold" FontSize="13" CornerRadius="18"
+                                        HeightRequest="36" Padding="18,0" VerticalOptions="Center"
+                                        BackgroundColor="{StaticResource Ink}" TextColor="{StaticResource Volt}"
+                                        Command="{Binding BindingContext.SendRequestCommand, Source={x:Reference PageRoot}}"
+                                        CommandParameter="{Binding Id}" />
+                            </Grid>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Label Text="Requests" FontSize="18" FontAttributes="Bold" />
-            <CollectionView ItemsSource="{Binding Requests}" EmptyView="No pending requests.">
+            <Label Text="REQUESTS" Style="{StaticResource SectionTitle}" />
+            <CollectionView ItemsSource="{Binding Requests}">
+                <CollectionView.EmptyView>
+                    <Label Text="No pending requests." Style="{StaticResource EmptyBody}" Padding="0,8" />
+                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid ColumnDefinitions="*,Auto,Auto" Padding="8" ColumnSpacing="6">
-                            <Label Text="{Binding User.FullName}" VerticalOptions="Center" />
-                            <Button Grid.Column="1" Text="✓"
-                                    IsVisible="{Binding IsIncoming}"
-                                    Command="{Binding BindingContext.AcceptCommand, Source={x:Reference PageRoot}}"
-                                    CommandParameter="{Binding FriendshipId}"
-                                    BackgroundColor="{StaticResource Success}" TextColor="White" />
-                            <Button Grid.Column="2" Text="✕"
-                                    Command="{Binding BindingContext.RejectCommand, Source={x:Reference PageRoot}}"
-                                    CommandParameter="{Binding FriendshipId}"
-                                    BackgroundColor="{StaticResource Error}" TextColor="White" />
-                        </Grid>
+                        <Border Margin="0,4" Style="{StaticResource StatTile}" Padding="10">
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                                <Border Style="{StaticResource Avatar}">
+                                    <Label Style="{StaticResource AvatarLabel}" Text="{Binding User.Initials}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                    <Label Text="{Binding User.FullName}" FontAttributes="Bold" FontSize="15" />
+                                    <Label Text="Wants to be your friend" FontSize="12" TextColor="{StaticResource Gray500}"
+                                           IsVisible="{Binding IsIncoming}" />
+                                    <Label Text="Request sent" FontSize="12" TextColor="{StaticResource Gray500}"
+                                           IsVisible="{Binding IsIncoming, Converter={StaticResource InvertedBool}}" />
+                                </VerticalStackLayout>
+                                <Border Grid.Column="2" Style="{StaticResource IconBubble}" WidthRequest="38" HeightRequest="38"
+                                        BackgroundColor="{StaticResource Success}" VerticalOptions="Center"
+                                        IsVisible="{Binding IsIncoming}" SemanticProperties.Description="Accept request">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding BindingContext.AcceptCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding FriendshipId}" />
+                                    </Border.GestureRecognizers>
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconCheck}" WidthRequest="16" HeightRequest="16"
+                                          Fill="White" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <Border Grid.Column="3" Style="{StaticResource IconBubble}" WidthRequest="38" HeightRequest="38"
+                                        BackgroundColor="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}" VerticalOptions="Center"
+                                        SemanticProperties.Description="Reject request">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding BindingContext.RejectCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding FriendshipId}" />
+                                    </Border.GestureRecognizers>
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconClose}" WidthRequest="16" HeightRequest="16"
+                                          Fill="{StaticResource Error}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                            </Grid>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Label Text="Your friends" FontSize="18" FontAttributes="Bold" />
-            <CollectionView ItemsSource="{Binding Friends}" EmptyView="No friends yet. Search to add some!">
+            <Label Text="YOUR FRIENDS" Style="{StaticResource SectionTitle}" />
+            <CollectionView ItemsSource="{Binding Friends}">
+                <CollectionView.EmptyView>
+                    <Border Style="{StaticResource StatTile}" Padding="20,24">
+                        <VerticalStackLayout Spacing="10">
+                            <Border Style="{StaticResource EmptyIconBubble}">
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconAccountPlus}" WidthRequest="24" HeightRequest="24"
+                                      Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                      HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Text="No friends yet" Style="{StaticResource EmptyTitle}" />
+                            <Label Text="Search for teammates above and build your squad." Style="{StaticResource EmptyBody}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 12"
-                                BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
-                            <Label Text="{Binding User.FullName}" />
+                        <Border Margin="0,4" Style="{StaticResource StatTile}" Padding="10">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding BindingContext.OpenProfileCommand, Source={x:Reference PageRoot}}"
+                                    CommandParameter="{Binding User.Id}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource Avatar}">
+                                    <Label Style="{StaticResource AvatarLabel}" Text="{Binding User.Initials}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                    <Label Text="{Binding User.FullName}" FontAttributes="Bold" FontSize="15" />
+                                    <Label Text="{Binding FriendsSince, StringFormat='Friends since {0:MMM yyyy}'}"
+                                           FontSize="12" TextColor="{StaticResource Gray500}" />
+                                </VerticalStackLayout>
+                                <Border Grid.Column="2" Style="{StaticResource IconBubble}" WidthRequest="36" HeightRequest="36"
+                                        BackgroundColor="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}" VerticalOptions="Center"
+                                        SemanticProperties.Description="Remove friend">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding BindingContext.RemoveFriendCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding User.Id}" />
+                                    </Border.GestureRecognizers>
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconClose}" WidthRequest="16" HeightRequest="16"
+                                          Fill="{StaticResource Error}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                            </Grid>
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>

@@ -96,13 +96,16 @@ public class Match : AggregateRoot
     public decimal RemainingAmount => Math.Max(TotalFieldPrice - ReservationPaid, 0m);
 
     /// <summary>
-    /// Per-player share rounded up to the nearest TND. The organizer absorbs the rounding remainder.
+    /// Per-player share rounded up to the nearest TND. The remaining amount (after the
+    /// reservation already paid) is the WHOLE amount left for the field, and every player
+    /// in the match (organizer included) pays an equal share of it.
+    /// Example: 90 TND total, 5 TND reserved, 14 players => 85 / 14 => 7 TND each.
     /// </summary>
     public decimal SharePerPlayer
     {
         get
         {
-            var payers = AcceptedCount;
+            var payers = MaxPlayers;
             if (payers <= 0)
             {
                 return 0m;
@@ -205,8 +208,17 @@ public class Match : AggregateRoot
             throw new DomainException("The organizer cannot be invited to their own match.");
         }
 
-        if (_participants.Any(p => p.UserId == userId && p.Status != ParticipantStatus.Removed))
+        var existing = _participants.FirstOrDefault(p => p.UserId == userId);
+        if (existing is not null)
         {
+            // Declined, departed or removed players can be invited again; anyone with an
+            // active invitation or spot cannot receive a duplicate.
+            if (existing.Status is ParticipantStatus.Declined or ParticipantStatus.Cancelled or ParticipantStatus.Removed)
+            {
+                existing.Reinvite();
+                return existing;
+            }
+
             throw new DomainException("The player has already been invited to this match.");
         }
 
@@ -221,9 +233,9 @@ public class Match : AggregateRoot
     /// </summary>
     public MatchParticipant RequestToJoin(Guid userId)
     {
-        if (Visibility != MatchVisibility.Public)
+        if (Visibility == MatchVisibility.Private)
         {
-            throw new DomainException("Only public matches accept join requests.");
+            throw new DomainException("This match is invitation-only and does not accept join requests.");
         }
 
         if (Status is MatchStatus.Cancelled or MatchStatus.Finished)
@@ -236,19 +248,75 @@ public class Match : AggregateRoot
             throw new DomainException("The organizer already owns this match.");
         }
 
-        if (_participants.Any(p => p.UserId == userId && p.Status != ParticipantStatus.Removed))
+        var existing = _participants.FirstOrDefault(p => p.UserId == userId);
+        MatchParticipant participant;
+        if (existing is not null)
         {
-            throw new DomainException("A join request or invitation already exists for this player.");
-        }
+            switch (existing.Status)
+            {
+                // Already in (or queued): joining again is a no-op, not an error, so a
+                // retried request after a network hiccup never strands the player.
+                case ParticipantStatus.Accepted or ParticipantStatus.WaitingList:
+                    return existing;
 
-        var participant = new MatchParticipant(Id, userId, isJoinRequest: true);
-        _participants.Add(participant);
+                // A pending join request stays pending; repeating the tap is idempotent.
+                case ParticipantStatus.Invited or ParticipantStatus.Seen or ParticipantStatus.Thinking when existing.IsJoinRequest:
+                    participant = existing;
+                    break;
+
+                // Tapping "Join" while holding an open invitation simply accepts it.
+                case ParticipantStatus.Invited or ParticipantStatus.Seen or ParticipantStatus.Thinking:
+                    Accept(userId);
+                    return existing;
+
+                default:
+                    // A player who declined or left earlier may change their mind and join again.
+                    existing.Reinvite(asJoinRequest: true);
+                    participant = existing;
+                    break;
+            }
+        }
+        else
+        {
+            participant = new MatchParticipant(Id, userId, isJoinRequest: true);
+            _participants.Add(participant);
+        }
 
         if (AutoAcceptPublic)
         {
             Accept(userId);
         }
 
+        return participant;
+    }
+
+    /// <summary>
+    /// A member of the match suggests adding a player. The suggestion lands in the organizer's
+    /// pending list (as a join request) and only becomes a real spot once the organizer approves.
+    /// </summary>
+    public MatchParticipant Suggest(Guid userId)
+    {
+        EnsureNotClosed();
+
+        if (userId == OrganizerId)
+        {
+            throw new DomainException("The organizer already owns this match.");
+        }
+
+        var existing = _participants.FirstOrDefault(p => p.UserId == userId);
+        if (existing is not null)
+        {
+            if (existing.Status is not (ParticipantStatus.Declined or ParticipantStatus.Cancelled or ParticipantStatus.Removed))
+            {
+                throw new DomainException("The player is already linked to this match.");
+            }
+
+            existing.Reinvite(asJoinRequest: true);
+            return existing;
+        }
+
+        var participant = new MatchParticipant(Id, userId, isJoinRequest: true);
+        _participants.Add(participant);
         return participant;
     }
 
@@ -427,9 +495,16 @@ public class Match : AggregateRoot
 
     public void FinishPaymentCollection()
     {
-        if (MissingAmount > 0m)
+        // The organizer's own share is paid directly to the field (it is never collected
+        // through the app), so collection can also finish once every player in the match
+        // has settled their individual share.
+        var everyPlayerPaid = _participants
+            .Where(p => p.Status == ParticipantStatus.Accepted)
+            .All(p => p.PaymentCompleted);
+
+        if (MissingAmount > 0m && !everyPlayerPaid)
         {
-            throw new DomainException("Collection can only finish when the remaining amount reaches zero.");
+            throw new DomainException("Collection can only finish when every player has paid their share.");
         }
 
         PaymentCompleted = true;

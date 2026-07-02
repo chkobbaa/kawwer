@@ -3,51 +3,86 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Kawwer.Mobile.Views.CreateMatchPage"
              Title="Create match"
-             BackgroundColor="{StaticResource BackgroundLight}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
-            <Label Text="Football field" FontAttributes="Bold" />
-            <Picker ItemsSource="{Binding Fields}" SelectedItem="{Binding SelectedField}" ItemDisplayBinding="{Binding Name}" Title="Select a field" />
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
 
-            <Label Text="Title" FontAttributes="Bold" />
-            <Entry Text="{Binding MatchTitle}" />
+            <Label Text="WHERE" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource InputBorder}">
+                <Picker ItemsSource="{Binding Fields}" SelectedItem="{Binding SelectedField}"
+                        ItemDisplayBinding="{Binding Name}" Title="Select a field" />
+            </Border>
+            <Button Text="+ Add a new field" FontSize="13" FontAttributes="Bold" BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    HorizontalOptions="Start" Padding="4,0" HeightRequest="32"
+                    Command="{Binding OpenCreateFieldCommand}" />
 
-            <Label Text="Description (optional)" FontAttributes="Bold" />
-            <Entry Text="{Binding Description}" />
+            <Label Text="WHAT" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource InputBorder}">
+                <Entry Style="{StaticResource FormEntry}" Placeholder="Match title" Text="{Binding MatchTitle}" />
+            </Border>
+            <Border Style="{StaticResource InputBorder}">
+                <Entry Style="{StaticResource FormEntry}" Placeholder="Description (optional)" Text="{Binding Description}" />
+            </Border>
 
-            <Label Text="Date" FontAttributes="Bold" />
-            <DatePicker Date="{Binding MatchDate}" />
-
-            <Label Text="Start time" FontAttributes="Bold" />
-            <TimePicker Time="{Binding StartTime}" />
-
-            <Label Text="Max players (incl. you)" FontAttributes="Bold" />
-            <Stepper Minimum="2" Maximum="30" Increment="1" Value="{Binding MaxPlayers}" />
-            <Label Text="{Binding MaxPlayers, StringFormat='{0} players'}" />
-
-            <Grid ColumnDefinitions="*,Auto">
-                <Label Text="Public match" VerticalOptions="Center" FontAttributes="Bold" />
-                <Switch Grid.Column="1" IsToggled="{Binding IsPublic}" />
+            <Label Text="WHEN" Style="{StaticResource SectionTitle}" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Border Style="{StaticResource InputBorder}">
+                    <DatePicker Date="{Binding MatchDate}" />
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource InputBorder}">
+                    <TimePicker Time="{Binding StartTime}" />
+                </Border>
             </Grid>
 
-            <Label Text="Invite friends" FontAttributes="Bold" />
+            <Label Text="PLAYERS" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource StatTile}" Padding="14">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                        <Label Text="{Binding MaxPlayers}" Style="{StaticResource StatNumber}" />
+                        <Label Text="players, including you" Style="{StaticResource StatCaption}" />
+                    </VerticalStackLayout>
+                    <Stepper Grid.Column="1" Minimum="2" Maximum="30" Increment="1"
+                             Value="{Binding MaxPlayers}" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <Label Text="WHO CAN JOIN" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource InputBorder}">
+                <Picker Title="Visibility"
+                        ItemsSource="{Binding VisibilityOptions}"
+                        SelectedItem="{Binding SelectedVisibility}" />
+            </Border>
+            <Label Text="{Binding VisibilityHint}" Style="{StaticResource StatCaption}" Margin="4,0,4,4" />
+
+            <Label Text="INVITE FRIENDS" Style="{StaticResource SectionTitle}" />
             <CollectionView ItemsSource="{Binding Friends}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="No friends yet. You can still publish a public match."
+                           Style="{StaticResource EmptyBody}" Padding="0,8" />
+                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid ColumnDefinitions="Auto,*" Padding="4">
-                            <CheckBox IsChecked="{Binding IsSelected}" />
-                            <Label Grid.Column="1" Text="{Binding User.FullName}" VerticalOptions="Center" />
-                        </Grid>
+                        <Border Margin="0,3" Style="{StaticResource StatTile}" Padding="8,4">
+                            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                                <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center" />
+                                <Border Grid.Column="1" Style="{StaticResource Avatar}" WidthRequest="34" HeightRequest="34" StrokeShape="RoundRectangle 17">
+                                    <Label Style="{StaticResource AvatarLabel}" FontSize="12" Text="{Binding User.Initials}" />
+                                </Border>
+                                <Label Grid.Column="2" Text="{Binding User.FullName}" FontSize="15" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}"
-                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}" />
+            <Border Style="{StaticResource ErrorBanner}"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+            </Border>
 
-            <Button Text="Publish match" Command="{Binding CreateCommand}"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}"
-                    BackgroundColor="{StaticResource Primary}" TextColor="White" />
+            <Button Text="Publish match" Style="{StaticResource PrimaryButton}" Command="{Binding CreateCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" Margin="0,6,0,0" />
             <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
         </VerticalStackLayout>
     </ScrollView>

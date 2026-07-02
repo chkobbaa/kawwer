@@ -15,6 +15,12 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        _viewModel.LoadCommand.Execute(null);
+
+        // Show cached content instantly; only re-fetch when the data is stale.
+        // Pull-to-refresh always reloads.
+        if (_viewModel.IsStale(TimeSpan.FromSeconds(30)))
+        {
+            _viewModel.LoadCommand.Execute(null);
+        }
     }
 }

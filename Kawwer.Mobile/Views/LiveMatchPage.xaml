@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.LiveMatchPage"
+             x:Name="PageRoot"
+             Title="Live match"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
+
+                <!-- Live hero -->
+                <Border Style="{StaticResource HeroCard}">
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8">
+                            <Border BackgroundColor="{StaticResource Error}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 10" Padding="8,3">
+                                <Label Text="LIVE" FontSize="10" FontAttributes="Bold" CharacterSpacing="1.5" TextColor="White" />
+                            </Border>
+                            <Label Text="{Binding Match.Title}" FontSize="18" FontAttributes="Bold"
+                                   TextColor="White" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="8">
+                            <Label FontSize="34" FontAttributes="Bold" TextColor="{StaticResource Volt}">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}{0}/{1}">
+                                        <Binding Path="PresentCount" />
+                                        <Binding Path="TotalCount" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                            <Label Text="players arrived" FontSize="14" TextColor="#9DB5A5" VerticalOptions="End" Margin="0,0,0,6" />
+                        </HorizontalStackLayout>
+                        <Label Text="{Binding Match.Field.Name}" FontSize="13" TextColor="#9DB5A5" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- My actions -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <Button Text="I've arrived" Style="{StaticResource PrimaryButton}" HeightRequest="46" FontSize="14"
+                            Command="{Binding MarkArrivedCommand}" />
+                    <Button Grid.Column="1" Text="Navigate" Style="{StaticResource OutlineButton}" HeightRequest="46" FontSize="14"
+                            Command="{Binding OpenNavigationCommand}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <Button Text="Share my location" Style="{StaticResource OutlineButton}" HeightRequest="44" FontSize="14"
+                            IsVisible="{Binding IsSharingLocation, Converter={StaticResource InvertedBool}}"
+                            Command="{Binding ShareLocationCommand}" />
+                    <Button Text="Stop sharing" Style="{StaticResource DangerOutlineButton}" HeightRequest="44" FontSize="14"
+                            IsVisible="{Binding IsSharingLocation}"
+                            Command="{Binding StopSharingCommand}" />
+                    <Button Grid.Column="1" Text="Match chat" Style="{StaticResource OutlineButton}" HeightRequest="44" FontSize="14"
+                            Command="{Binding OpenChatCommand}" />
+                </Grid>
+
+                <!-- Organizer tools -->
+                <Border Style="{StaticResource StatTile}" IsVisible="{Binding IsOrganizer}" Padding="14">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="ORGANIZER" Style="{StaticResource SectionTitle}" Margin="0" />
+                        <Button Text="Ask everyone to share location" Style="{StaticResource OutlineButton}" HeightRequest="44" FontSize="14"
+                                Command="{Binding RequestLocationsCommand}" />
+                        <Label Text="Tap the icons next to a player to mark them present, late or absent."
+                               Style="{StaticResource StatCaption}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource ErrorBanner}"
+                        IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                    <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+                </Border>
+
+                <Label Text="ATTENDANCE" Style="{StaticResource SectionTitle}" />
+                <CollectionView ItemsSource="{Binding Players}">
+                    <CollectionView.EmptyView>
+                        <Label Text="No confirmed players." Style="{StaticResource EmptyBody}" Padding="0,8" />
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,3" Style="{StaticResource StatTile}" Padding="10">
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                    <Border Style="{StaticResource Avatar}" WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19">
+                                        <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding Participant.User.Initials}" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Participant.User.FullName}" FontAttributes="Bold" FontSize="15"
+                                               LineBreakMode="TailTruncation" />
+                                        <HorizontalStackLayout Spacing="6">
+                                            <Label Text="{Binding AttendanceLabel}" FontSize="12" TextColor="{StaticResource Gray500}">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsPresent}" Value="True">
+                                                        <Setter Property="TextColor" Value="{StaticResource Success}" />
+                                                        <Setter Property="FontAttributes" Value="Bold" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsProblem}" Value="True">
+                                                        <Setter Property="TextColor" Value="{StaticResource Warning}" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconMapMarker}"
+                                                  WidthRequest="12" HeightRequest="12"
+                                                  Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                                  IsVisible="{Binding HasSharedLocation}" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                    <HorizontalStackLayout Grid.Column="2" Spacing="4" IsVisible="{Binding CanManage}" VerticalOptions="Center">
+                                        <Border Style="{StaticResource IconBubble}" WidthRequest="34" HeightRequest="34">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding BindingContext.MarkPresentCommand, Source={x:Reference PageRoot}}"
+                                                    CommandParameter="{Binding UserId}" />
+                                            </Border.GestureRecognizers>
+                                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconCheck}" WidthRequest="16" HeightRequest="16"
+                                                  Fill="{StaticResource Success}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Border Style="{StaticResource IconBubble}" WidthRequest="34" HeightRequest="34"
+                                                BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding BindingContext.MarkLateCommand, Source={x:Reference PageRoot}}"
+                                                    CommandParameter="{Binding UserId}" />
+                                            </Border.GestureRecognizers>
+                                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconClock}" WidthRequest="16" HeightRequest="16"
+                                                  Fill="{StaticResource Warning}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Border Style="{StaticResource IconBubble}" WidthRequest="34" HeightRequest="34"
+                                                BackgroundColor="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding BindingContext.MarkNoShowCommand, Source={x:Reference PageRoot}}"
+                                                    CommandParameter="{Binding UserId}" />
+                                            </Border.GestureRecognizers>
+                                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconClose}" WidthRequest="16" HeightRequest="16"
+                                                  Fill="{StaticResource Error}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

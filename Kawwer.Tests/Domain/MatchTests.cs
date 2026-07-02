@@ -27,12 +27,14 @@ public sealed class MatchTests
     }
 
     [Fact]
-    public void SharePerPlayer_RoundsUp_AndIsZeroWithNoPlayers()
+    public void SharePerPlayer_SplitsRemainingAmongAllPlayers_RoundedUp()
     {
+        // 90 TND total, 5 TND already reserved => 85 TND is the WHOLE amount left, and every
+        // one of the 14 players (organizer included) pays a share => ceil(85 / 14) => 7.
         var match = CreateMatch(maxPlayers: 14, price: 90m, reservation: 5m);
-        Assert.Equal(0m, match.SharePerPlayer);
+        Assert.Equal(7m, match.SharePerPlayer);
 
-        // Accept 13 players => 85 / 13 = 6.53.. => ceil => 7.
+        // The share is per spot, so it does not change as players accept.
         match.Publish();
         for (var i = 0; i < 13; i++)
         {

@@ -4,29 +4,59 @@
              x:Class="Kawwer.Mobile.Views.CalendarPage"
              x:Name="PageRoot"
              Title="Calendar"
-             BackgroundColor="{StaticResource BackgroundLight}">
-    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
-        <CollectionView ItemsSource="{Binding Matches}" EmptyView="No matches scheduled.">
-            <CollectionView.Header>
-                <Label Text="Your schedule" FontSize="20" FontAttributes="Bold" Padding="16,16,16,0" />
-            </CollectionView.Header>
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <!-- Fixed header outside the scrolling area so the title lines up with the other tabs
+         and never slides under the status bar. -->
+    <Grid RowDefinitions="Auto,*">
+        <VerticalStackLayout Padding="16,12,16,4" Spacing="2">
+            <Label Text="Schedule" Style="{StaticResource ScreenTitle}" />
+            <Label Text="Everything you've committed to" FontSize="14" TextColor="{StaticResource Gray500}" />
+        </VerticalStackLayout>
+        <RefreshView Grid.Row="1" IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
+        <CollectionView ItemsSource="{Binding Matches}">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="32,40" Spacing="12">
+                    <Border Style="{StaticResource EmptyIconBubble}">
+                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconCalendar}" WidthRequest="26" HeightRequest="26"
+                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                              HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="A free week" Style="{StaticResource EmptyTitle}" />
+                    <Label Text="Matches you accept will show up here, sorted by kick-off."
+                           Style="{StaticResource EmptyBody}" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Margin="16,8" Padding="14" StrokeShape="RoundRectangle 16"
-                            BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
+                    <Border Margin="16,5" Style="{StaticResource StatTile}" Padding="12">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer
                                 Command="{Binding BindingContext.OpenMatchCommand, Source={x:Reference PageRoot}}"
                                 CommandParameter="{Binding Id}" />
                         </Border.GestureRecognizers>
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="{Binding WhenLabel}" FontAttributes="Bold" TextColor="{StaticResource Secondary}" />
-                            <Label Text="{Binding Title}" FontSize="16" />
-                            <Label Text="{Binding Field.Name}" TextColor="{StaticResource Gray500}" />
-                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border Style="{StaticResource DateBlock}">
+                                <VerticalStackLayout Spacing="0" VerticalOptions="Center">
+                                    <Label Text="{Binding DayLabel}" FontSize="20" FontAttributes="Bold"
+                                           TextColor="White" HorizontalOptions="Center" />
+                                    <Label Text="{Binding MonthLabel}" FontSize="10" FontAttributes="Bold"
+                                           TextColor="{StaticResource Volt}" HorizontalOptions="Center" CharacterSpacing="1" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Field.Name}" FontSize="13" TextColor="{StaticResource Gray500}" LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding TimeLabel}" FontSize="13" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                            </VerticalStackLayout>
+                            <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
+                                  Fill="{StaticResource Gray300}" VerticalOptions="Center" />
+                        </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-    </RefreshView>
+        </RefreshView>
+    </Grid>
 </ContentPage>

@@ -19,9 +19,16 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+#if ANDROID
+        // Icon-only bottom tabs + pop-to-root when the current tab is re-tapped.
+        builder.ConfigureMauiHandlers(handlers => handlers.AddHandler(typeof(AppShell), typeof(KawwerShellRenderer)));
+#endif
+
         // ----- Core services -----
         builder.Services.AddSingleton<SessionState>();
         builder.Services.AddSingleton<AuthService>();
+        builder.Services.AddSingleton<PushRegistrationService>();
+        builder.Services.AddSingleton<MatchReminderService>();
         builder.Services.AddTransient<AuthHeaderHandler>();
 
         builder.Services
@@ -46,9 +53,16 @@ public static class MauiProgram
         builder.Services.AddTransient<ProfileViewModel>();
         builder.Services.AddTransient<CreateMatchViewModel>();
         builder.Services.AddTransient<MatchDetailsViewModel>();
+        builder.Services.AddTransient<InvitePlayersViewModel>();
         builder.Services.AddTransient<ChatViewModel>();
         builder.Services.AddTransient<PaymentsViewModel>();
         builder.Services.AddTransient<NotificationsViewModel>();
+        builder.Services.AddTransient<FieldsViewModel>();
+        builder.Services.AddTransient<CreateFieldViewModel>();
+        builder.Services.AddTransient<SettingsViewModel>();
+        builder.Services.AddTransient<LiveMatchViewModel>();
+        builder.Services.AddTransient<RatingsViewModel>();
+        builder.Services.AddTransient<PlayerProfileViewModel>();
 
         // ----- Pages -----
         builder.Services.AddTransient<LoginPage>();
@@ -61,9 +75,17 @@ public static class MauiProgram
         builder.Services.AddTransient<ProfilePage>();
         builder.Services.AddTransient<CreateMatchPage>();
         builder.Services.AddTransient<MatchDetailsPage>();
+        builder.Services.AddTransient<InvitePlayersPage>();
         builder.Services.AddTransient<ChatPage>();
         builder.Services.AddTransient<PaymentsPage>();
         builder.Services.AddTransient<NotificationsPage>();
+        builder.Services.AddTransient<FieldsPage>();
+        builder.Services.AddTransient<CreateFieldPage>();
+        builder.Services.AddTransient<MapPickerPage>();
+        builder.Services.AddTransient<SettingsPage>();
+        builder.Services.AddTransient<LiveMatchPage>();
+        builder.Services.AddTransient<RatingsPage>();
+        builder.Services.AddTransient<PlayerProfilePage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

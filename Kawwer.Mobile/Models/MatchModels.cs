@@ -28,7 +28,12 @@ public sealed class MatchDto
     public UserSummaryDto Organizer { get; set; } = new();
 
     public string WhenLabel => $"{MatchDate:ddd dd MMM} · {StartTime:HH\\:mm}";
-    public string PlayersLabel => $"{AcceptedCount}/{MaxPlayers - 1} players";
+
+    /// <summary>Player counter including the organizer, e.g. a fresh 14-player match shows 1/14.</summary>
+    public string PlayersLabel => $"{AcceptedCount + 1}/{MaxPlayers} players";
+    public string DayLabel => MatchDate.ToString("dd");
+    public string MonthLabel => MatchDate.ToString("MMM").ToUpperInvariant();
+    public string TimeLabel => StartTime.ToString("HH\\:mm");
 }
 
 public sealed class MatchParticipantDto
@@ -44,7 +49,25 @@ public sealed class MatchParticipantDto
     public bool SharedLocation { get; set; }
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
-    public string StatusLabel => Status.ToString();
+
+    public string StatusLabel => Status switch
+    {
+        ParticipantStatus.Accepted => "In",
+        ParticipantStatus.WaitingList => WaitingListPosition is { } p ? $"Waiting #{p}" : "Waiting",
+        ParticipantStatus.Thinking => "Thinking",
+        ParticipantStatus.Invited or ParticipantStatus.Seen when IsJoinRequest => "Wants in",
+        ParticipantStatus.Invited => "Invited",
+        ParticipantStatus.Seen => "Seen",
+        ParticipantStatus.Declined => "Declined",
+        _ => Status.ToString()
+    };
+
+    /// <summary>A public-match join request still waiting for the organizer's decision.</summary>
+    public bool IsPendingJoinRequest =>
+        IsJoinRequest && Status is ParticipantStatus.Invited or ParticipantStatus.Seen or ParticipantStatus.Thinking;
+
+    /// <summary>Set by MatchDetailsViewModel: true when the viewer is the organizer and this row is a pending join request.</summary>
+    public bool CanRespondToJoinRequest { get; set; }
 }
 
 public sealed class OrganizerDashboardItemDto
@@ -60,6 +83,10 @@ public sealed class OrganizerDashboardItemDto
     public int DeclinedCount { get; set; }
     public decimal MoneyRemaining { get; set; }
     public MatchStatus Status { get; set; }
+
+    public string WhenLabel => $"{MatchDate:ddd dd MMM} · {StartTime:HH\\:mm}";
+    public string DayLabel => MatchDate.ToString("dd");
+    public string MonthLabel => MatchDate.ToString("MMM").ToUpperInvariant();
 }
 
 public sealed class DiscoverMatchDto
@@ -77,10 +104,23 @@ public sealed class DiscoverMatchDto
     public bool Indoor { get; set; }
     public SurfaceType Surface { get; set; }
     public double? DistanceKm { get; set; }
+    public bool IsJoined { get; set; }
     public UserSummaryDto Organizer { get; set; } = new();
 
     public string WhenLabel => $"{MatchDate:ddd dd MMM} · {StartTime:HH\\:mm}";
     public string DistanceLabel => DistanceKm is null ? FieldName : $"{FieldName} · {DistanceKm:0.0} km";
+    public string DayLabel => MatchDate.ToString("dd");
+    public string MonthLabel => MatchDate.ToString("MMM").ToUpperInvariant();
+
+    /// <summary>How full the match is, 0..1. Drives the capacity bar on Discover cards.</summary>
+    public double FillRatio
+    {
+        get
+        {
+            var total = AcceptedCount + AvailableSpots;
+            return total <= 0 ? 0 : Math.Clamp((double)AcceptedCount / total, 0, 1);
+        }
+    }
 }
 
 public sealed class WaitingListPositionDto
@@ -105,6 +145,13 @@ public sealed class PaymentPlayerDto
     public decimal PaidAmount { get; set; }
     public decimal Share { get; set; }
     public PaymentStatus Status { get; set; }
+
+    public string StatusLabel => Status switch
+    {
+        PaymentStatus.Paid => "Paid",
+        PaymentStatus.PartiallyPaid => "Partial",
+        _ => "Unpaid"
+    };
 }
 
 public sealed class PaymentSummaryDto
@@ -122,6 +169,16 @@ public sealed class PaymentSummaryDto
     public bool CollectionStarted { get; set; }
     public bool CollectionCompleted { get; set; }
     public List<PaymentPlayerDto> Players { get; set; } = new();
+
+    /// <summary>Collection progress, 0..1. Drives the progress bar on the Payments hero.</summary>
+    public double CollectionProgress
+    {
+        get
+        {
+            var target = CollectedAmount + MissingAmount;
+            return target <= 0 ? 0 : Math.Clamp((double)(CollectedAmount / target), 0, 1);
+        }
+    }
 }
 
 public sealed class ChatMessageDto
@@ -136,6 +193,9 @@ public sealed class ChatMessageDto
     public bool IsPinned { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsSystem => Type == 2;
+
+    /// <summary>Set by the ChatViewModel after load; aligns the bubble to the right.</summary>
+    public bool IsMine { get; set; }
 }
 
 public sealed class NotificationDto
@@ -147,6 +207,27 @@ public sealed class NotificationDto
     public Guid? RelatedMatchId { get; set; }
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>
+    /// True for a match invitation addressed to the viewer, which gets inline
+    /// Accept/Decline buttons. Matches the exact title produced by the API.
+    /// </summary>
+    public bool IsMatchInvitation =>
+        Category == NotificationCategory.Invitation
+        && RelatedMatchId is not null
+        && Title.Equals("New match invitation", StringComparison.OrdinalIgnoreCase);
+
+    public string Icon => Category switch
+    {
+        NotificationCategory.Match => "⚽",
+        NotificationCategory.Invitation => "✉️",
+        NotificationCategory.Payment => "💰",
+        NotificationCategory.LiveMatch => "📍",
+        NotificationCategory.Friend => "🤝",
+        NotificationCategory.Group => "👥",
+        NotificationCategory.WaitingList => "⏳",
+        _ => "🔔"
+    };
 }
 
 public sealed class PlayerStatisticsDto

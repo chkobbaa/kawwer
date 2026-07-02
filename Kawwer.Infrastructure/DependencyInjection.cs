@@ -40,7 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
 
-        services.AddHttpClient<IPushNotificationSender, FirebasePushNotificationSender>();
+        services.AddSingleton<IPushNotificationSender, FirebasePushNotificationSender>();
 
         services.AddHostedService<MatchReminderService>();
 

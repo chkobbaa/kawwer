@@ -2,8 +2,6 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
-		<TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
 		<!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
@@ -18,6 +16,9 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+		<AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
 
 		<!-- Enable XAML source generation for faster build times and improved performance.
 		     This generates C# code from XAML at compile time instead of runtime inflation.
@@ -70,6 +71,15 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+	</ItemGroup>
+
+	<!-- Firebase Cloud Messaging (push notifications). -->
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<PackageReference Include="Xamarin.Firebase.Messaging" Version="124.1.2" />
+		<!-- Drop your Firebase Android config here; the build works without it,
+		     but pushes only activate once the file exists. -->
+		<GoogleServicesJson Include="Platforms\Android\google-services.json"
+		                    Condition="Exists('Platforms\Android\google-services.json')" />
 	</ItemGroup>
 
 </Project>

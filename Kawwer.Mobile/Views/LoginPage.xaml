@@ -3,29 +3,67 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Kawwer.Mobile.Views.LoginPage"
              Title="Kawwer"
-             BackgroundColor="{StaticResource BackgroundLight}">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <ScrollView>
-        <VerticalStackLayout Padding="24" Spacing="16" VerticalOptions="Center">
-            <Label Text="⚽ Kawwer" FontSize="32" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource Primary}" />
-            <Label Text="Organize football matches with your friends" HorizontalOptions="Center" TextColor="{StaticResource Gray500}" />
+        <Grid RowDefinitions="Auto,*">
 
-            <Border Stroke="{StaticResource Gray200}" StrokeThickness="1" Padding="20" Margin="0,16,0,0"
-                    StrokeShape="RoundRectangle 16" BackgroundColor="{StaticResource SurfaceLight}">
-                <VerticalStackLayout Spacing="12">
-                    <Entry Placeholder="Username or email" Text="{Binding UsernameOrEmail}" Keyboard="Email" />
-                    <Entry Placeholder="Password" Text="{Binding Password}" IsPassword="True" />
-
-                    <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}"
-                           IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}" />
-
-                    <Button Text="Sign in" Command="{Binding LoginCommand}"
-                            IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}"
-                            BackgroundColor="{StaticResource Primary}" TextColor="White" />
-                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
-                    <Button Text="Create an account" Command="{Binding GoToRegisterCommand}"
-                            BackgroundColor="Transparent" TextColor="{StaticResource Secondary}" />
+            <!-- Hero header -->
+            <Border Grid.Row="0" BackgroundColor="{StaticResource Ink}" StrokeThickness="0"
+                    Padding="0,48,0,56" StrokeShape="RoundRectangle 0,0,32,32">
+                <VerticalStackLayout Spacing="10">
+                    <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0" StrokeShape="RoundRectangle 36"
+                            WidthRequest="72" HeightRequest="72" HorizontalOptions="Center">
+                        <Label Text="⚽" FontSize="36" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="Kawwer" FontSize="34" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" />
+                    <Label Text="Organize football matches with your friends"
+                           FontSize="14" TextColor="#9DB5A5" HorizontalOptions="Center" />
                 </VerticalStackLayout>
             </Border>
-        </VerticalStackLayout>
+
+            <!-- Sign-in card, overlapping the hero -->
+            <Border Grid.Row="1" Style="{StaticResource Card}" Margin="20,-32,20,24" Padding="24">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="Welcome back" FontSize="22" FontAttributes="Bold" />
+                    <Label Text="Sign in to continue" FontSize="14" TextColor="{StaticResource Gray500}" Margin="0,-10,0,4" />
+
+                    <Border Style="{StaticResource InputBorder}">
+                        <Entry Style="{StaticResource FormEntry}" Placeholder="Username or email"
+                               Text="{Binding UsernameOrEmail}" Keyboard="Email" />
+                    </Border>
+                    <Border Style="{StaticResource InputBorder}">
+                        <Entry Style="{StaticResource FormEntry}" Placeholder="Password"
+                               Text="{Binding Password}" IsPassword="True" />
+                    </Border>
+
+                    <HorizontalStackLayout Spacing="4">
+                        <CheckBox IsChecked="{Binding RememberMe}" VerticalOptions="Center"
+                                  Color="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                        <Label Text="Remember me" FontSize="14" VerticalOptions="Center"
+                               TextColor="{StaticResource Gray500}" />
+                    </HorizontalStackLayout>
+
+                    <Border Style="{StaticResource ErrorBanner}"
+                            IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+                    </Border>
+
+                    <Button Style="{StaticResource PrimaryButton}" Text="Sign in"
+                            Command="{Binding LoginCommand}"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}"
+                            Margin="0,6,0,0" />
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+                    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="10" Margin="0,4">
+                        <BoxView Grid.Column="0" HeightRequest="1" VerticalOptions="Center" Color="{StaticResource Gray200}" />
+                        <Label Grid.Column="1" Text="New to Kawwer?" FontSize="12" TextColor="{StaticResource Gray500}" />
+                        <BoxView Grid.Column="2" HeightRequest="1" VerticalOptions="Center" Color="{StaticResource Gray200}" />
+                    </Grid>
+                    <Button Style="{StaticResource GhostButton}" Text="Create an account"
+                            Command="{Binding GoToRegisterCommand}" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
     </ScrollView>
 </ContentPage>

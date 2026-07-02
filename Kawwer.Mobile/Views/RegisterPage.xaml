@@ -3,29 +3,71 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Kawwer.Mobile.Views.RegisterPage"
              Title="Create account"
-             BackgroundColor="{StaticResource BackgroundLight}">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <ScrollView>
-        <VerticalStackLayout Padding="24" Spacing="12">
-            <Label Text="Create your account" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+        <Grid RowDefinitions="Auto,*">
 
-            <Entry Placeholder="First name" Text="{Binding FirstName}" />
-            <Entry Placeholder="Last name" Text="{Binding LastName}" />
-            <Entry Placeholder="Username" Text="{Binding Username}" />
-            <Entry Placeholder="Email" Text="{Binding Email}" Keyboard="Email" />
-            <Entry Placeholder="Phone number (optional)" Text="{Binding PhoneNumber}" Keyboard="Telephone" />
-            <Entry Placeholder="Password" Text="{Binding Password}" IsPassword="True" />
-            <Entry Placeholder="Confirm password" Text="{Binding ConfirmPassword}" IsPassword="True" />
+            <!-- Hero header -->
+            <Border Grid.Row="0" BackgroundColor="{StaticResource Ink}" StrokeThickness="0"
+                    Padding="24,40,24,56" StrokeShape="RoundRectangle 0,0,32,32">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Create your account" FontSize="26" FontAttributes="Bold" TextColor="White" />
+                    <Label Text="Join Kawwer and never miss a match"
+                           FontSize="14" TextColor="#9DB5A5" />
+                </VerticalStackLayout>
+            </Border>
 
-            <Label Text="Password needs 8+ chars with upper, lower and a number." FontSize="12" TextColor="{StaticResource Gray500}" />
-            <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}"
-                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}" />
+            <!-- Registration card, overlapping the hero -->
+            <Border Grid.Row="1" Style="{StaticResource Card}" Margin="20,-32,20,24" Padding="24">
+                <VerticalStackLayout Spacing="12">
 
-            <Button Text="Register" Command="{Binding RegisterCommand}"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}"
-                    BackgroundColor="{StaticResource Primary}" TextColor="White" />
-            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
-            <Button Text="Back to sign in" Command="{Binding BackToLoginCommand}"
-                    BackgroundColor="Transparent" TextColor="{StaticResource Secondary}" />
-        </VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Border Grid.Column="0" Style="{StaticResource InputBorder}">
+                            <Entry Style="{StaticResource FormEntry}" Placeholder="First name" Text="{Binding FirstName}" />
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource InputBorder}">
+                            <Entry Style="{StaticResource FormEntry}" Placeholder="Last name" Text="{Binding LastName}" />
+                        </Border>
+                    </Grid>
+
+                    <Border Style="{StaticResource InputBorder}">
+                        <Entry Style="{StaticResource FormEntry}" Placeholder="Username" Text="{Binding Username}" />
+                    </Border>
+                    <Border Style="{StaticResource InputBorder}">
+                        <Entry Style="{StaticResource FormEntry}" Placeholder="Email" Text="{Binding Email}" Keyboard="Email" />
+                    </Border>
+                    <Border Style="{StaticResource InputBorder}">
+                        <Entry Style="{StaticResource FormEntry}" Placeholder="Phone number (optional)"
+                               Text="{Binding PhoneNumber}" Keyboard="Telephone" />
+                    </Border>
+                    <Border Style="{StaticResource InputBorder}">
+                        <Entry Style="{StaticResource FormEntry}" Placeholder="Password"
+                               Text="{Binding Password}" IsPassword="True" />
+                    </Border>
+                    <Border Style="{StaticResource InputBorder}">
+                        <Entry Style="{StaticResource FormEntry}" Placeholder="Confirm password"
+                               Text="{Binding ConfirmPassword}" IsPassword="True" />
+                    </Border>
+
+                    <Label Text="Password needs 8+ characters with an uppercase letter, a lowercase letter and a number."
+                           FontSize="12" TextColor="{StaticResource Gray500}" Margin="4,0,0,0" />
+
+                    <Border Style="{StaticResource ErrorBanner}"
+                            IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+                    </Border>
+
+                    <Button Style="{StaticResource PrimaryButton}" Text="Create account"
+                            Command="{Binding RegisterCommand}"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}"
+                            Margin="0,6,0,0" />
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+                    <Button Style="{StaticResource GhostButton}" Text="Already have an account? Sign in"
+                            Command="{Binding BackToLoginCommand}" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
     </ScrollView>
 </ContentPage>

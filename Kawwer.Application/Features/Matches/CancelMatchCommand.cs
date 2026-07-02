@@ -13,6 +13,7 @@ public sealed class CancelMatchCommandHandler : IRequestHandler<CancelMatchComma
     private readonly IMatchRepository _matches;
     private readonly IChatRepository _chat;
     private readonly INotificationService _notifications;
+    private readonly INotificationRepository _notificationRepository;
     private readonly IRealtimeNotifier _realtime;
     private readonly IUnitOfWork _unitOfWork;
 
@@ -20,12 +21,14 @@ public sealed class CancelMatchCommandHandler : IRequestHandler<CancelMatchComma
         IMatchRepository matches,
         IChatRepository chat,
         INotificationService notifications,
+        INotificationRepository notificationRepository,
         IRealtimeNotifier realtime,
         IUnitOfWork unitOfWork)
     {
         _matches = matches;
         _chat = chat;
         _notifications = notifications;
+        _notificationRepository = notificationRepository;
         _realtime = realtime;
         _unitOfWork = unitOfWork;
     }
@@ -42,6 +45,10 @@ public sealed class CancelMatchCommandHandler : IRequestHandler<CancelMatchComma
 
         match.Cancel();
         _chat.Add(ChatMessage.CreateSystemMessage(match.Id, "The match has been cancelled by the organizer."));
+
+        // Invitations to a cancelled match can no longer be accepted or declined;
+        // remove them so no stale Accept/Decline buttons linger in anyone's inbox.
+        await _notificationRepository.RemoveForMatchAsync(match.Id, NotificationCategory.Invitation, cancellationToken);
 
         var affected = match.Participants
             .Where(p => p.Status is ParticipantStatus.Accepted or ParticipantStatus.WaitingList or ParticipantStatus.Thinking or ParticipantStatus.Invited)

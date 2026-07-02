@@ -92,7 +92,7 @@
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray500}}" />
+        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
@@ -114,7 +114,7 @@
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="OpenSansRegular"/>
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray500}}" />
+        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
@@ -296,10 +296,10 @@
     </Style>
 
     <Style TargetType="Shadow">
-        <Setter Property="Radius" Value="15" />
-        <Setter Property="Opacity" Value="0.5" />
-        <Setter Property="Brush" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
-        <Setter Property="Offset" Value="10,10" />
+        <Setter Property="Radius" Value="12" />
+        <Setter Property="Opacity" Value="0.14" />
+        <Setter Property="Brush" Value="{StaticResource Black}" />
+        <Setter Property="Offset" Value="0,3" />
     </Style>
 
     <Style TargetType="Slider">
@@ -413,9 +413,9 @@
         <Setter Property="Shell.UnselectedColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray200}}" />
         <Setter Property="Shell.NavBarHasShadow" Value="False" />
         <Setter Property="Shell.TabBarBackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-        <Setter Property="Shell.TabBarForegroundColor" Value="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource White}}" />
-        <Setter Property="Shell.TabBarTitleColor" Value="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource White}}" />
-        <Setter Property="Shell.TabBarUnselectedColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray200}}" />
+        <Setter Property="Shell.TabBarForegroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+        <Setter Property="Shell.TabBarTitleColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+        <Setter Property="Shell.TabBarUnselectedColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
     </Style>
 
     <Style TargetType="NavigationPage">
@@ -426,9 +426,236 @@
 
     <Style TargetType="TabbedPage">
         <Setter Property="BarBackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}" />
-        <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource White}}" />
+        <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
         <Setter Property="UnselectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray950}}" />
         <Setter Property="SelectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray200}}" />
     </Style>
+
+    <!-- ===== Kawwer design-system styles ===== -->
+
+    <Style x:Key="Card" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 20" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <Style x:Key="InputBorder" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource SurfaceDark}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+        <Setter Property="Padding" Value="12,2" />
+    </Style>
+
+    <Style x:Key="FormEntry" TargetType="Entry">
+        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="HeightRequest" Value="52" />
+    </Style>
+
+    <Style x:Key="GhostButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style x:Key="ErrorBanner" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+        <Setter Property="Padding" Value="12,10" />
+    </Style>
+
+    <!-- ===== Night Pitch language ===== -->
+
+    <Style x:Key="ScreenTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="SectionTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="CharacterSpacing" Value="1.6" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+        <Setter Property="Margin" Value="4,10,0,0" />
+    </Style>
+
+    <!-- Signature dark panel used for heroes and headers -->
+    <Style x:Key="HeroCard" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource Ink}" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 24" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <Style x:Key="Pill" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource TintGreen}, Dark={StaticResource TintGreenDark}}" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 20" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+    </Style>
+
+    <Style x:Key="PillLabel" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+    </Style>
+
+    <Style x:Key="Avatar" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource TintGreen}, Dark={StaticResource TintGreenDark}}" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 22" />
+        <Setter Property="WidthRequest" Value="44" />
+        <Setter Property="HeightRequest" Value="44" />
+    </Style>
+
+    <Style x:Key="AvatarLabel" TargetType="Label">
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <!-- Ticket-style date block -->
+    <Style x:Key="DateBlock" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource Ink}" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+        <Setter Property="WidthRequest" Value="56" />
+        <Setter Property="HeightRequest" Value="60" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="StatTile" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+        <Setter Property="Padding" Value="14,12" />
+    </Style>
+
+    <Style x:Key="StatNumber" TargetType="Label">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="StatCaption" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+    </Style>
+
+    <Style x:Key="OutlineButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+        <Setter Property="BorderWidth" Value="1.5" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="HeightRequest" Value="48" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="DangerOutlineButton" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+        <Setter Property="TextColor" Value="{StaticResource Error}" />
+        <Setter Property="BorderColor" Value="{StaticResource Error}" />
+    </Style>
+
+    <!-- Material 3 style FAB: 56dp rounded square, hosted in a Border so it can carry a vector icon -->
+    <Style x:Key="Fab" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource Ink}" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+        <Setter Property="WidthRequest" Value="56" />
+        <Setter Property="HeightRequest" Value="56" />
+        <Setter Property="HorizontalOptions" Value="End" />
+        <Setter Property="VerticalOptions" Value="End" />
+        <Setter Property="Margin" Value="0,0,16,16" />
+        <Setter Property="Shadow">
+            <Shadow Brush="{StaticResource Black}" Opacity="0.25" Radius="14" Offset="0,4" />
+        </Setter>
+    </Style>
+
+    <!-- Vector icon defaults -->
+    <Style x:Key="Icon" TargetType="Path">
+        <Setter Property="Aspect" Value="Uniform" />
+        <Setter Property="WidthRequest" Value="20" />
+        <Setter Property="HeightRequest" Value="20" />
+        <Setter Property="Fill" Value="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray200}}" />
+    </Style>
+
+    <!-- Tinted squircle that hosts an icon (M3 tonal container) -->
+    <Style x:Key="IconBubble" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource TintGreen}, Dark={StaticResource TintGreenDark}}" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+        <Setter Property="WidthRequest" Value="40" />
+        <Setter Property="HeightRequest" Value="40" />
+    </Style>
+
+    <Style x:Key="EmptyIconBubble" TargetType="Border" BasedOn="{StaticResource IconBubble}">
+        <Setter Property="WidthRequest" Value="56" />
+        <Setter Property="HeightRequest" Value="56" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="EmptyTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="17" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="EmptyBody" TargetType="Label">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <!-- ===== Icon glyphs (Material Design path data, 24x24 viewbox) ===== -->
+    <PathGeometry x:Key="IconPlus" Figures="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+    <PathGeometry x:Key="IconSearch" Figures="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
+    <PathGeometry x:Key="IconBell" Figures="M21,19V20H3V19L5,17V11C5,7.9 7.03,5.17 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V17L21,19M14,21A2,2 0 0,1 12,23A2,2 0 0,1 10,21" />
+    <PathGeometry x:Key="IconChevronRight" Figures="M8.59,16.59L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.59Z" />
+    <PathGeometry x:Key="IconChat" Figures="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2Z" />
+    <PathGeometry x:Key="IconCash" Figures="M3,6H21V18H3V6M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M7,8A2,2 0 0,1 5,10V14A2,2 0 0,1 7,16H17A2,2 0 0,1 19,14V10A2,2 0 0,1 17,8H7Z" />
+    <PathGeometry x:Key="IconCalendar" Figures="M19,19H5V8H19M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M17,10H12V15H17V10Z" />
+    <PathGeometry x:Key="IconCompass" Figures="M14.19,14.19L6,18L9.81,9.81L18,6M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,10.9A1.1,1.1 0 0,0 10.9,12A1.1,1.1 0 0,0 12,13.1A1.1,1.1 0 0,0 13.1,12A1.1,1.1 0 0,0 12,10.9Z" />
+    <PathGeometry x:Key="IconCheck" Figures="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
+    <PathGeometry x:Key="IconClose" Figures="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+    <PathGeometry x:Key="IconSend" Figures="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+    <PathGeometry x:Key="IconLogout" Figures="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z" />
+    <PathGeometry x:Key="IconCog" Figures="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+    <PathGeometry x:Key="IconMapMarker" Figures="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" />
+    <PathGeometry x:Key="IconStar" Figures="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
+    <PathGeometry x:Key="IconFlag" Figures="M14.4,6L14,4H5V21H7V14H12.6L13,16H20V6H14.4Z" />
+    <PathGeometry x:Key="IconGroup" Figures="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25" />
+    <PathGeometry x:Key="IconPencil" Figures="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+    <PathGeometry x:Key="IconPlay" Figures="M8,5.14V19.14L19,12.14L8,5.14Z" />
+    <PathGeometry x:Key="IconClock" Figures="M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12.5,7H11V13L16.25,16.15L17,14.92L12.5,12.25V7Z" />
+    <PathGeometry x:Key="IconAccount" Figures="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+    <PathGeometry x:Key="IconNavigation" Figures="M4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2L4.5,20.29Z" />
+    <PathGeometry x:Key="IconGps" Figures="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M3.05,13H1V11H3.05C3.5,6.83 6.83,3.5 11,3.05V1H13V3.05C17.17,3.5 20.5,6.83 20.95,11H23V13H20.95C20.5,17.17 17.17,20.5 13,20.95V23H11V20.95C6.83,20.5 3.5,17.17 3.05,13M12,5A7,7 0 0,0 5,12A7,7 0 0,0 12,19A7,7 0 0,0 19,12A7,7 0 0,0 12,5Z" />
+    <PathGeometry x:Key="IconAccountPlus" Figures="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,15V12H8V10H5V7H3V10H0V12H3V15H5Z" />
 
 </ResourceDictionary>

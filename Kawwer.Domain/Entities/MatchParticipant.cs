@@ -95,6 +95,27 @@ public class MatchParticipant : Entity
         RespondedAt = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// Resets a declined/left/removed participant back to a fresh invitation so the
+    /// organizer can invite the same player again.
+    /// </summary>
+    public void Reinvite(bool asJoinRequest = false)
+    {
+        if (Status is not (ParticipantStatus.Declined or ParticipantStatus.Cancelled or ParticipantStatus.Removed))
+        {
+            throw new DomainException("Only declined, removed or departed players can be re-invited.");
+        }
+
+        Status = ParticipantStatus.Invited;
+        IsJoinRequest = asJoinRequest;
+        WaitingListPosition = null;
+        InvitedAt = DateTime.UtcNow;
+        SeenAt = null;
+        RespondedAt = null;
+        JoinedAt = null;
+        LeftAt = null;
+    }
+
     public void PlaceOnWaitingList(int position)
     {
         Status = ParticipantStatus.WaitingList;

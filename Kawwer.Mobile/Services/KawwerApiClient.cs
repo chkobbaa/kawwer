@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Kawwer.Mobile.Models;
 
 namespace Kawwer.Mobile.Services;
@@ -7,7 +8,10 @@ namespace Kawwer.Mobile.Services;
 /// <summary>Typed client over the Kawwer REST API. Unwraps the standard response envelope.</summary>
 public sealed class KawwerApiClient
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() }
+    };
     private readonly HttpClient _http;
 
     public KawwerApiClient(HttpClient http) => _http = http;
@@ -33,6 +37,16 @@ public sealed class KawwerApiClient
 
     public Task UpdateDeviceTokenAsync(string? token, CancellationToken ct = default)
         => PutAsync("users/me/device-token", new { deviceToken = token }, ct);
+
+    public Task<UserDto> GetUserAsync(Guid userId, CancellationToken ct = default)
+        => GetAsync<UserDto>($"users/{userId}", ct);
+
+    public Task<PlayerStatisticsDto> GetUserStatisticsAsync(Guid userId, CancellationToken ct = default)
+        => GetAsync<PlayerStatisticsDto>($"users/{userId}/statistics", ct);
+
+    /// <summary>Upcoming matches the user is organizing. Empty unless the viewer is a friend.</summary>
+    public Task<List<MatchDto>> GetUserOrganizingAsync(Guid userId, CancellationToken ct = default)
+        => GetAsync<List<MatchDto>>($"users/{userId}/organizing", ct);
 
     // ----- Friends -----
     public Task<List<FriendDto>> GetFriendsAsync(CancellationToken ct = default) => GetAsync<List<FriendDto>>("friends", ct);
@@ -68,10 +82,16 @@ public sealed class KawwerApiClient
 
     // ----- Football fields -----
     public Task<PagedResult<FootballFieldDto>> SearchFieldsAsync(string? search, CancellationToken ct = default)
-        => GetAsync<PagedResult<FootballFieldDto>>($"football-fields?search={Uri.EscapeDataString(search ?? string.Empty)}", ct);
+        => GetAsync<PagedResult<FootballFieldDto>>($"football-fields?search={Uri.EscapeDataString(search ?? string.Empty)}&pageSize=50", ct);
+
+    public Task<FootballFieldDto> GetFieldAsync(Guid id, CancellationToken ct = default)
+        => GetAsync<FootballFieldDto>($"football-fields/{id}", ct);
 
     public Task<Guid> CreateFieldAsync(object body, CancellationToken ct = default)
         => PostAsync<Guid>("football-fields", body, ct);
+
+    public Task UpdateFieldAsync(Guid id, object body, CancellationToken ct = default)
+        => PutAsync($"football-fields/{id}", body, ct);
 
     // ----- Matches -----
     public Task<Guid> CreateMatchAsync(object body, CancellationToken ct = default) => PostAsync<Guid>("matches", body, ct);
@@ -97,6 +117,26 @@ public sealed class KawwerApiClient
     public Task FinishAsync(Guid matchId, CancellationToken ct = default) => PostAsync($"matches/{matchId}/finish", null, ct);
 
     public Task StartLiveAsync(Guid matchId, CancellationToken ct = default) => PostAsync($"matches/{matchId}/live/start", null, ct);
+
+    public Task<WaitingListPositionDto> GetWaitingListPositionAsync(Guid matchId, CancellationToken ct = default)
+        => GetAsync<WaitingListPositionDto>($"matches/{matchId}/waiting-list", ct);
+
+    // ----- Live match -----
+    public Task UpdateAttendanceAsync(Guid matchId, Guid userId, AttendanceStatus attendance, CancellationToken ct = default)
+        => PostAsync($"matches/{matchId}/live/attendance", new { userId, attendance }, ct);
+
+    public Task ShareLocationAsync(Guid matchId, decimal latitude, decimal longitude, CancellationToken ct = default)
+        => PostAsync($"matches/{matchId}/live/location", new { latitude, longitude }, ct);
+
+    public Task StopSharingLocationAsync(Guid matchId, CancellationToken ct = default)
+        => DeleteAsync($"matches/{matchId}/live/location", ct);
+
+    public Task RequestLocationsAsync(Guid matchId, CancellationToken ct = default)
+        => PostAsync($"matches/{matchId}/live/request-locations", null, ct);
+
+    // ----- Ratings -----
+    public Task SubmitRatingsAsync(Guid matchId, object body, CancellationToken ct = default)
+        => PostAsync($"matches/{matchId}/ratings", body, ct);
 
     public Task InviteAsync(Guid matchId, IEnumerable<Guid> userIds, IEnumerable<Guid> groupIds, CancellationToken ct = default)
         => PostAsync($"matches/{matchId}/invitations", new { userIds, groupIds }, ct);
@@ -150,8 +190,17 @@ public sealed class KawwerApiClient
         return GetAsync<PagedResult<DiscoverMatchDto>>(query, ct);
     }
 
-    public Task<bool> JoinPublicMatchAsync(Guid matchId, CancellationToken ct = default)
-        => PostAsync<JoinResult>($"public-matches/{matchId}/join", null, ct).ContinueWith(t => t.Result.Accepted, ct);
+    public async Task<bool> JoinPublicMatchAsync(Guid matchId, CancellationToken ct = default)
+    {
+        var result = await PostAsync<JoinResult>($"public-matches/{matchId}/join", null, ct);
+        return result.Accepted;
+    }
+
+    public Task ApproveJoinRequestAsync(Guid matchId, Guid userId, CancellationToken ct = default)
+        => PostAsync($"public-matches/{matchId}/join-requests/{userId}/approve", null, ct);
+
+    public Task RejectJoinRequestAsync(Guid matchId, Guid userId, CancellationToken ct = default)
+        => PostAsync($"public-matches/{matchId}/join-requests/{userId}/reject", null, ct);
 
     private sealed class JoinResult { public bool Accepted { get; set; } }
 
@@ -194,33 +243,97 @@ public sealed class KawwerApiClient
 
     private static async Task<T> UnwrapAsync<T>(HttpResponseMessage response, CancellationToken ct)
     {
-        var payload = await ReadEnvelopeAsync<T>(response, ct);
-        if (payload is null || !payload.Success || payload.Data is null)
+        var json = await response.Content.ReadAsStringAsync(ct);
+        var payload = TryDeserialize<ApiResponse<T>>(json);
+        if (payload is { Success: true, Data: not null })
         {
-            throw new ApiException(payload?.Message ?? $"Request failed ({(int)response.StatusCode}).");
+            return payload.Data;
         }
 
-        return payload.Data;
+        throw new ApiException(ExtractErrorMessage(payload?.Message, json, (int)response.StatusCode));
     }
 
     private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken ct)
     {
-        var payload = await ReadEnvelopeAsync<object>(response, ct);
-        if (payload is null || !payload.Success)
+        var json = await response.Content.ReadAsStringAsync(ct);
+        var payload = TryDeserialize<ApiResponse<object>>(json);
+        if (payload is { Success: true })
         {
-            throw new ApiException(payload?.Message ?? $"Request failed ({(int)response.StatusCode}).");
+            return;
         }
+
+        throw new ApiException(ExtractErrorMessage(payload?.Message, json, (int)response.StatusCode));
     }
 
-    private static async Task<ApiResponse<T>?> ReadEnvelopeAsync<T>(HttpResponseMessage response, CancellationToken ct)
+    private static T? TryDeserialize<T>(string json) where T : class
     {
         try
         {
-            return await response.Content.ReadFromJsonAsync<ApiResponse<T>>(JsonOptions, ct);
+            return JsonSerializer.Deserialize<T>(json, JsonOptions);
         }
         catch
         {
-            throw new ApiException($"Request failed ({(int)response.StatusCode}).");
+            return null;
         }
+    }
+
+    /// <summary>Builds a user-friendly error from the envelope, validation problem details, or RFC 9457 problem details.</summary>
+    private static string ExtractErrorMessage(string? envelopeMessage, string json, int statusCode)
+    {
+        if (!string.IsNullOrWhiteSpace(envelopeMessage))
+        {
+            return envelopeMessage;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            // ASP.NET validation problem details: { "errors": { "Field": ["message"] } }
+            if (root.TryGetProperty("errors", out var errors))
+            {
+                if (errors.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var property in errors.EnumerateObject())
+                    {
+                        foreach (var item in property.Value.EnumerateArray())
+                        {
+                            if (item.ValueKind == JsonValueKind.String)
+                            {
+                                return item.GetString()!;
+                            }
+                        }
+                    }
+                }
+                else if (errors.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in errors.EnumerateArray())
+                    {
+                        if (item.ValueKind == JsonValueKind.String)
+                        {
+                            return item.GetString()!;
+                        }
+                    }
+                }
+            }
+
+            // RFC 9457 problem details. "detail" may contain a stack trace in development, keep the first line.
+            if (root.TryGetProperty("detail", out var detail) && detail.ValueKind == JsonValueKind.String)
+            {
+                return detail.GetString()!.Split('\n')[0].Trim();
+            }
+
+            if (root.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String)
+            {
+                return title.GetString()!;
+            }
+        }
+        catch
+        {
+            // Not JSON; fall through to the generic message.
+        }
+
+        return $"Request failed ({statusCode}).";
     }
 }

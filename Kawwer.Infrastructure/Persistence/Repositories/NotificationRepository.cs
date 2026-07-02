@@ -45,4 +45,12 @@ public sealed class NotificationRepository : INotificationRepository
     }
 
     public void Remove(Notification notification) => _context.Notifications.Remove(notification);
+
+    public async Task RemoveForMatchAsync(
+        Guid matchId, Kawwer.Domain.Enums.NotificationCategory category, CancellationToken cancellationToken = default)
+    {
+        await _context.Notifications
+            .Where(n => n.RelatedMatchId == matchId && n.Category == category)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
 }

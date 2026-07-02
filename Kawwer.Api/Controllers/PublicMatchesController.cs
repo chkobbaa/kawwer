@@ -20,7 +20,7 @@ public sealed class PublicMatchesController : ApiControllerBase
         [FromQuery] PaginationQuery pagination,
         CancellationToken cancellationToken)
     {
-        var query = new DiscoverMatchesQuery(dateFrom, dateTo, latitude, longitude, radiusKm, pagination.Page, pagination.PageSize);
+        var query = new DiscoverMatchesQuery(CurrentUserId, dateFrom, dateTo, latitude, longitude, radiusKm, pagination.Page, pagination.PageSize);
         var result = await Dispatcher.SendAsync(query, cancellationToken);
         return Ok(result);
     }

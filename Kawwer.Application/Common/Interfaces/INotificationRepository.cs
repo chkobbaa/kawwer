@@ -11,4 +11,7 @@ public interface INotificationRepository
     Task<int> GetUnreadCountAsync(Guid userId, CancellationToken cancellationToken = default);
     Task MarkAllReadAsync(Guid userId, CancellationToken cancellationToken = default);
     void Remove(Notification notification);
+
+    /// <summary>Removes all notifications of a category linked to a match (e.g. stale invitations after a cancellation).</summary>
+    Task RemoveForMatchAsync(Guid matchId, Domain.Enums.NotificationCategory category, CancellationToken cancellationToken = default);
 }

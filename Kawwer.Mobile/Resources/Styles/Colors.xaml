@@ -12,6 +12,14 @@
     <Color x:Key="SecondaryDarkText">#90CAF9</Color>
     <Color x:Key="Tertiary">#1565C0</Color>
 
+    <!-- Kawwer "Night Pitch" design language -->
+    <Color x:Key="Ink">#0C2014</Color>
+    <Color x:Key="InkSoft">#173626</Color>
+    <Color x:Key="Volt">#CDF564</Color>
+    <Color x:Key="VoltDim">#9CC24B</Color>
+    <Color x:Key="TintGreen">#E7F2E9</Color>
+    <Color x:Key="TintGreenDark">#1E3A2A</Color>
+
     <!-- Kawwer design-system semantic colors -->
     <Color x:Key="Success">#4CAF50</Color>
     <Color x:Key="Warning">#FB8C00</Color>

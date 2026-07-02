@@ -23,7 +23,10 @@ public sealed partial class FriendsViewModel : BaseViewModel
     [ObservableProperty] private string _searchTerm = string.Empty;
 
     [RelayCommand]
-    public Task LoadAsync() => RunAsync(async () =>
+    public Task LoadAsync() => RunAsync(LoadCoreAsync);
+
+    // Unguarded core so mutations (accept/reject) can reload while RunAsync holds IsBusy.
+    private async Task LoadCoreAsync()
     {
         var friends = await _api.GetFriendsAsync();
         Friends.Clear();
@@ -38,7 +41,7 @@ public sealed partial class FriendsViewModel : BaseViewModel
         {
             Requests.Add(r);
         }
-    });
+    }
 
     [RelayCommand]
     private Task SearchAsync() => RunAsync(async () =>
@@ -67,16 +70,31 @@ public sealed partial class FriendsViewModel : BaseViewModel
     private Task AcceptAsync(Guid friendshipId) => RunAsync(async () =>
     {
         await _api.AcceptFriendRequestAsync(friendshipId);
-        await LoadAsync();
+        await LoadCoreAsync();
     });
 
     [RelayCommand]
     private Task RejectAsync(Guid friendshipId) => RunAsync(async () =>
     {
         await _api.RejectFriendRequestAsync(friendshipId);
-        await LoadAsync();
+        await LoadCoreAsync();
+    });
+
+    [RelayCommand]
+    private Task RemoveFriendAsync(Guid userId) => RunAsync(async () =>
+    {
+        var confirm = await Shell.Current.DisplayAlert("Remove Friend", "Are you sure you want to remove this friend?", "Yes", "Cancel");
+        if (confirm)
+        {
+            await _api.RemoveFriendAsync(userId);
+            await LoadCoreAsync();
+        }
     });
 
     [RelayCommand]
     private Task OpenGroupsAsync() => Shell.Current.GoToAsync("groups");
+
+    /// <summary>Tapping any player row (search result or friend) opens their profile.</summary>
+    [RelayCommand]
+    private Task OpenProfileAsync(Guid userId) => Shell.Current.GoToAsync($"playerprofile?userId={userId}");
 }

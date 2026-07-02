@@ -5,8 +5,13 @@ using Kawwer.Domain.Enums;
 
 namespace Kawwer.Application.Features.Matches;
 
+/// <summary>
+/// Invites players to an existing match. When the requester is the organizer the players are
+/// invited directly; when the requester is an accepted member the players are only SUGGESTED
+/// and land in the organizer's pending list for confirmation.
+/// </summary>
 public sealed record InvitePlayersCommand(
-    Guid OrganizerId,
+    Guid RequesterId,
     Guid MatchId,
     IReadOnlyList<Guid> UserIds,
     IReadOnlyList<Guid> GroupIds) : IRequest<Unit>;
@@ -15,17 +20,20 @@ public sealed class InvitePlayersCommandHandler : IRequestHandler<InvitePlayersC
 {
     private readonly IMatchRepository _matches;
     private readonly IGroupRepository _groups;
+    private readonly IUserRepository _users;
     private readonly INotificationService _notifications;
     private readonly IUnitOfWork _unitOfWork;
 
     public InvitePlayersCommandHandler(
         IMatchRepository matches,
         IGroupRepository groups,
+        IUserRepository users,
         INotificationService notifications,
         IUnitOfWork unitOfWork)
     {
         _matches = matches;
         _groups = groups;
+        _users = users;
         _notifications = notifications;
         _unitOfWork = unitOfWork;
     }
@@ -35,16 +43,19 @@ public sealed class InvitePlayersCommandHandler : IRequestHandler<InvitePlayersC
         var match = await _matches.GetByIdAsync(request.MatchId, cancellationToken)
                     ?? throw NotFoundException.For("Match", request.MatchId);
 
-        if (match.OrganizerId != request.OrganizerId)
+        var isOrganizer = match.OrganizerId == request.RequesterId;
+        var isMember = match.Participants.Any(p => p.UserId == request.RequesterId
+                                                   && p.Status == ParticipantStatus.Accepted);
+        if (!isOrganizer && !isMember)
         {
-            throw new ForbiddenException("Only the organizer can invite players.");
+            throw new ForbiddenException("Only the organizer or a player in the match can invite players.");
         }
 
         var inviteeIds = new HashSet<Guid>(request.UserIds);
         foreach (var groupId in request.GroupIds)
         {
             var group = await _groups.GetByIdAsync(groupId, cancellationToken);
-            if (group is null || group.OwnerId != request.OrganizerId)
+            if (group is null || group.OwnerId != request.RequesterId)
             {
                 continue;
             }
@@ -56,28 +67,80 @@ public sealed class InvitePlayersCommandHandler : IRequestHandler<InvitePlayersC
         }
 
         inviteeIds.Remove(match.OrganizerId);
+        inviteeIds.Remove(request.RequesterId);
 
-        // Skip anyone already linked to the match to keep invitations unique.
+        // Skip anyone with an ACTIVE link to the match. Players who declined, left or were
+        // removed can be re-invited (Match.Invite/Suggest resets their participation).
         var existing = match.Participants
-            .Where(p => p.Status != ParticipantStatus.Removed)
+            .Where(p => p.Status is ParticipantStatus.Invited
+                        or ParticipantStatus.Seen
+                        or ParticipantStatus.Thinking
+                        or ParticipantStatus.Accepted
+                        or ParticipantStatus.WaitingList)
             .Select(p => p.UserId)
             .ToHashSet();
 
         var newInvitees = inviteeIds.Where(id => !existing.Contains(id)).ToList();
-        foreach (var userId in newInvitees)
+        if (newInvitees.Count == 0)
         {
-            match.Invite(userId);
+            return Unit.Value;
         }
 
-        await _notifications.NotifyManyAsync(
-            newInvitees,
-            NotificationCategory.Invitation,
-            "New match invitation",
-            $"You've been invited to \"{match.Title}\" on {match.MatchDate:dd MMM} at {match.StartTime:HH\\:mm}.",
-            match.Id,
-            cancellationToken);
+        if (isOrganizer)
+        {
+            foreach (var userId in newInvitees)
+            {
+                match.Invite(userId);
+            }
+        }
+        else
+        {
+            // Members only suggest: the players land in the organizer's PENDING list and are
+            // added to the match once the organizer approves them.
+            foreach (var userId in newInvitees)
+            {
+                match.Suggest(userId);
+            }
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Notifications are best effort; the invitations above are already committed.
+        try
+        {
+            if (isOrganizer)
+            {
+                await _notifications.NotifyManyAsync(
+                    newInvitees,
+                    NotificationCategory.Invitation,
+                    "New match invitation",
+                    $"You've been invited to \"{match.Title}\" on {match.MatchDate:dd MMM} at {match.StartTime:HH\\:mm}.",
+                    match.Id,
+                    cancellationToken,
+                    // Tells the mobile app to render Accept/Decline action buttons on the push.
+                    new Dictionary<string, string> { ["type"] = "match_invitation" });
+            }
+            else
+            {
+                var requester = await _users.GetByIdAsync(request.RequesterId, cancellationToken);
+                var requesterName = requester?.FullName ?? "A player";
+                var label = newInvitees.Count == 1 ? "a player" : $"{newInvitees.Count} players";
+                await _notifications.NotifyAsync(
+                    match.OrganizerId,
+                    NotificationCategory.Invitation,
+                    "Players suggested",
+                    $"{requesterName} suggested {label} for \"{match.Title}\". Review them in the match.",
+                    match.Id,
+                    cancellationToken);
+            }
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch
+        {
+            // Never break committed invitations because of a notification problem.
+        }
+
         return Unit.Value;
     }
 }

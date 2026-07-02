@@ -21,7 +21,10 @@ public sealed partial class DiscoverViewModel : BaseViewModel
     [ObservableProperty] private bool _isEmpty;
 
     [RelayCommand]
-    public Task LoadAsync() => RunAsync(async () =>
+    public Task LoadAsync() => RunAsync(LoadCoreAsync);
+
+    // Unguarded core so JoinAsync can refresh the list while RunAsync holds IsBusy.
+    private async Task LoadCoreAsync()
     {
         double? lat = null, lng = null;
         try
@@ -46,7 +49,7 @@ public sealed partial class DiscoverViewModel : BaseViewModel
         }
 
         IsEmpty = Matches.Count == 0;
-    });
+    }
 
     [RelayCommand]
     private async Task JoinAsync(Guid matchId)
@@ -55,9 +58,18 @@ public sealed partial class DiscoverViewModel : BaseViewModel
         {
             var joined = await _api.JoinPublicMatchAsync(matchId);
             await Shell.Current.DisplayAlertAsync(
-                "Join request",
-                joined ? "You joined the match!" : "Your request was sent for approval.",
+                "Join match",
+                joined
+                    ? "You're in! The match is now in your calendar."
+                    : "The match is full or needs the organizer's approval. You're in the queue and will be notified.",
                 "OK");
+
+            if (joined)
+            {
+                await Shell.Current.GoToAsync($"matchdetails?matchId={matchId}");
+            }
+
+            await LoadCoreAsync();
         });
     }
 

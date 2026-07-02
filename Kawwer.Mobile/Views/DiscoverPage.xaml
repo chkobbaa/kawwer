@@ -4,31 +4,88 @@
              x:Class="Kawwer.Mobile.Views.DiscoverPage"
              x:Name="PageRoot"
              Title="Discover"
-             BackgroundColor="{StaticResource BackgroundLight}">
-    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
-        <CollectionView ItemsSource="{Binding Matches}" EmptyView="No public matches nearby. Pull to refresh.">
-            <CollectionView.Header>
-                <Label Text="Public matches near you" FontSize="20" FontAttributes="Bold" Padding="16,16,16,0" />
-            </CollectionView.Header>
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <!-- Fixed header outside the scrolling area so the title lines up with the other tabs
+         and never slides under the status bar. -->
+    <Grid RowDefinitions="Auto,*">
+        <VerticalStackLayout Padding="16,12,16,4" Spacing="6">
+            <Label Text="Discover" Style="{StaticResource ScreenTitle}" />
+            <Label Text="Public matches around you" FontSize="14" TextColor="{StaticResource Gray500}" />
+            <Border Style="{StaticResource ErrorBanner}"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+            </Border>
+        </VerticalStackLayout>
+        <RefreshView Grid.Row="1" IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
+        <CollectionView ItemsSource="{Binding Matches}">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="32,40" Spacing="12">
+                    <Border Style="{StaticResource EmptyIconBubble}">
+                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconCompass}" WidthRequest="26" HeightRequest="26"
+                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                              HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="Nothing nearby right now" Style="{StaticResource EmptyTitle}" />
+                    <Label Text="Pull to refresh, or create a public match and let players find you."
+                           Style="{StaticResource EmptyBody}" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Margin="16,8" Padding="14" StrokeShape="RoundRectangle 16"
-                            BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
-                        <Grid ColumnDefinitions="*,Auto" RowSpacing="4">
-                            <VerticalStackLayout Spacing="4">
-                                <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" />
-                                <Label Text="{Binding WhenLabel}" TextColor="{StaticResource Gray500}" />
-                                <Label Text="{Binding DistanceLabel}" TextColor="{StaticResource Gray500}" />
-                                <Label Text="{Binding AvailableSpots, StringFormat='{0} spots left'}" TextColor="{StaticResource Primary}" />
+                    <Border Margin="16,5" Style="{StaticResource StatTile}" Padding="14">
+                        <Border.GestureRecognizers>
+                            <!-- Tapping anywhere on the card (except the Join button) opens the full match details. -->
+                            <TapGestureRecognizer
+                                Command="{Binding BindingContext.OpenMatchCommand, Source={x:Reference PageRoot}}"
+                                CommandParameter="{Binding Id}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="10">
+                            <!-- Organizer row -->
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                <Border Style="{StaticResource Avatar}" WidthRequest="36" HeightRequest="36" StrokeShape="RoundRectangle 18">
+                                    <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding Organizer.Initials}" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                    <Label Text="{Binding Organizer.FullName}" FontSize="13" FontAttributes="Bold" />
+                                    <Label Text="Organizer" FontSize="11" TextColor="{StaticResource Gray500}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="{Binding WhenLabel}" FontSize="12"
+                                       TextColor="{StaticResource Gray500}" VerticalOptions="Center" />
+                            </Grid>
+
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="17" />
+                                <Label Text="{Binding DistanceLabel}" FontSize="13" TextColor="{StaticResource Gray500}" />
                             </VerticalStackLayout>
-                            <Button Grid.Column="1" Text="Join" VerticalOptions="Center"
-                                    Command="{Binding BindingContext.JoinCommand, Source={x:Reference PageRoot}}"
-                                    CommandParameter="{Binding Id}"
-                                    BackgroundColor="{StaticResource Primary}" TextColor="White" />
-                        </Grid>
+
+                            <!-- Capacity + join -->
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+                                <VerticalStackLayout Spacing="4" VerticalOptions="Center">
+                                    <ProgressBar Progress="{Binding FillRatio}" />
+                                    <Label Text="{Binding AvailableSpots, StringFormat='{0} spots left'}" FontSize="12"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1" Text="Join" FontAttributes="Bold" CornerRadius="20"
+                                        HeightRequest="40" Padding="20,0"
+                                        BackgroundColor="{StaticResource Ink}" TextColor="{StaticResource Volt}"
+                                        Command="{Binding BindingContext.JoinCommand, Source={x:Reference PageRoot}}"
+                                        CommandParameter="{Binding Id}">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsJoined}" Value="True">
+                                            <Setter Property="Text" Value="Already In" />
+                                            <Setter Property="IsEnabled" Value="False" />
+                                            <Setter Property="Opacity" Value="0.5" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                            </Grid>
+                        </VerticalStackLayout>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-    </RefreshView>
+        </RefreshView>
+    </Grid>
 </ContentPage>

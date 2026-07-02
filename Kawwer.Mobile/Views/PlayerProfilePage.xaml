@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.PlayerProfilePage"
+             x:Name="PageRoot"
+             Title="Player"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16,12,16,24" Spacing="10">
+
+                <!-- Identity hero -->
+                <Border Style="{StaticResource HeroCard}">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                            <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 32" WidthRequest="64" HeightRequest="64">
+                                <Label Text="{Binding User.Initials}" FontSize="24" FontAttributes="Bold"
+                                       TextColor="{StaticResource Volt}" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{Binding User.FullName}" FontSize="22" FontAttributes="Bold" TextColor="White" />
+                                <Label Text="{Binding User.Username, StringFormat='@{0}'}" FontSize="13" TextColor="#9DB5A5" />
+                                <Label Text="{Binding PositionLabel}" FontSize="12" TextColor="#9DB5A5"
+                                       IsVisible="{Binding PositionLabel, Converter={StaticResource StringNotEmpty}}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                        <FlexLayout Wrap="Wrap" Direction="Row" JustifyContent="Start">
+                            <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0" Margin="0,0,8,0"
+                                    StrokeShape="RoundRectangle 20" Padding="12,6">
+                                <Label Text="{Binding Badge}" FontSize="12" FontAttributes="Bold" TextColor="White" />
+                            </Border>
+                            <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 20" Padding="12,6">
+                                <Label Text="{Binding User.Reputation, StringFormat='★ {0:0} reputation'}"
+                                       FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Volt}" />
+                            </Border>
+                        </FlexLayout>
+
+                        <Button Text="Add friend" FontAttributes="Bold" FontSize="14" CornerRadius="20" HeightRequest="42"
+                                BackgroundColor="{StaticResource Volt}" TextColor="{StaticResource Ink}"
+                                IsVisible="{Binding CanAddFriend}" Command="{Binding SendRequestCommand}" />
+                        <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 20" Padding="12,8" HorizontalOptions="Start"
+                                IsVisible="{Binding RequestPending}">
+                            <Label Text="Friend request pending" FontSize="12" FontAttributes="Bold" TextColor="#9DB5A5" />
+                        </Border>
+                        <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 20" Padding="12,8" HorizontalOptions="Start"
+                                IsVisible="{Binding IsFriend}">
+                            <Label Text="🤝 You're friends" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Volt}" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource ErrorBanner}"
+                        IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                    <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+                </Border>
+
+                <!-- Statistics -->
+                <Label Text="STATISTICS" Style="{StaticResource SectionTitle}"
+                       IsVisible="{Binding Statistics, Converter={StaticResource NotNull}}" />
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10"
+                      IsVisible="{Binding Statistics, Converter={StaticResource NotNull}}">
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.MatchesPlayed}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Matches played" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.MatchesOrganized}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Organized" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.AttendanceRate, StringFormat='{0:P0}'}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Attendance" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.PaymentReliability, StringFormat='{0:P0}'}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Payment reliability" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.AverageRating, StringFormat='{0}/5'}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Average rating" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.Friends}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Friends" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Matches they organize (friends only) -->
+                <Label Text="ORGANIZING" Style="{StaticResource SectionTitle}" IsVisible="{Binding HasOrganizing}" />
+                <CollectionView ItemsSource="{Binding Organizing}" IsVisible="{Binding HasOrganizing}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,4" Style="{StaticResource StatTile}" StrokeShape="RoundRectangle 18" Padding="12">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding BindingContext.OpenMatchCommand, Source={x:Reference PageRoot}}"
+                                        CommandParameter="{Binding Id}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <Border Style="{StaticResource DateBlock}">
+                                        <VerticalStackLayout Spacing="0" VerticalOptions="Center">
+                                            <Label Text="{Binding DayLabel}" FontSize="20" FontAttributes="Bold"
+                                                   TextColor="White" HorizontalOptions="Center" />
+                                            <Label Text="{Binding MonthLabel}" FontSize="10" FontAttributes="Bold"
+                                                   TextColor="{StaticResource Volt}" HorizontalOptions="Center" CharacterSpacing="1" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding Field.Name}" FontSize="13" TextColor="{StaticResource Gray500}" LineBreakMode="TailTruncation" />
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Label Text="{Binding TimeLabel}" FontSize="13" FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                            <Label Text="{Binding PlayersLabel}" FontSize="13" TextColor="{StaticResource Gray500}" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                    <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
+                                          Fill="{StaticResource Gray300}" VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

@@ -4,50 +4,282 @@
              x:Class="Kawwer.Mobile.Views.MatchDetailsPage"
              x:Name="PageRoot"
              Title="Match"
-             BackgroundColor="{StaticResource BackgroundLight}">
-    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
         <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="12">
-                <Label Text="{Binding Match.Title}" FontSize="24" FontAttributes="Bold" />
-                <Label Text="{Binding Match.WhenLabel}" TextColor="{StaticResource Secondary}" FontSize="16" />
-                <Label Text="{Binding Match.Field.Name}" TextColor="{StaticResource Gray500}" />
-                <Label Text="{Binding Match.Field.Address}" TextColor="{StaticResource Gray500}" />
-                <Label Text="{Binding Match.PlayersLabel}" TextColor="{StaticResource Primary}" FontAttributes="Bold" />
-                <Label Text="{Binding Match.SharePerPlayer, StringFormat='Share per player: {0} TND'}" />
+            <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
 
-                <!-- Player actions -->
-                <HorizontalStackLayout Spacing="8">
-                    <Button Text="Accept" Command="{Binding AcceptCommand}" BackgroundColor="{StaticResource Success}" TextColor="White" />
-                    <Button Text="Decline" Command="{Binding DeclineCommand}" BackgroundColor="{StaticResource Warning}" TextColor="White" />
-                    <Button Text="Leave" Command="{Binding LeaveCommand}" BackgroundColor="{StaticResource Error}" TextColor="White" />
-                </HorizontalStackLayout>
+                <!-- Match hero -->
+                <Border Style="{StaticResource HeroCard}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="{Binding Match.Title}" FontSize="24" FontAttributes="Bold" TextColor="White" />
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Label Text="{Binding Match.TimeLabel}" FontSize="34" FontAttributes="Bold"
+                                   TextColor="{StaticResource Volt}" VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{Binding Match.WhenLabel}" FontSize="14" FontAttributes="Bold" TextColor="White" />
+                                <Label Text="{Binding Match.Field.Name}" FontSize="13" TextColor="#9DB5A5" />
+                                <Label Text="{Binding Match.Field.Address}" FontSize="12" TextColor="#9DB5A5" LineBreakMode="TailTruncation" />
+                            </VerticalStackLayout>
+                        </Grid>
+                        <HorizontalStackLayout Spacing="8">
+                            <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 20" Padding="12,6">
+                                <Label Text="{Binding Match.PlayersLabel}" FontSize="12" FontAttributes="Bold"
+                                       TextColor="{StaticResource Volt}" />
+                            </Border>
+                            <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 20" Padding="12,6">
+                                <Label Text="{Binding Match.SharePerPlayer, StringFormat='{0} TND / player'}"
+                                       FontSize="12" FontAttributes="Bold" TextColor="White" />
+                            </Border>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
 
-                <HorizontalStackLayout Spacing="8">
-                    <Button Text="💬 Chat" Command="{Binding OpenChatCommand}" BackgroundColor="{StaticResource Secondary}" TextColor="White" />
-                    <Button Text="💰 Payments" Command="{Binding OpenPaymentsCommand}" BackgroundColor="{StaticResource Secondary}" TextColor="White" />
-                </HorizontalStackLayout>
+                <!-- Cancelled banner -->
+                <Border BackgroundColor="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16" Padding="14,12" IsVisible="{Binding IsCancelled}">
+                    <Label Text="This match has been cancelled." FontSize="14" FontAttributes="Bold"
+                           TextColor="{StaticResource Error}" HorizontalOptions="Center" />
+                </Border>
 
-                <!-- Organizer actions -->
-                <VerticalStackLayout Spacing="8" IsVisible="{Binding IsOrganizer}">
-                    <Label Text="Organizer controls" FontAttributes="Bold" Margin="0,8,0,0" />
-                    <HorizontalStackLayout Spacing="8">
-                        <Button Text="Start live" Command="{Binding StartLiveCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White" />
-                        <Button Text="Finish" Command="{Binding FinishCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White" />
-                        <Button Text="Cancel" Command="{Binding CancelCommand}" BackgroundColor="{StaticResource Error}" TextColor="White" />
-                    </HorizontalStackLayout>
-                </VerticalStackLayout>
+                <Border Style="{StaticResource ErrorBanner}"
+                        IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                    <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+                </Border>
 
-                <Label Text="Players" FontSize="18" FontAttributes="Bold" Margin="0,8,0,0" />
-                <CollectionView ItemsSource="{Binding Participants}" EmptyView="No players yet.">
+                <!-- Organizer -->
+                <Border Style="{StaticResource StatTile}" Padding="10">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenProfileCommand}"
+                                              CommandParameter="{Binding Match.Organizer.Id}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                        <Border Style="{StaticResource Avatar}" WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19">
+                            <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding Match.Organizer.Initials}" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                            <Label Text="{Binding Match.Organizer.FullName}" FontSize="15" FontAttributes="Bold" />
+                            <Label Text="Organizer" FontSize="12" TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                        <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
+                              Fill="{StaticResource Gray300}" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Join (public/friends-only matches, viewer not yet in) -->
+                <Button Text="Join this match" Style="{StaticResource PrimaryButton}" HeightRequest="48"
+                        IsVisible="{Binding CanJoin}" Command="{Binding JoinCommand}" />
+
+                <!-- Live banner: the match-day control center is one tap away -->
+                <Border BackgroundColor="{StaticResource Ink}" StrokeThickness="0" StrokeShape="RoundRectangle 16"
+                        Padding="14,12" IsVisible="{Binding IsLive}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenLiveCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Border BackgroundColor="{StaticResource Error}" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10" Padding="8,3" VerticalOptions="Center">
+                            <Label Text="LIVE" FontSize="10" FontAttributes="Bold" CharacterSpacing="1.5" TextColor="White" />
+                        </Border>
+                        <Label Grid.Column="1" Text="Match day is on. Open the live board." FontSize="13"
+                               FontAttributes="Bold" TextColor="White" VerticalOptions="Center" />
+                        <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
+                              Fill="{StaticResource Volt}" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Waiting list position (docs/WaitingList.md) -->
+                <Border Style="{StaticResource StatTile}" Padding="14"
+                        IsVisible="{Binding WaitingPosition, Converter={StaticResource NotNull}}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border Style="{StaticResource IconBubble}" BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}">
+                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconClock}" Fill="{StaticResource Warning}"
+                                  HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                            <Label Text="{Binding WaitingPosition.Position, StringFormat='You are #{0} on the waiting list'}"
+                                   FontAttributes="Bold" FontSize="14" />
+                            <Label Text="First to accept, first promoted. We'll notify you when a spot opens."
+                                   Style="{StaticResource StatCaption}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Invitation response: only when the viewer still has to answer -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10" IsVisible="{Binding CanRespond}">
+                    <Button Text="I'm in" Style="{StaticResource PrimaryButton}" HeightRequest="48"
+                            Command="{Binding AcceptCommand}" />
+                    <Button Grid.Column="1" Text="Can't make it" Style="{StaticResource DangerOutlineButton}"
+                            Command="{Binding DeclineCommand}" />
+                </Grid>
+
+                <!-- Rate players after the final whistle -->
+                <Button Text="Rate the players" Style="{StaticResource PrimaryButton}" HeightRequest="46" FontSize="14"
+                        IsVisible="{Binding IsFinished}" Command="{Binding OpenRatingsCommand}" />
+
+                <!-- Shortcuts -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Border Style="{StaticResource StatTile}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenChatCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconChat}" WidthRequest="18" HeightRequest="18"
+                                  Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                  VerticalOptions="Center" />
+                            <Label Text="Match chat" FontAttributes="Bold" FontSize="14" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource StatTile}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenPaymentsCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconCash}" WidthRequest="18" HeightRequest="18"
+                                  Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                  VerticalOptions="Center" />
+                            <Label Text="Payments" FontAttributes="Bold" FontSize="14" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Organizer controls -->
+                <Border Style="{StaticResource StatTile}" IsVisible="{Binding ShowOrganizerActions}" Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="ORGANIZER" Style="{StaticResource SectionTitle}" Margin="0" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="Start live" Style="{StaticResource PrimaryButton}" HeightRequest="44" FontSize="14"
+                                    Command="{Binding StartLiveCommand}" />
+                            <Button Grid.Column="1" Text="Finish match" Style="{StaticResource OutlineButton}" HeightRequest="44" FontSize="14"
+                                    Command="{Binding FinishCommand}" />
+                        </Grid>
+                        <Button Text="Cancel match" Style="{StaticResource DangerOutlineButton}" HeightRequest="44" FontSize="14"
+                                Command="{Binding CancelCommand}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Invite players: the organizer invites directly; members suggest players
+                     that the organizer must confirm. -->
+                <Button Text="{Binding InviteButtonText}" Style="{StaticResource OutlineButton}" HeightRequest="46"
+                        FontSize="14" IsVisible="{Binding CanInvite}" Command="{Binding OpenInviteCommand}" />
+
+                <Label Text="PLAYERS IN" Style="{StaticResource SectionTitle}" />
+                <CollectionView ItemsSource="{Binding Players}">
+                    <CollectionView.EmptyView>
+                        <Label Text="No players yet." Style="{StaticResource EmptyBody}" Padding="0,8" />
+                    </CollectionView.EmptyView>
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <Grid ColumnDefinitions="*,Auto" Padding="8">
-                                <Label Text="{Binding User.FullName}" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="{Binding StatusLabel}" TextColor="{StaticResource Gray500}" VerticalOptions="Center" />
-                            </Grid>
+                            <Border Margin="0,3" Style="{StaticResource StatTile}" Padding="10">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding BindingContext.OpenProfileCommand, Source={x:Reference PageRoot}}"
+                                        CommandParameter="{Binding User.Id}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <Border Style="{StaticResource Avatar}" WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19">
+                                        <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding User.Initials}" />
+                                    </Border>
+                                    <Label Grid.Column="1" Text="{Binding User.FullName}" FontSize="15" FontAttributes="Bold"
+                                           VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                    <Border Grid.Column="2" Style="{StaticResource Pill}" VerticalOptions="Center">
+                                        <Label Style="{StaticResource PillLabel}" Text="{Binding StatusLabel}" />
+                                    </Border>
+                                </Grid>
+                            </Border>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
+
+                <Label Text="WAITING LIST" Style="{StaticResource SectionTitle}" IsVisible="{Binding HasWaitlist}" />
+                <CollectionView ItemsSource="{Binding Waitlist}" IsVisible="{Binding HasWaitlist}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,3" Style="{StaticResource StatTile}" Padding="10">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding BindingContext.OpenProfileCommand, Source={x:Reference PageRoot}}"
+                                        CommandParameter="{Binding User.Id}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <Border Style="{StaticResource Avatar}" WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19">
+                                        <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding User.Initials}" />
+                                    </Border>
+                                    <Label Grid.Column="1" Text="{Binding User.FullName}" FontSize="15" FontAttributes="Bold"
+                                           VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                    <Border Grid.Column="2" Style="{StaticResource Pill}" VerticalOptions="Center"
+                                            BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}">
+                                        <Label Style="{StaticResource PillLabel}" TextColor="{StaticResource Warning}"
+                                               Text="{Binding StatusLabel}" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Pending invitations & join requests: organizer only -->
+                <Label Text="PENDING" Style="{StaticResource SectionTitle}" IsVisible="{Binding HasPending}" />
+                <CollectionView ItemsSource="{Binding Pending}" IsVisible="{Binding HasPending}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,3" Style="{StaticResource StatTile}" Padding="10">
+                                <VerticalStackLayout Spacing="8">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding BindingContext.OpenProfileCommand, Source={x:Reference PageRoot}}"
+                                                CommandParameter="{Binding User.Id}" />
+                                        </Grid.GestureRecognizers>
+                                        <Border Style="{StaticResource Avatar}" WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19">
+                                            <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding User.Initials}" />
+                                        </Border>
+                                        <Label Grid.Column="1" Text="{Binding User.FullName}" FontSize="15" FontAttributes="Bold"
+                                               VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                        <Border Grid.Column="2" Style="{StaticResource Pill}" VerticalOptions="Center">
+                                            <Label Style="{StaticResource PillLabel}" Text="{Binding StatusLabel}" />
+                                        </Border>
+                                    </Grid>
+                                    <!-- Organizer decides on public join requests right here. -->
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding CanRespondToJoinRequest}">
+                                        <Button Text="Approve" Style="{StaticResource PrimaryButton}" HeightRequest="40" FontSize="13"
+                                                Command="{Binding BindingContext.ApproveJoinCommand, Source={x:Reference PageRoot}}"
+                                                CommandParameter="{Binding User.Id}" />
+                                        <Button Grid.Column="1" Text="Reject" Style="{StaticResource DangerOutlineButton}" HeightRequest="40" FontSize="13"
+                                                Command="{Binding BindingContext.RejectJoinCommand, Source={x:Reference PageRoot}}"
+                                                CommandParameter="{Binding User.Id}" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Field location -->
+                <Label Text="WHERE" Style="{StaticResource SectionTitle}" />
+                <Border Style="{StaticResource StatTile}" Padding="0" StrokeShape="RoundRectangle 18">
+                    <VerticalStackLayout>
+                        <WebView x:Name="FieldMapView" HeightRequest="220" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="14,10,14,12">
+                            <VerticalStackLayout Spacing="1" VerticalOptions="Center">
+                                <Label Text="{Binding Match.Field.Name}" FontSize="14" FontAttributes="Bold" />
+                                <Label Text="{Binding Match.Field.Address}" FontSize="12" TextColor="{StaticResource Gray500}"
+                                       LineBreakMode="TailTruncation" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Text="Open in Maps" FontSize="12" FontAttributes="Bold" CornerRadius="16"
+                                    HeightRequest="34" Padding="14,0" VerticalOptions="Center"
+                                    BackgroundColor="{StaticResource Ink}" TextColor="{StaticResource Volt}"
+                                    Command="{Binding OpenMapCommand}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Leave: only when the viewer is actually in. Kept at the absolute bottom
+                     of the page, and always asks for confirmation first. -->
+                <Button Text="Leave this match" Style="{StaticResource DangerOutlineButton}"
+                        IsVisible="{Binding CanLeave}" Command="{Binding LeaveCommand}" Margin="0,16,0,0" />
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>

@@ -5,10 +5,12 @@ public sealed class FirebaseOptions
 {
     public const string SectionName = "Firebase";
 
-    /// <summary>FCM server key. When empty, push notifications are skipped (in-app notifications still persist).</summary>
-    public string ServerKey { get; set; } = string.Empty;
+    /// <summary>
+    /// Path to the Firebase service-account JSON file (FCM HTTP v1 API).
+    /// Download it from Firebase console > Project settings > Service accounts.
+    /// When empty, push notifications are skipped (in-app notifications still persist).
+    /// </summary>
+    public string ServiceAccountJsonPath { get; set; } = string.Empty;
 
-    public string Endpoint { get; set; } = "https://fcm.googleapis.com/fcm/send";
-
-    public bool IsConfigured => !string.IsNullOrWhiteSpace(ServerKey);
+    public bool IsConfigured => !string.IsNullOrWhiteSpace(ServiceAccountJsonPath);
 }

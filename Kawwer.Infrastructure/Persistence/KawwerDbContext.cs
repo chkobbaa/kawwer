@@ -26,5 +26,24 @@ public sealed class KawwerDbContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(KawwerDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
+
+        // All domain entities generate their own Guid IDs (Guid.NewGuid() in Entity base class),
+        // so the store never generates values. Without this, EF treats entities discovered through
+        // navigation collections (e.g. new MatchParticipant added to Match._participants) as
+        // already-existing rows and emits UPDATE instead of INSERT, causing
+        // DbUpdateConcurrencyException when the row doesn't actually exist yet.
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            var pk = entityType.FindPrimaryKey();
+            if (pk is null) continue;
+
+            foreach (var prop in pk.Properties)
+            {
+                if (prop.ClrType == typeof(Guid))
+                {
+                    prop.ValueGenerated = Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never;
+                }
+            }
+        }
     }
 }

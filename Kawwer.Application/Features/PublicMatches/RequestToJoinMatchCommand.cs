@@ -12,6 +12,7 @@ public sealed class RequestToJoinMatchCommandHandler : IRequestHandler<RequestTo
 {
     private readonly IMatchRepository _matches;
     private readonly IUserRepository _users;
+    private readonly IFriendshipRepository _friendships;
     private readonly INotificationService _notifications;
     private readonly IRealtimeNotifier _realtime;
     private readonly IUnitOfWork _unitOfWork;
@@ -19,12 +20,14 @@ public sealed class RequestToJoinMatchCommandHandler : IRequestHandler<RequestTo
     public RequestToJoinMatchCommandHandler(
         IMatchRepository matches,
         IUserRepository users,
+        IFriendshipRepository friendships,
         INotificationService notifications,
         IRealtimeNotifier realtime,
         IUnitOfWork unitOfWork)
     {
         _matches = matches;
         _users = users;
+        _friendships = friendships;
         _notifications = notifications;
         _realtime = realtime;
         _unitOfWork = unitOfWork;
@@ -36,34 +39,70 @@ public sealed class RequestToJoinMatchCommandHandler : IRequestHandler<RequestTo
         var match = await _matches.GetByIdAsync(request.MatchId, cancellationToken)
                     ?? throw NotFoundException.For("Match", request.MatchId);
 
+        // Friends-only matches accept join requests exclusively from the organizer's friends.
+        if (match.Visibility == MatchVisibility.FriendsOnly
+            && !await _friendships.AreFriendsAsync(match.OrganizerId, request.UserId, cancellationToken))
+        {
+            throw new ForbiddenException("Only friends of the organizer can join this match.");
+        }
+
+        // Joining is idempotent: a retried tap on someone already pending/in changes nothing.
+        var statusBefore = match.Participants.FirstOrDefault(p => p.UserId == request.UserId)?.Status;
         var participant = match.RequestToJoin(request.UserId);
         var user = await _users.GetByIdAsync(request.UserId, cancellationToken);
         var name = user?.FullName ?? "A player";
         var accepted = participant.Status == ParticipantStatus.Accepted;
+        var statusChanged = participant.Status != statusBefore;
 
-        if (accepted)
-        {
-            await _notifications.NotifyAsync(
-                request.UserId,
-                NotificationCategory.Match,
-                "You're in!",
-                $"You've joined \"{match.Title}\".",
-                match.Id,
-                cancellationToken);
-        }
-        else
-        {
-            await _notifications.NotifyAsync(
-                match.OrganizerId,
-                NotificationCategory.Invitation,
-                "New join request",
-                $"{name} wants to join \"{match.Title}\".",
-                match.Id,
-                cancellationToken);
-        }
-
+        // Commit the join itself first: a failure while recording or pushing the
+        // notification must never roll back (or block) the player's spot.
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-        await _realtime.MatchUpdatedAsync(match.Id, cancellationToken);
+
+        // Notifications are strictly best effort. The join is already committed above, so any
+        // failure from here on (including persisting the in-app notification) is swallowed:
+        // the player keeps their spot and the API still reports success.
+        try
+        {
+            if (statusChanged)
+            {
+                if (accepted)
+                {
+                    await _notifications.NotifyAsync(
+                        request.UserId,
+                        NotificationCategory.Match,
+                        "You're in!",
+                        $"You've joined \"{match.Title}\".",
+                        match.Id,
+                        cancellationToken);
+                }
+                else
+                {
+                    await _notifications.NotifyAsync(
+                        match.OrganizerId,
+                        NotificationCategory.Invitation,
+                        "New join request",
+                        $"{name} wants to join \"{match.Title}\".",
+                        match.Id,
+                        cancellationToken);
+                }
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+        }
+        catch
+        {
+            // Never break a committed join because of a notification problem.
+        }
+
+        try
+        {
+            await _realtime.MatchUpdatedAsync(match.Id, cancellationToken);
+        }
+        catch
+        {
+            // Realtime refresh is cosmetic.
+        }
+
         return accepted;
     }
 }
