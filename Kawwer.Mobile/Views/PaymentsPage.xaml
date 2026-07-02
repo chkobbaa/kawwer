@@ -4,49 +4,93 @@
              x:Class="Kawwer.Mobile.Views.PaymentsPage"
              x:Name="PageRoot"
              Title="Payments"
-             BackgroundColor="{StaticResource BackgroundLight}">
-    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
         <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="12">
-                <Border Padding="16" StrokeShape="RoundRectangle 16" BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="Collection summary" FontAttributes="Bold" FontSize="18" />
-                        <Label Text="{Binding Summary.SharePerPlayer, StringFormat='Share per player: {0} TND'}" />
-                        <Label Text="{Binding Summary.CollectedAmount, StringFormat='Collected: {0} TND'}" />
-                        <Label Text="{Binding Summary.MissingAmount, StringFormat='Missing: {0} TND'}" TextColor="{StaticResource Warning}" />
+            <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
+
+                <!-- Collection hero -->
+                <Border Style="{StaticResource HeroCard}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="COLLECTED SO FAR" FontSize="11" FontAttributes="Bold" CharacterSpacing="2"
+                               TextColor="{StaticResource Volt}" />
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="{Binding Summary.CollectedAmount}" FontSize="40" FontAttributes="Bold"
+                                   TextColor="{StaticResource Volt}" />
+                            <Label Text="TND" FontSize="16" TextColor="#9DB5A5" VerticalOptions="End" Margin="0,0,0,8" />
+                        </HorizontalStackLayout>
+                        <ProgressBar Progress="{Binding Summary.CollectionProgress}"
+                                     ProgressColor="{StaticResource Volt}" BackgroundColor="{StaticResource InkSoft}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="{Binding Summary.MissingAmount, StringFormat='{0} TND still missing'}"
+                                   FontSize="13" TextColor="#9DB5A5" />
+                            <Label Grid.Column="1" Text="{Binding Summary.SharePerPlayer, StringFormat='{0} TND / player'}"
+                                   FontSize="13" FontAttributes="Bold" TextColor="White" />
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 
-                <HorizontalStackLayout Spacing="8">
-                    <Button Text="Start collection" Command="{Binding StartCommand}" BackgroundColor="{StaticResource Primary}" TextColor="White" />
-                    <Button Text="Finish" Command="{Binding FinishCommand}" BackgroundColor="{StaticResource Success}" TextColor="White" />
-                </HorizontalStackLayout>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Text="Start collection" Style="{StaticResource PrimaryButton}" HeightRequest="46" FontSize="14"
+                            Command="{Binding StartCommand}" />
+                    <Button Grid.Column="1" Text="Finish" Style="{StaticResource OutlineButton}" HeightRequest="46" FontSize="14"
+                            Command="{Binding FinishCommand}" />
+                </Grid>
 
-                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}"
-                       IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}" />
+                <Border Style="{StaticResource ErrorBanner}"
+                        IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                    <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+                </Border>
 
-                <CollectionView ItemsSource="{Binding Players}" EmptyView="No accepted players to collect from.">
+                <Label Text="PLAYERS" Style="{StaticResource SectionTitle}" />
+                <CollectionView ItemsSource="{Binding Players}">
+                    <CollectionView.EmptyView>
+                        <Label Text="No accepted players to collect from." Style="{StaticResource EmptyBody}" Padding="0,8" />
+                    </CollectionView.EmptyView>
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 12"
-                                    BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
-                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                                    <VerticalStackLayout>
-                                        <Label Text="{Binding User.FullName}" FontAttributes="Bold" />
-                                        <Label TextColor="{StaticResource Gray500}">
+                            <Border Margin="0,3" Style="{StaticResource StatTile}" Padding="10">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                                    <Border Style="{StaticResource Avatar}" WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19">
+                                        <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding User.Initials}" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                        <Label Text="{Binding User.FullName}" FontAttributes="Bold" FontSize="15" LineBreakMode="TailTruncation" />
+                                        <Label FontSize="12" TextColor="{StaticResource Gray500}">
                                             <Label.Text>
-                                                <MultiBinding StringFormat="{}{0}/{1} TND">
+                                                <MultiBinding StringFormat="{}{0} / {1} TND">
                                                     <Binding Path="PaidAmount" />
                                                     <Binding Path="Share" />
                                                 </MultiBinding>
                                             </Label.Text>
                                         </Label>
                                     </VerticalStackLayout>
-                                    <Label Grid.Column="1" Text="{Binding Status}" VerticalOptions="Center" TextColor="{StaticResource Gray500}" />
-                                    <Button Grid.Column="2" Text="Paid"
+                                    <Border Grid.Column="2" Style="{StaticResource Pill}" VerticalOptions="Center">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding StatusLabel}" Value="Unpaid">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Border" Binding="{Binding StatusLabel}" Value="Partial">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Label Style="{StaticResource PillLabel}" Text="{Binding StatusLabel}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding StatusLabel}" Value="Unpaid">
+                                                    <Setter Property="TextColor" Value="{StaticResource Error}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding StatusLabel}" Value="Partial">
+                                                    <Setter Property="TextColor" Value="{StaticResource Warning}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                    <Button Grid.Column="3" Text="✓" FontSize="16" WidthRequest="40" HeightRequest="40" CornerRadius="20"
+                                            VerticalOptions="Center"
+                                            BackgroundColor="{StaticResource Success}" TextColor="White"
                                             Command="{Binding BindingContext.MarkPaidCommand, Source={x:Reference PageRoot}}"
                                             CommandParameter="{Binding UserId}"
-                                            BackgroundColor="{StaticResource Success}" TextColor="White" />
+                                            SemanticProperties.Description="Mark as paid" />
                                 </Grid>
                             </Border>
                         </DataTemplate>

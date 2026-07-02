@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.SettingsPage"
+             Title="Settings"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
+
+            <Label Text="PROFILE" Style="{StaticResource SectionTitle}" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Border Style="{StaticResource InputBorder}">
+                    <Entry Style="{StaticResource FormEntry}" Placeholder="First name" Text="{Binding FirstName}" />
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource InputBorder}">
+                    <Entry Style="{StaticResource FormEntry}" Placeholder="Last name" Text="{Binding LastName}" />
+                </Border>
+            </Grid>
+            <Border Style="{StaticResource InputBorder}">
+                <Entry Style="{StaticResource FormEntry}" Placeholder="Phone number" Keyboard="Telephone" Text="{Binding PhoneNumber}" />
+            </Border>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Border Style="{StaticResource InputBorder}">
+                    <Picker Title="Preferred position" ItemsSource="{Binding PositionOptions}" SelectedItem="{Binding SelectedPosition}" />
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource InputBorder}">
+                    <Picker Title="Preferred foot" ItemsSource="{Binding FootOptions}" SelectedItem="{Binding SelectedFoot}" />
+                </Border>
+            </Grid>
+
+            <Label Text="PRIVACY" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource InputBorder}">
+                <Picker Title="Profile visibility" ItemsSource="{Binding VisibilityOptions}" SelectedItem="{Binding SelectedVisibility}" />
+            </Border>
+
+            <Border Style="{StaticResource ErrorBanner}"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+            </Border>
+
+            <Button Text="Save changes" Style="{StaticResource PrimaryButton}" HeightRequest="48"
+                    Command="{Binding SaveProfileCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <Label Text="NOTIFICATIONS" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource StatTile}" Padding="14,4">
+                <VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,Auto" HeightRequest="52">
+                        <VerticalStackLayout Spacing="0" VerticalOptions="Center">
+                            <Label Text="Match updates" FontSize="15" />
+                            <Label Text="Invitations, changes and reminders" Style="{StaticResource StatCaption}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="{Binding NotifyMatches}" VerticalOptions="Center" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" HeightRequest="52">
+                        <VerticalStackLayout Spacing="0" VerticalOptions="Center">
+                            <Label Text="Payments" FontSize="15" />
+                            <Label Text="Collection started and reminders" Style="{StaticResource StatCaption}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="{Binding NotifyPayments}" VerticalOptions="Center" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" HeightRequest="52">
+                        <VerticalStackLayout Spacing="0" VerticalOptions="Center">
+                            <Label Text="Friends and groups" FontSize="15" />
+                            <Label Text="Requests and group activity" Style="{StaticResource StatCaption}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="{Binding NotifyFriends}" VerticalOptions="Center" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="ACCOUNT" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource StatTile}" Padding="4">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Padding="10,8">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding LogoutCommand}" />
+                    </Grid.GestureRecognizers>
+                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconLogout}" Fill="{StaticResource Error}"
+                          VerticalOptions="Center" />
+                    <Label Grid.Column="1" Text="Log out" FontSize="15" TextColor="{StaticResource Error}" VerticalOptions="Center" />
+                    <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
+                          Fill="{StaticResource Gray300}" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

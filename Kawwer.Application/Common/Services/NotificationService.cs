@@ -31,22 +31,31 @@ public sealed class NotificationService : INotificationService
         string title,
         string message,
         Guid? relatedMatchId = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IReadOnlyDictionary<string, string>? data = null)
     {
         _notifications.Add(new Notification(userId, category, title, message, relatedMatchId));
 
         var user = await _users.GetByIdAsync(userId, cancellationToken);
         if (user?.DeviceToken is { Length: > 0 } token)
         {
-            var data = new Dictionary<string, string> { ["category"] = category.ToString() };
+            var payload = new Dictionary<string, string> { ["category"] = category.ToString() };
             if (relatedMatchId is not null)
             {
-                data["matchId"] = relatedMatchId.Value.ToString();
+                payload["matchId"] = relatedMatchId.Value.ToString();
+            }
+
+            if (data is not null)
+            {
+                foreach (var (key, value) in data)
+                {
+                    payload[key] = value;
+                }
             }
 
             try
             {
-                await _push.SendAsync(token, title, message, data, cancellationToken);
+                await _push.SendAsync(token, title, message, payload, cancellationToken);
             }
             catch
             {
@@ -61,11 +70,12 @@ public sealed class NotificationService : INotificationService
         string title,
         string message,
         Guid? relatedMatchId = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IReadOnlyDictionary<string, string>? data = null)
     {
         foreach (var userId in userIds.Distinct())
         {
-            await NotifyAsync(userId, category, title, message, relatedMatchId, cancellationToken);
+            await NotifyAsync(userId, category, title, message, relatedMatchId, cancellationToken, data);
         }
     }
 }

@@ -13,6 +13,9 @@
 
             <conv:InvertedBoolConverter x:Key="InvertedBool" />
             <conv:StringNotEmptyConverter x:Key="StringNotEmpty" />
+            <conv:IntGreaterThanZeroConverter x:Key="IntGreaterThanZero" />
+            <conv:NotNullConverter x:Key="NotNull" />
+            <conv:IntAtLeastConverter x:Key="IntAtLeast" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

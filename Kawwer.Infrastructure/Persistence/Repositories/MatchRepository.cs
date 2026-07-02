@@ -46,13 +46,16 @@ public sealed class MatchRepository : IMatchRepository
             .ToListAsync(cancellationToken);
 
     public async Task<(IReadOnlyList<Match> Items, int Total)> GetPublicAsync(
-        DateOnly? dateFrom, DateOnly? dateTo, int page, int pageSize, CancellationToken cancellationToken = default)
+        DateOnly? dateFrom, DateOnly? dateTo, IReadOnlyCollection<Guid> friendOrganizerIds,
+        int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var from = dateFrom ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var friendIds = friendOrganizerIds.ToList();
 
         var query = _context.Matches
             .Include(m => m.Participants)
-            .Where(m => m.Visibility == MatchVisibility.Public
+            .Where(m => (m.Visibility == MatchVisibility.Public
+                         || (m.Visibility == MatchVisibility.FriendsOnly && friendIds.Contains(m.OrganizerId)))
                         && (m.Status == MatchStatus.Published || m.Status == MatchStatus.Full)
                         && m.MatchDate >= from);
 

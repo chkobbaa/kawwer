@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.RatingsPage"
+             Title="Rate the match"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <Grid RowDefinitions="*,Auto">
+        <CollectionView Grid.Row="0" ItemsSource="{Binding Items}">
+            <CollectionView.Header>
+                <VerticalStackLayout Padding="16,12,16,8" Spacing="2">
+                    <Label Text="How was everyone?" FontSize="22" FontAttributes="Bold" />
+                    <Label Text="Ratings are anonymous and build player reputation."
+                           FontSize="13" TextColor="{StaticResource Gray500}" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="32,48" Spacing="12">
+                    <Border Style="{StaticResource EmptyIconBubble}">
+                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconStar}" WidthRequest="26" HeightRequest="26"
+                              Fill="{StaticResource Warning}" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="Nobody to rate" Style="{StaticResource EmptyTitle}" />
+                    <Label Text="Only confirmed players from this match can be rated." Style="{StaticResource EmptyBody}" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="16,4" Style="{StaticResource StatTile}" Padding="14">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border Style="{StaticResource Avatar}">
+                                <Label Style="{StaticResource AvatarLabel}" Text="{Binding User.Initials}" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="{Binding User.FullName}" FontAttributes="Bold" FontSize="15" LineBreakMode="TailTruncation" />
+                                    <Label Grid.Column="1" Text="{Binding RoleLabel}" FontSize="11" TextColor="{StaticResource Gray500}"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                                <HorizontalStackLayout Spacing="6">
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconStar}" WidthRequest="26" HeightRequest="26"
+                                          Fill="{StaticResource Gray200}">
+                                        <Path.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SetStarsCommand}" CommandParameter="1" />
+                                        </Path.GestureRecognizers>
+                                        <Path.Triggers>
+                                            <DataTrigger TargetType="Path" Binding="{Binding Stars, Converter={StaticResource IntAtLeast}, ConverterParameter=1}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource Warning}" />
+                                            </DataTrigger>
+                                        </Path.Triggers>
+                                    </Path>
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconStar}" WidthRequest="26" HeightRequest="26"
+                                          Fill="{StaticResource Gray200}">
+                                        <Path.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SetStarsCommand}" CommandParameter="2" />
+                                        </Path.GestureRecognizers>
+                                        <Path.Triggers>
+                                            <DataTrigger TargetType="Path" Binding="{Binding Stars, Converter={StaticResource IntAtLeast}, ConverterParameter=2}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource Warning}" />
+                                            </DataTrigger>
+                                        </Path.Triggers>
+                                    </Path>
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconStar}" WidthRequest="26" HeightRequest="26"
+                                          Fill="{StaticResource Gray200}">
+                                        <Path.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SetStarsCommand}" CommandParameter="3" />
+                                        </Path.GestureRecognizers>
+                                        <Path.Triggers>
+                                            <DataTrigger TargetType="Path" Binding="{Binding Stars, Converter={StaticResource IntAtLeast}, ConverterParameter=3}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource Warning}" />
+                                            </DataTrigger>
+                                        </Path.Triggers>
+                                    </Path>
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconStar}" WidthRequest="26" HeightRequest="26"
+                                          Fill="{StaticResource Gray200}">
+                                        <Path.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SetStarsCommand}" CommandParameter="4" />
+                                        </Path.GestureRecognizers>
+                                        <Path.Triggers>
+                                            <DataTrigger TargetType="Path" Binding="{Binding Stars, Converter={StaticResource IntAtLeast}, ConverterParameter=4}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource Warning}" />
+                                            </DataTrigger>
+                                        </Path.Triggers>
+                                    </Path>
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconStar}" WidthRequest="26" HeightRequest="26"
+                                          Fill="{StaticResource Gray200}">
+                                        <Path.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SetStarsCommand}" CommandParameter="5" />
+                                        </Path.GestureRecognizers>
+                                        <Path.Triggers>
+                                            <DataTrigger TargetType="Path" Binding="{Binding Stars, Converter={StaticResource IntAtLeast}, ConverterParameter=5}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource Warning}" />
+                                            </DataTrigger>
+                                        </Path.Triggers>
+                                    </Path>
+                                    <Label Text="{Binding StarsLabel}" FontSize="12" TextColor="{StaticResource Gray500}"
+                                           VerticalOptions="Center" Margin="4,0,0,0" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <VerticalStackLayout Grid.Row="1" Padding="16,8,16,16" Spacing="8"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+            <Border Style="{StaticResource ErrorBanner}"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+            </Border>
+            <Button Text="Submit ratings" Style="{StaticResource PrimaryButton}" Command="{Binding SubmitCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

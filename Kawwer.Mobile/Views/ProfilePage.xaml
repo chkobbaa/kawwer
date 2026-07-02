@@ -3,29 +3,129 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Kawwer.Mobile.Views.ProfilePage"
              Title="Profile"
-             BackgroundColor="{StaticResource BackgroundLight}">
-    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
         <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="14">
-                <Label Text="{Binding User.FullName}" FontSize="24" FontAttributes="Bold" />
-                <Label Text="{Binding User.Username, StringFormat='@{0}'}" TextColor="{StaticResource Gray500}" />
-                <Label Text="{Binding Badge}" FontSize="16" />
+            <VerticalStackLayout Padding="16,12,16,24" Spacing="10">
 
-                <Border Padding="16" StrokeShape="RoundRectangle 16" BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Text="Statistics" FontAttributes="Bold" FontSize="18" />
-                        <Label Text="{Binding Statistics.Reputation, StringFormat='Reputation: {0}'}" />
-                        <Label Text="{Binding Statistics.MatchesPlayed, StringFormat='Matches played: {0}'}" />
-                        <Label Text="{Binding Statistics.MatchesOrganized, StringFormat='Matches organized: {0}'}" />
-                        <Label Text="{Binding Statistics.AttendanceRate, StringFormat='Attendance rate: {0:P0}'}" />
-                        <Label Text="{Binding Statistics.PaymentReliability, StringFormat='Payment reliability: {0:P0}'}" />
-                        <Label Text="{Binding Statistics.AverageRating, StringFormat='Average rating: {0}/5'}" />
-                        <Label Text="{Binding Statistics.Friends, StringFormat='Friends: {0}'}" />
+                <!-- Identity hero -->
+                <Border Style="{StaticResource HeroCard}">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 32" WidthRequest="64" HeightRequest="64">
+                                <Label Text="{Binding User.Initials}" FontSize="24" FontAttributes="Bold"
+                                       TextColor="{StaticResource Volt}" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{Binding User.FullName}" FontSize="22" FontAttributes="Bold" TextColor="White" />
+                                <Label Text="{Binding User.Username, StringFormat='@{0}'}" FontSize="13" TextColor="#9DB5A5" />
+                            </VerticalStackLayout>
+                            <Border Grid.Column="2" BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 20" WidthRequest="40" HeightRequest="40" VerticalOptions="Start"
+                                    SemanticProperties.Description="Settings">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenSettingsCommand}" />
+                                </Border.GestureRecognizers>
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconCog}" WidthRequest="18" HeightRequest="18"
+                                      Fill="{StaticResource Volt}" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8">
+                            <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 20" Padding="12,6">
+                                <Label Text="{Binding Badge}" FontSize="12" FontAttributes="Bold" TextColor="White" />
+                            </Border>
+                            <Border Grid.Column="1" BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 20" Padding="12,6">
+                                <Label Text="{Binding Statistics.Reputation, StringFormat='★ {0:0} reputation'}"
+                                       FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Volt}" />
+                            </Border>
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 
-                <Button Text="Log out" Command="{Binding LogoutCommand}"
-                        BackgroundColor="{StaticResource Error}" TextColor="White" Margin="0,16,0,0" />
+                <Label Text="STATISTICS" Style="{StaticResource SectionTitle}" />
+
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.MatchesPlayed}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Matches played" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.MatchesOrganized}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Organized" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.AttendanceRate, StringFormat='{0:P0}'}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Attendance" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.PaymentReliability, StringFormat='{0:P0}'}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Payment reliability" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.AverageRating, StringFormat='{0}/5'}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Average rating" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource StatTile}">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Style="{StaticResource StatNumber}" Text="{Binding Statistics.Friends}" />
+                            <Label Style="{StaticResource StatCaption}" Text="Friends" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <Label Text="MORE" Style="{StaticResource SectionTitle}" />
+                <Border Style="{StaticResource StatTile}" Padding="4">
+                    <VerticalStackLayout>
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="10,12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenFieldsCommand}" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource IconBubble}" WidthRequest="36" HeightRequest="36">
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconFlag}" WidthRequest="17" HeightRequest="17"
+                                      Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                      HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                <Label Text="Football fields" FontSize="15" FontAttributes="Bold" />
+                                <Label Text="Browse and add fields" Style="{StaticResource StatCaption}" />
+                            </VerticalStackLayout>
+                            <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
+                                  Fill="{StaticResource Gray300}" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Margin="12,0"
+                                 Color="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}" />
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="10,12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenSettingsCommand}" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource IconBubble}" WidthRequest="36" HeightRequest="36">
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconCog}" WidthRequest="17" HeightRequest="17"
+                                      Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                      HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                <Label Text="Settings" FontSize="15" FontAttributes="Bold" />
+                                <Label Text="Profile, notifications, privacy, log out" Style="{StaticResource StatCaption}" />
+                            </VerticalStackLayout>
+                            <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
+                                  Fill="{StaticResource Gray300}" VerticalOptions="Center" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>

@@ -4,27 +4,99 @@
              x:Class="Kawwer.Mobile.Views.NotificationsPage"
              x:Name="PageRoot"
              Title="Notifications"
-             BackgroundColor="{StaticResource BackgroundLight}">
-    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
-        <CollectionView ItemsSource="{Binding Notifications}" EmptyView="You're all caught up.">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
+        <CollectionView ItemsSource="{Binding Notifications}">
             <CollectionView.Header>
-                <Button Text="Mark all read" Command="{Binding MarkAllReadCommand}" Margin="16,12"
-                        BackgroundColor="{StaticResource Secondary}" TextColor="White" />
+                <VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,Auto" Padding="16,12,16,4">
+                        <Label Text="Activity" Style="{StaticResource ScreenTitle}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Mark all read" FontSize="13" FontAttributes="Bold"
+                                BackgroundColor="Transparent"
+                                TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                Command="{Binding MarkAllReadCommand}" />
+                    </Grid>
+                    <Border Style="{StaticResource ErrorBanner}" Margin="16,0,16,4"
+                            IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+                    </Border>
+                </VerticalStackLayout>
             </CollectionView.Header>
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="32,40" Spacing="12">
+                    <Border Style="{StaticResource EmptyIconBubble}">
+                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconBell}" WidthRequest="24" HeightRequest="24"
+                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                              HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="You're all caught up" Style="{StaticResource EmptyTitle}" />
+                    <Label Text="Invitations, payments and match updates land here." Style="{StaticResource EmptyBody}" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Margin="16,4" Padding="12" StrokeShape="RoundRectangle 12"
-                            BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
+                    <Border Margin="16,4" Style="{StaticResource StatTile}" Padding="12">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer
-                                Command="{Binding BindingContext.MarkReadCommand, Source={x:Reference PageRoot}}"
-                                CommandParameter="{Binding Id}" />
+                                Command="{Binding BindingContext.OpenCommand, Source={x:Reference PageRoot}}"
+                                CommandParameter="{Binding .}" />
                         </Border.GestureRecognizers>
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="{Binding Title}" FontAttributes="Bold" />
-                            <Label Text="{Binding Message}" TextColor="{StaticResource Gray600}" />
-                            <Label Text="{Binding CreatedAt, StringFormat='{0:dd MMM HH:mm}'}" FontSize="10" TextColor="{StaticResource Gray400}" />
-                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border Style="{StaticResource IconBubble}">
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconBell}" WidthRequest="17" HeightRequest="17"
+                                      Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                      HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Path.Triggers>
+                                        <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="Invitation">
+                                            <Setter Property="Data" Value="{StaticResource IconAccountPlus}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="Payment">
+                                            <Setter Property="Data" Value="{StaticResource IconCash}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="LiveMatch">
+                                            <Setter Property="Data" Value="{StaticResource IconMapMarker}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="Friend">
+                                            <Setter Property="Data" Value="{StaticResource IconAccount}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="Group">
+                                            <Setter Property="Data" Value="{StaticResource IconGroup}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="WaitingList">
+                                            <Setter Property="Data" Value="{StaticResource IconClock}" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="Match">
+                                            <Setter Property="Data" Value="{StaticResource IconFlag}" />
+                                        </DataTrigger>
+                                    </Path.Triggers>
+                                </Path>
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="14" />
+                                <Label Text="{Binding Message}" FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                                <Label Text="{Binding CreatedAt, StringFormat='{0:dd MMM HH:mm}'}" FontSize="10"
+                                       TextColor="{StaticResource Gray400}" />
+                                <HorizontalStackLayout Spacing="8" Margin="0,6,0,2" IsVisible="{Binding IsMatchInvitation}">
+                                    <Button Text="Accept" FontSize="13" FontAttributes="Bold"
+                                            HeightRequest="34" Padding="16,0" CornerRadius="17"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                            TextColor="White"
+                                            Command="{Binding BindingContext.AcceptInvitationCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding .}" />
+                                    <Button Text="Decline" FontSize="13" FontAttributes="Bold"
+                                            HeightRequest="34" Padding="16,0" CornerRadius="17"
+                                            BackgroundColor="Transparent"
+                                            BorderColor="{StaticResource Gray400}" BorderWidth="1"
+                                            TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                                            Command="{Binding BindingContext.DeclineInvitationCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding .}" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                            <Ellipse Grid.Column="2" WidthRequest="10" HeightRequest="10" Fill="{StaticResource VoltDim}"
+                                     VerticalOptions="Center"
+                                     IsVisible="{Binding IsRead, Converter={StaticResource InvertedBool}}" />
+                        </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

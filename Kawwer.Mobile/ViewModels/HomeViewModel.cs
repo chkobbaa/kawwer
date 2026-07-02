@@ -10,11 +10,15 @@ public sealed partial class HomeViewModel : BaseViewModel
 {
     private readonly KawwerApiClient _api;
     private readonly SessionState _session;
+    private readonly PushRegistrationService _push;
+    private readonly MatchReminderService _reminders;
 
-    public HomeViewModel(KawwerApiClient api, SessionState session)
+    public HomeViewModel(KawwerApiClient api, SessionState session, PushRegistrationService push, MatchReminderService reminders)
     {
         _api = api;
         _session = session;
+        _push = push;
+        _reminders = reminders;
         Title = "Home";
     }
 
@@ -28,7 +32,27 @@ public sealed partial class HomeViewModel : BaseViewModel
     [RelayCommand]
     public Task LoadAsync() => RunAsync(async () =>
     {
-        Greeting = _session.CurrentUser is { } user ? $"Hi {user.FirstName} 👋" : "Welcome";
+        // Register this device for push notifications (runs once per app start, best effort).
+        // Awaited on purpose: it requests the Android 13+ notification permission, and the
+        // persistent match-countdown notification below can only be shown once that
+        // permission has been granted. Firing and forgetting made the reminder silently
+        // skip its first update.
+        await _push.TryRegisterAsync();
+
+        // After a cold start the session only has tokens; fetch the profile for the greeting.
+        if (_session.CurrentUser is null)
+        {
+            try
+            {
+                _session.CurrentUser = await _api.GetMeAsync();
+            }
+            catch
+            {
+                // Greeting is cosmetic; the rest of the page still loads.
+            }
+        }
+
+        Greeting = _session.CurrentUser is { } user ? $"Hi {user.DisplayFirstName} 👋" : "Welcome";
 
         var upcoming = await _api.GetUpcomingAsync();
         Upcoming.Clear();
@@ -38,6 +62,16 @@ public sealed partial class HomeViewModel : BaseViewModel
         }
 
         NextMatch = upcoming.FirstOrDefault();
+
+        // Permanent countdown notification when a match starts within 24 hours.
+        try
+        {
+            _reminders.Update(upcoming);
+        }
+        catch
+        {
+            // The reminder is cosmetic; never break the home screen for it.
+        }
 
         var dashboard = await _api.GetDashboardAsync();
         Dashboard.Clear();
@@ -64,4 +98,10 @@ public sealed partial class HomeViewModel : BaseViewModel
 
     [RelayCommand]
     private Task OpenNotificationsAsync() => Shell.Current.GoToAsync("notifications");
+
+    [RelayCommand]
+    private Task OpenDiscoverAsync() => Shell.Current.GoToAsync("//main/discovertab");
+
+    [RelayCommand]
+    private Task OpenCalendarAsync() => Shell.Current.GoToAsync("//main/calendartab");
 }

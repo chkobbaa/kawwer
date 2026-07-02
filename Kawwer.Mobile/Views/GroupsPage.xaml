@@ -4,34 +4,69 @@
              x:Class="Kawwer.Mobile.Views.GroupsPage"
              x:Name="PageRoot"
              Title="Groups"
-             BackgroundColor="{StaticResource BackgroundLight}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="14">
-            <Label Text="Your groups" FontSize="24" FontAttributes="Bold" />
+        <VerticalStackLayout Padding="16,12,16,24" Spacing="10">
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Groups" Style="{StaticResource ScreenTitle}" />
+                <Label Text="Invite a whole crew in one tap" FontSize="14" TextColor="{StaticResource Gray500}" />
+            </VerticalStackLayout>
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                <Entry Placeholder="New group name" Text="{Binding NewGroupName}" />
-                <Button Grid.Column="1" Text="Create" Command="{Binding CreateCommand}"
-                        BackgroundColor="{StaticResource Primary}" TextColor="White" />
+                <Border Style="{StaticResource InputBorder}">
+                    <Entry Style="{StaticResource FormEntry}" Placeholder="New group name" Text="{Binding NewGroupName}" />
+                </Border>
+                <Button Grid.Column="1" Text="Create" FontAttributes="Bold" CornerRadius="14"
+                        HeightRequest="48" Padding="18,0"
+                        BackgroundColor="{StaticResource Ink}" TextColor="{StaticResource Volt}"
+                        Command="{Binding CreateCommand}" />
             </Grid>
 
-            <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}"
-                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}" />
+            <Border Style="{StaticResource ErrorBanner}"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+            </Border>
 
-            <CollectionView ItemsSource="{Binding Groups}" EmptyView="No groups yet.">
+            <CollectionView ItemsSource="{Binding Groups}">
+                <CollectionView.EmptyView>
+                    <Border Style="{StaticResource StatTile}" Padding="20,24">
+                        <VerticalStackLayout Spacing="10">
+                            <Border Style="{StaticResource EmptyIconBubble}">
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconGroup}" WidthRequest="24" HeightRequest="24"
+                                      Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                      HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Label Text="No groups yet" Style="{StaticResource EmptyTitle}" />
+                            <Label Text="Create a group like 'Thursday Crew' to invite everyone at once."
+                                   Style="{StaticResource EmptyBody}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 12"
-                                BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding Name}" FontAttributes="Bold" />
-                                    <Label Text="{Binding MemberCount, StringFormat='{0} members'}" TextColor="{StaticResource Gray500}" />
+                        <Border Margin="0,4" Style="{StaticResource StatTile}" Padding="12">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Style="{StaticResource Avatar}">
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconGroup}" WidthRequest="18" HeightRequest="18"
+                                          Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                          HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                                    <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="15" />
+                                    <Label Text="{Binding MemberCount, StringFormat='{0} members'}" FontSize="12"
+                                           TextColor="{StaticResource Gray500}" />
                                 </VerticalStackLayout>
-                                <Button Grid.Column="1" Text="Delete"
-                                        Command="{Binding BindingContext.DeleteCommand, Source={x:Reference PageRoot}}"
-                                        CommandParameter="{Binding Id}"
-                                        BackgroundColor="{StaticResource Error}" TextColor="White" />
+                                <Border Grid.Column="2" Style="{StaticResource IconBubble}" WidthRequest="36" HeightRequest="36"
+                                        BackgroundColor="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}" VerticalOptions="Center"
+                                        SemanticProperties.Description="Delete group">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding BindingContext.DeleteCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding Id}" />
+                                    </Border.GestureRecognizers>
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconClose}" WidthRequest="15" HeightRequest="15"
+                                          Fill="{StaticResource Error}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
                             </Grid>
                         </Border>
                     </DataTemplate>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1036219605970",
+    "project_id": "kawwer-2fbc1",
+    "storage_bucket": "kawwer-2fbc1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1036219605970:android:e024b50c9224ac4a43de0b",
+        "android_client_info": {
+          "package_name": "com.companyname.kawwer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-FTSmxaz8dQR89tvLFy_nVtkU5cToiR0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

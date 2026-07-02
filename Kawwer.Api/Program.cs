@@ -14,10 +14,19 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // ----- Services -----
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSignalR();
+
+// Development fallback signing key. Must be set BEFORE AddInfrastructure binds JwtOptions so
+// token generation (JwtTokenGenerator) and validation share the same key. Override in production.
+if (string.IsNullOrWhiteSpace(builder.Configuration["Jwt:SigningKey"]))
+{
+    builder.Configuration["Jwt:SigningKey"] = "kawwer-development-signing-key-change-me-please-32+";
+}
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -27,11 +36,6 @@ builder.Services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
 
 // ----- Authentication -----
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
-if (string.IsNullOrWhiteSpace(jwtOptions.SigningKey))
-{
-    // A development fallback so the app boots without secrets configured. Override in production.
-    jwtOptions.SigningKey = "kawwer-development-signing-key-change-me-please-32+";
-}
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -105,7 +109,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Only redirect to HTTPS outside development. The mobile app talks plain HTTP to the dev host,
+// and a 307 redirect would strip the Authorization header from authenticated requests (401s).
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

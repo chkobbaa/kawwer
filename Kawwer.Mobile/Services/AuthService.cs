@@ -16,12 +16,12 @@ public sealed class AuthService
 
     public SessionState Session => _session;
 
-    public Task InitializeAsync() => _session.LoadAsync();
+    public Task InitializeAsync() => _session.EnsureLoadedAsync();
 
-    public async Task LoginAsync(string usernameOrEmail, string password)
+    public async Task LoginAsync(string usernameOrEmail, string password, bool rememberMe = true)
     {
         var auth = await _api.LoginAsync(usernameOrEmail, password);
-        await _session.SetAsync(auth);
+        await _session.SetAsync(auth, persist: rememberMe);
     }
 
     public async Task RegisterAsync(object body)

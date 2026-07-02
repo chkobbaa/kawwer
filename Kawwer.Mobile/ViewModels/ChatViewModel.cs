@@ -6,14 +6,28 @@ using Kawwer.Mobile.Services;
 
 namespace Kawwer.Mobile.ViewModels;
 
-[QueryProperty(nameof(MatchId), "matchId")]
+[QueryProperty(nameof(MatchIdQuery), "matchId")]
 public sealed partial class ChatViewModel : BaseViewModel
 {
-    private readonly KawwerApiClient _api;
+    /// <summary>Shell query values arrive as strings; parse instead of casting to Guid.</summary>
+    public string MatchIdQuery
+    {
+        set
+        {
+            if (Guid.TryParse(value, out var id))
+            {
+                MatchId = id;
+            }
+        }
+    }
 
-    public ChatViewModel(KawwerApiClient api)
+    private readonly KawwerApiClient _api;
+    private readonly SessionState _session;
+
+    public ChatViewModel(KawwerApiClient api, SessionState session)
     {
         _api = api;
+        _session = session;
         Title = "Match chat";
     }
 
@@ -36,6 +50,7 @@ public sealed partial class ChatViewModel : BaseViewModel
         Messages.Clear();
         foreach (var m in result.Items)
         {
+            m.IsMine = m.SenderId is { } sender && sender == _session.UserId;
             Messages.Add(m);
         }
     });
@@ -49,6 +64,7 @@ public sealed partial class ChatViewModel : BaseViewModel
         }
 
         var message = await _api.SendMessageAsync(MatchId, Draft.Trim());
+        message.IsMine = true;
         Messages.Add(message);
         Draft = string.Empty;
     });

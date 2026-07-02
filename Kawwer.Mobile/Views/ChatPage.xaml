@@ -3,25 +3,84 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Kawwer.Mobile.Views.ChatPage"
              Title="Match chat"
-             BackgroundColor="{StaticResource BackgroundLight}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <Grid RowDefinitions="*,Auto">
-        <CollectionView Grid.Row="0" ItemsSource="{Binding Messages}" Margin="12" EmptyView="No messages yet.">
+        <CollectionView Grid.Row="0" ItemsSource="{Binding Messages}" Margin="12,8" ItemsUpdatingScrollMode="KeepLastItemInView">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="24,48" Spacing="12">
+                    <Border Style="{StaticResource EmptyIconBubble}">
+                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconChat}" WidthRequest="24" HeightRequest="24"
+                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                              HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="No messages yet" Style="{StaticResource EmptyTitle}" />
+                    <Label Text="Say hi, confirm the plan, or hype the squad." Style="{StaticResource EmptyBody}" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <VerticalStackLayout Padding="6">
-                        <Label Text="{Binding SenderName}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Secondary}"
-                               IsVisible="{Binding SenderName}" />
-                        <Label Text="{Binding Content}" />
-                        <Label Text="{Binding CreatedAt, StringFormat='{0:HH:mm}'}" FontSize="10" TextColor="{StaticResource Gray400}" />
-                    </VerticalStackLayout>
+                    <Grid Padding="4,3">
+                        <!-- Bubble: theirs left, mine right, system centered -->
+                        <Border MaximumWidthRequest="300" HorizontalOptions="Start" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16,16,4,16" Padding="12,8"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsMine}" Value="True">
+                                    <Setter Property="HorizontalOptions" Value="End" />
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Ink}" />
+                                    <Setter Property="StrokeShape" Value="RoundRectangle 16,16,16,4" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSystem}" Value="True">
+                                    <Setter Property="HorizontalOptions" Value="Center" />
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource TintGreen}, Dark={StaticResource TintGreenDark}}" />
+                                    <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding SenderName}" FontSize="11" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                       IsVisible="{Binding IsMine, Converter={StaticResource InvertedBool}}" />
+                                <Label Text="{Binding Content}" FontSize="15">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="True">
+                                            <Setter Property="TextColor" Value="White" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsSystem}" Value="True">
+                                            <Setter Property="FontSize" Value="12" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                                <Label Text="{Binding CreatedAt, StringFormat='{0:HH:mm}'}" FontSize="10"
+                                       TextColor="{StaticResource Gray400}" HorizontalOptions="End">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsMine}" Value="True">
+                                            <Setter Property="TextColor" Value="#7E9A88" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Padding="8" ColumnSpacing="8" BackgroundColor="{StaticResource SurfaceLight}">
-            <Entry Placeholder="Type a message" Text="{Binding Draft}" />
-            <Button Grid.Column="1" Text="Send" Command="{Binding SendCommand}"
-                    BackgroundColor="{StaticResource Primary}" TextColor="White" />
+        <!-- Composer -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Padding="12,8" ColumnSpacing="8"
+              BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+            <Border Style="{StaticResource InputBorder}">
+                <Entry Style="{StaticResource FormEntry}" Placeholder="Type a message"
+                       Text="{Binding Draft}" ReturnCommand="{Binding SendCommand}" ReturnType="Send" />
+            </Border>
+            <Border Grid.Column="1" BackgroundColor="{StaticResource Ink}" StrokeThickness="0"
+                    StrokeShape="RoundRectangle 24" WidthRequest="48" HeightRequest="48"
+                    SemanticProperties.Description="Send message">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SendCommand}" />
+                </Border.GestureRecognizers>
+                <Path Style="{StaticResource Icon}" Data="{StaticResource IconSend}" WidthRequest="18" HeightRequest="18"
+                      Fill="{StaticResource Volt}" HorizontalOptions="Center" VerticalOptions="Center" Margin="2,0,0,0" />
+            </Border>
         </Grid>
     </Grid>
 </ContentPage>

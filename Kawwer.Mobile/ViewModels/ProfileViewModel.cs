@@ -15,6 +15,13 @@ public sealed partial class ProfileViewModel : BaseViewModel
         _api = api;
         _auth = auth;
         Title = "Profile";
+
+        // Show the cached user immediately; the network refresh replaces it when it completes.
+        if (auth.Session.CurrentUser is { } cached)
+        {
+            User = cached;
+            Badge = FormatBadge(cached.ReliabilityBadge);
+        }
     }
 
     [ObservableProperty] private UserDto? _user;
@@ -31,11 +38,10 @@ public sealed partial class ProfileViewModel : BaseViewModel
     });
 
     [RelayCommand]
-    private async Task LogoutAsync()
-    {
-        await _auth.LogoutAsync();
-        await Shell.Current.GoToAsync("//login");
-    }
+    private Task OpenSettingsAsync() => Shell.Current.GoToAsync("settings");
+
+    [RelayCommand]
+    private Task OpenFieldsAsync() => Shell.Current.GoToAsync("fields");
 
     private static string FormatBadge(ReliabilityBadge badge) => badge switch
     {

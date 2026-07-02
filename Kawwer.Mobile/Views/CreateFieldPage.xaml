@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.CreateFieldPage"
+             Title="New field"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
+
+            <Label Text="BASICS" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource InputBorder}">
+                <Entry Style="{StaticResource FormEntry}" Placeholder="Field name" Text="{Binding Name}" />
+            </Border>
+            <Border Style="{StaticResource InputBorder}">
+                <Entry Style="{StaticResource FormEntry}" Placeholder="Full address" Text="{Binding Address}" />
+            </Border>
+
+            <Label Text="GPS LOCATION" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource StatTile}" Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button Text="Use my location" Style="{StaticResource OutlineButton}" HeightRequest="44" FontSize="14"
+                                Command="{Binding UseMyLocationCommand}" />
+                        <Button Grid.Column="1" Text="Pick on map" Style="{StaticResource OutlineButton}" HeightRequest="44" FontSize="14"
+                                Command="{Binding PickOnMapCommand}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Border Style="{StaticResource InputBorder}">
+                            <Entry Style="{StaticResource FormEntry}" Placeholder="Latitude" Keyboard="Numeric" Text="{Binding Latitude}" />
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource InputBorder}">
+                            <Entry Style="{StaticResource FormEntry}" Placeholder="Longitude" Keyboard="Numeric" Text="{Binding Longitude}" />
+                        </Border>
+                    </Grid>
+                    <Border Style="{StaticResource InputBorder}">
+                        <Entry Style="{StaticResource FormEntry}" Placeholder="Google Maps link (optional)" Text="{Binding GoogleMapsUrl}" />
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="MATCH SETUP" Style="{StaticResource SectionTitle}" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Border Style="{StaticResource InputBorder}">
+                    <Picker Title="Capacity" ItemsSource="{Binding CapacityOptions}" SelectedItem="{Binding Capacity}" />
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource InputBorder}">
+                    <Picker Title="Duration (min)" ItemsSource="{Binding DurationOptions}" SelectedItem="{Binding DurationMinutes}" />
+                </Border>
+            </Grid>
+            <Border Style="{StaticResource InputBorder}">
+                <Picker Title="Surface" ItemsSource="{Binding SurfaceOptions}" SelectedItem="{Binding SelectedSurface}" />
+            </Border>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Border Style="{StaticResource InputBorder}">
+                    <Entry Style="{StaticResource FormEntry}" Placeholder="Match price (TND)" Keyboard="Numeric" Text="{Binding Price}" />
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource InputBorder}">
+                    <Entry Style="{StaticResource FormEntry}" Placeholder="Reservation fee (TND)" Keyboard="Numeric" Text="{Binding ReservationFee}" />
+                </Border>
+            </Grid>
+
+            <Label Text="AMENITIES" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource StatTile}" Padding="14,4">
+                <VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,Auto" HeightRequest="46">
+                        <Label Text="Indoor" FontSize="15" VerticalOptions="Center" />
+                        <Switch Grid.Column="1" IsToggled="{Binding Indoor}" VerticalOptions="Center" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" HeightRequest="46">
+                        <Label Text="Night lighting" FontSize="15" VerticalOptions="Center" />
+                        <Switch Grid.Column="1" IsToggled="{Binding Lights}" VerticalOptions="Center" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" HeightRequest="46">
+                        <Label Text="Parking" FontSize="15" VerticalOptions="Center" />
+                        <Switch Grid.Column="1" IsToggled="{Binding Parking}" VerticalOptions="Center" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" HeightRequest="46">
+                        <Label Text="Showers" FontSize="15" VerticalOptions="Center" />
+                        <Switch Grid.Column="1" IsToggled="{Binding Shower}" VerticalOptions="Center" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="CONTACT" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource InputBorder}">
+                <Entry Style="{StaticResource FormEntry}" Placeholder="Phone number (optional)" Keyboard="Telephone" Text="{Binding PhoneNumber}" />
+            </Border>
+            <Border Style="{StaticResource InputBorder}">
+                <Entry Style="{StaticResource FormEntry}" Placeholder="Notes (optional)" Text="{Binding Notes}" />
+            </Border>
+
+            <Border Style="{StaticResource ErrorBanner}"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+            </Border>
+
+            <Button Text="Create field" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" Margin="0,6,0,0" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

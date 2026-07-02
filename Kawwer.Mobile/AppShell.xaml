@@ -12,20 +12,21 @@
         ContentTemplate="{DataTemplate views:LoginPage}"
         Shell.NavBarIsVisible="False" />
 
+    <!-- Icon-only bottom navigation (labels are hidden by KawwerShellRenderer); Home sits in the middle. -->
     <TabBar Route="main">
-        <Tab Title="Home">
-            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" Route="home" />
-        </Tab>
-        <Tab Title="Discover">
+        <Tab Title="Discover" Route="discovertab" Icon="tab_discover.png">
             <ShellContent ContentTemplate="{DataTemplate views:DiscoverPage}" Route="discover" />
         </Tab>
-        <Tab Title="Calendar">
+        <Tab Title="Calendar" Route="calendartab" Icon="tab_calendar.png">
             <ShellContent ContentTemplate="{DataTemplate views:CalendarPage}" Route="calendar" />
         </Tab>
-        <Tab Title="Friends">
+        <Tab Title="Home" Route="hometab" Icon="tab_home.png">
+            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" Route="home" />
+        </Tab>
+        <Tab Title="Friends" Route="friendstab" Icon="tab_friends.png">
             <ShellContent ContentTemplate="{DataTemplate views:FriendsPage}" Route="friends" />
         </Tab>
-        <Tab Title="Profile">
+        <Tab Title="Profile" Route="profiletab" Icon="tab_profile.png">
             <ShellContent ContentTemplate="{DataTemplate views:ProfilePage}" Route="profile" />
         </Tab>
     </TabBar>

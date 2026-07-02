@@ -19,6 +19,7 @@ public sealed record DiscoverMatchDto(
     bool Indoor,
     SurfaceType Surface,
     double? DistanceKm,
+    bool IsJoined,
     UserSummaryDto Organizer);
 
 public sealed record JoinMatchRequestDto(

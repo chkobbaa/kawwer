@@ -57,6 +57,25 @@ public sealed class ExceptionHandlingMiddleware
         {
             await WriteEnvelopeAsync(context, StatusCodes.Status401Unauthorized, "Authentication is required.");
         }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
+        {
+            // Two requests touched the same match at once (e.g. two players grabbing the last
+            // spot). This is retryable, not a server fault; tell the client to try again.
+            _logger.LogWarning(ex, "Concurrency conflict processing {Path}", context.Request.Path);
+            await WriteEnvelopeAsync(
+                context,
+                StatusCodes.Status409Conflict,
+                "Someone else updated this at the same time. Please try again.");
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException?.Message.Contains("duplicate key") is true)
+        {
+            // Unique-index race (e.g. the same join request submitted twice concurrently).
+            _logger.LogWarning(ex, "Duplicate key conflict processing {Path}", context.Request.Path);
+            await WriteEnvelopeAsync(
+                context,
+                StatusCodes.Status409Conflict,
+                "That request was already processed. Pull to refresh to see the latest state.");
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception processing {Path}", context.Request.Path);

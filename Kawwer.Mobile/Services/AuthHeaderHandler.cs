@@ -13,12 +13,22 @@ namespace Kawwer.Mobile.Services;
 public sealed class AuthHeaderHandler : DelegatingHandler
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    // Serializes token refreshes across ALL in-flight requests. The API rotates (revokes) the
+    // refresh token on every use, so concurrent refreshes would kill the session.
+    private static readonly SemaphoreSlim RefreshLock = new(1, 1);
+
     private readonly SessionState _session;
 
     public AuthHeaderHandler(SessionState session) => _session = session;
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        // At cold start the app routes to the main tabs immediately; make sure the persisted
+        // tokens have finished loading before the first authenticated request goes out.
+        await _session.EnsureLoadedAsync();
+
+        var tokenUsed = _session.AccessToken;
         Attach(request);
         var response = await base.SendAsync(request, cancellationToken);
 
@@ -27,7 +37,20 @@ public sealed class AuthHeaderHandler : DelegatingHandler
             return response;
         }
 
-        if (!await TryRefreshAsync(cancellationToken))
+        bool refreshed;
+        await RefreshLock.WaitAsync(cancellationToken);
+        try
+        {
+            // Another request may have already refreshed the token while we waited.
+            refreshed = (!string.IsNullOrEmpty(_session.AccessToken) && _session.AccessToken != tokenUsed)
+                        || await TryRefreshAsync(cancellationToken);
+        }
+        finally
+        {
+            RefreshLock.Release();
+        }
+
+        if (!refreshed)
         {
             return response;
         }
@@ -58,6 +81,9 @@ public sealed class AuthHeaderHandler : DelegatingHandler
 
             if (!response.IsSuccessStatusCode)
             {
+                // The refresh failed. The user is NEVER logged out automatically: only an
+                // explicit logout clears the session. We keep the tokens so a later refresh
+                // attempt (or the next app start) can recover the session.
                 return false;
             }
 
@@ -67,11 +93,12 @@ public sealed class AuthHeaderHandler : DelegatingHandler
                 return false;
             }
 
-            _session.UpdateTokens(payload.Data.AccessToken, payload.Data.RefreshToken);
+            await _session.UpdateTokensAsync(payload.Data.AccessToken, payload.Data.RefreshToken);
             return true;
         }
         catch
         {
+            // Transient/network failure: keep the session so a later request can retry.
             return false;
         }
     }

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.FieldsPage"
+             x:Name="PageRoot"
+             Title="Football fields"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <Grid>
+        <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
+            <CollectionView ItemsSource="{Binding Fields}">
+                <CollectionView.Header>
+                    <VerticalStackLayout Padding="16,12,16,8" Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Border Style="{StaticResource InputBorder}">
+                                <Entry Style="{StaticResource FormEntry}" Placeholder="Search fields"
+                                       Text="{Binding SearchTerm}" ReturnCommand="{Binding SearchCommand}" ReturnType="Search" />
+                            </Border>
+                            <Border Grid.Column="1" BackgroundColor="{StaticResource Ink}" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 12" WidthRequest="48" HeightRequest="48">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SearchCommand}" />
+                                </Border.GestureRecognizers>
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconSearch}"
+                                      Fill="{StaticResource Volt}" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                        </Grid>
+                        <Border Style="{StaticResource ErrorBanner}"
+                                IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                            <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+                        </Border>
+                    </VerticalStackLayout>
+                </CollectionView.Header>
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="32,48" Spacing="12">
+                        <Border Style="{StaticResource EmptyIconBubble}">
+                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconFlag}" WidthRequest="26" HeightRequest="26"
+                                  Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                  HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <Label Text="No fields found" Style="{StaticResource EmptyTitle}" />
+                        <Label Text="Add the field you usually play on so any organizer can use it."
+                               Style="{StaticResource EmptyBody}" />
+                        <Button Text="Add a field" Style="{StaticResource PrimaryButton}" HeightRequest="46"
+                                WidthRequest="180" HorizontalOptions="Center" Command="{Binding CreateFieldCommand}" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="16,4" Style="{StaticResource StatTile}" Padding="14">
+                            <VerticalStackLayout Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16" />
+                                        <Label Text="{Binding Address}" FontSize="12" TextColor="{StaticResource Gray500}"
+                                               LineBreakMode="TailTruncation" />
+                                    </VerticalStackLayout>
+                                    <Border Grid.Column="1" Style="{StaticResource IconBubble}" VerticalOptions="Start">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding BindingContext.OpenMapsCommand, Source={x:Reference PageRoot}}"
+                                                CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconMapMarker}"
+                                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                              HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                </Grid>
+                                <HorizontalStackLayout Spacing="6">
+                                    <Border Style="{StaticResource Pill}">
+                                        <Label Style="{StaticResource PillLabel}" Text="{Binding PriceLabel}" />
+                                    </Border>
+                                    <Border Style="{StaticResource Pill}">
+                                        <Label Style="{StaticResource PillLabel}" Text="{Binding SurfaceLabel}" />
+                                    </Border>
+                                    <Border Style="{StaticResource Pill}">
+                                        <Label Style="{StaticResource PillLabel}" Text="{Binding Capacity, StringFormat='{0} players'}" />
+                                    </Border>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="12" Color="Transparent" />
+                </CollectionView.Footer>
+            </CollectionView>
+        </RefreshView>
+
+        <Border Style="{StaticResource Fab}" SemanticProperties.Description="Add field">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CreateFieldCommand}" />
+            </Border.GestureRecognizers>
+            <Path Style="{StaticResource Icon}" Data="{StaticResource IconPlus}" Fill="{StaticResource Volt}"
+                  WidthRequest="24" HeightRequest="24" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+    </Grid>
+</ContentPage>

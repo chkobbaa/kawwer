@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.InvitePlayersPage"
+             Title="{Binding Title}"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16,8,16,16" RowSpacing="10">
+
+        <VerticalStackLayout Spacing="10">
+            <Label Text="{Binding Hint}" Style="{StaticResource StatCaption}" Margin="4,0" />
+            <Border Style="{StaticResource ErrorBanner}"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+            </Border>
+        </VerticalStackLayout>
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Friends}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="All of your friends are already part of this match, or you have no friends to invite yet."
+                       Style="{StaticResource EmptyBody}" Padding="0,16" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="0,3" Style="{StaticResource StatTile}" Padding="8,4">
+                        <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                            <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center" />
+                            <Border Grid.Column="1" Style="{StaticResource Avatar}" WidthRequest="34" HeightRequest="34" StrokeShape="RoundRectangle 17">
+                                <Label Style="{StaticResource AvatarLabel}" FontSize="12" Text="{Binding User.Initials}" />
+                            </Border>
+                            <Label Grid.Column="2" Text="{Binding User.FullName}" FontSize="15" VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <VerticalStackLayout Grid.Row="2" Spacing="6">
+            <Button Text="{Binding SendButtonText}" Style="{StaticResource PrimaryButton}"
+                    Command="{Binding SendCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

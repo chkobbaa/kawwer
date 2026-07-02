@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Kawwer.Mobile.Models;
 using Kawwer.Mobile.Services;
 
 namespace Kawwer.Mobile.ViewModels;
@@ -36,12 +37,12 @@ public sealed partial class RegisterViewModel : BaseViewModel
             username = Username.Trim(),
             email = Email.Trim(),
             password = Password,
-            firstName = FirstName.Trim(),
-            lastName = LastName.Trim(),
+            firstName = NameFormat.Capitalize(FirstName),
+            lastName = NameFormat.Capitalize(LastName),
             phoneNumber = string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim()
         });
 
-        await Shell.Current.GoToAsync("//main");
+        await Shell.Current.GoToAsync("//main/hometab");
     });
 
     [RelayCommand]

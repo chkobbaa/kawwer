@@ -28,6 +28,13 @@ public sealed class GetOrganizerDashboardQueryHandler
 
         foreach (var match in matches)
         {
+            // The dashboard lists matches that still need the organizer's attention;
+            // cancelled and finished matches are history and must not appear here.
+            if (match.Status is Domain.Enums.MatchStatus.Cancelled or Domain.Enums.MatchStatus.Finished)
+            {
+                continue;
+            }
+
             if (!fieldNames.TryGetValue(match.FootballFieldId, out var fieldName))
             {
                 var field = await _fields.GetByIdAsync(match.FootballFieldId, cancellationToken);

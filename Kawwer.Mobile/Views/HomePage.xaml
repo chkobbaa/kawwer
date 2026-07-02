@@ -4,70 +4,217 @@
              x:Class="Kawwer.Mobile.Views.HomePage"
              x:Name="PageRoot"
              Title="Home"
-             BackgroundColor="{StaticResource BackgroundLight}">
-    <RefreshView IsRefreshing="{Binding IsBusy}" Command="{Binding LoadCommand}">
-        <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="16">
-                <Grid ColumnDefinitions="*,Auto">
-                    <Label Text="{Binding Greeting}" FontSize="24" FontAttributes="Bold" VerticalOptions="Center" />
-                    <Button Grid.Column="1" Text="🔔" Command="{Binding OpenNotificationsCommand}"
-                            BackgroundColor="Transparent" FontSize="20" />
-                </Grid>
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <Grid>
+        <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
+            <ScrollView>
+                <VerticalStackLayout Padding="16,12,16,88" Spacing="12">
 
-                <Button Text="➕ Create match" Command="{Binding CreateMatchCommand}"
-                        BackgroundColor="{StaticResource Primary}" TextColor="White" />
-
-                <Label Text="Your upcoming matches" FontSize="18" FontAttributes="Bold" />
-                <CollectionView ItemsSource="{Binding Upcoming}" EmptyView="No upcoming matches yet.">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="0,4" Padding="14" StrokeShape="RoundRectangle 16"
-                                    BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
+                    <!-- Header: greeting + notification bell with unread badge -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                            <Label Text="{Binding Greeting}" Style="{StaticResource ScreenTitle}" />
+                            <Label Text="Ready to play?" FontSize="14" TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                        <Grid Grid.Column="1" VerticalOptions="Start">
+                            <Border Style="{StaticResource IconBubble}" WidthRequest="44" HeightRequest="44"
+                                    SemanticProperties.Description="Notifications">
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer
-                                        Command="{Binding BindingContext.OpenMatchCommand, Source={x:Reference PageRoot}}"
-                                        CommandParameter="{Binding Id}" />
+                                    <TapGestureRecognizer Command="{Binding OpenNotificationsCommand}" />
                                 </Border.GestureRecognizers>
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" />
-                                    <Label Text="{Binding WhenLabel}" TextColor="{StaticResource Gray500}" />
-                                    <Label Text="{Binding Field.Name}" TextColor="{StaticResource Gray500}" />
-                                    <Label Text="{Binding PlayersLabel}" TextColor="{StaticResource Primary}" />
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconBell}"
+                                      Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                      HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <Border BackgroundColor="{StaticResource Error}" StrokeThickness="0" StrokeShape="RoundRectangle 9"
+                                    HeightRequest="18" MinimumWidthRequest="18" Padding="4,0"
+                                    HorizontalOptions="End" VerticalOptions="Start" InputTransparent="True"
+                                    IsVisible="{Binding UnreadNotifications, Converter={StaticResource IntGreaterThanZero}}">
+                                <Label Text="{Binding UnreadNotifications}" TextColor="White" FontSize="10" FontAttributes="Bold"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                        </Grid>
+                    </Grid>
+
+                    <!-- Next match hero -->
+                    <Border Style="{StaticResource HeroCard}" IsVisible="{Binding NextMatch, Converter={StaticResource NotNull}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenMatchCommand}" CommandParameter="{Binding NextMatch.Id}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="12">
+                            <Label Text="NEXT MATCH" FontSize="11" FontAttributes="Bold" CharacterSpacing="2"
+                                   TextColor="{StaticResource Volt}" />
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding NextMatch.Title}" FontSize="22" FontAttributes="Bold" TextColor="White" />
+                                <Label Text="{Binding NextMatch.Field.NameWithAddress}" FontSize="13" TextColor="#9DB5A5" />
+                            </VerticalStackLayout>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Label Text="{Binding NextMatch.TimeLabel}" FontSize="34" FontAttributes="Bold"
+                                       TextColor="{StaticResource Volt}" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="{Binding NextMatch.WhenLabel}" FontSize="13"
+                                       TextColor="#9DB5A5" VerticalOptions="Center" />
+                                <Border Grid.Column="2" BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 20" Padding="12,6" VerticalOptions="Center">
+                                    <Label Text="{Binding NextMatch.PlayersLabel}" FontSize="12" FontAttributes="Bold"
+                                           TextColor="{StaticResource Volt}" />
+                                </Border>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Quick actions -->
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                        <Border Grid.Column="0" Style="{StaticResource StatTile}" Padding="12,14">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CreateMatchCommand}" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Border Style="{StaticResource IconBubble}" HorizontalOptions="Center">
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconPlus}"
+                                          Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                          HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <Label Text="Create" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource StatTile}" Padding="12,14">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenDiscoverCommand}" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Border Style="{StaticResource IconBubble}" HorizontalOptions="Center">
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconCompass}"
+                                          Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                          HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <Label Text="Discover" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource StatTile}" Padding="12,14">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenCalendarCommand}" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Border Style="{StaticResource IconBubble}" HorizontalOptions="Center">
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconCalendar}"
+                                          Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                          HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <Label Text="Calendar" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+
+                    <Label Text="UPCOMING" Style="{StaticResource SectionTitle}" />
+                    <CollectionView ItemsSource="{Binding Upcoming}">
+                        <CollectionView.EmptyView>
+                            <Border Style="{StaticResource StatTile}" Padding="20,24">
+                                <VerticalStackLayout Spacing="10">
+                                    <Border Style="{StaticResource EmptyIconBubble}">
+                                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconCalendar}" WidthRequest="24" HeightRequest="24"
+                                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                              HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <Label Text="No upcoming matches" Style="{StaticResource EmptyTitle}" />
+                                    <Label Text="Accept an invitation or create your own match to get started."
+                                           Style="{StaticResource EmptyBody}" />
                                 </VerticalStackLayout>
                             </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,4" Style="{StaticResource StatTile}" StrokeShape="RoundRectangle 18" Padding="12">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding BindingContext.OpenMatchCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding Id}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                        <Border Style="{StaticResource DateBlock}">
+                                            <VerticalStackLayout Spacing="0" VerticalOptions="Center">
+                                                <Label Text="{Binding DayLabel}" FontSize="20" FontAttributes="Bold"
+                                                       TextColor="White" HorizontalOptions="Center" />
+                                                <Label Text="{Binding MonthLabel}" FontSize="10" FontAttributes="Bold"
+                                                       TextColor="{StaticResource Volt}" HorizontalOptions="Center" CharacterSpacing="1" />
+                                            </VerticalStackLayout>
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                            <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" LineBreakMode="TailTruncation" />
+                                            <Label Text="{Binding Field.Name}" FontSize="13" TextColor="{StaticResource Gray500}" LineBreakMode="TailTruncation" />
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Label Text="{Binding TimeLabel}" FontSize="13" FontAttributes="Bold"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                                                <Label Text="{Binding PlayersLabel}" FontSize="13" TextColor="{StaticResource Gray500}" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+                                        <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
+                                              Fill="{StaticResource Gray300}" VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
 
-                <Label Text="Matches you organize" FontSize="18" FontAttributes="Bold" />
-                <CollectionView ItemsSource="{Binding Dashboard}" EmptyView="You haven't organized any matches.">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="0,4" Padding="14" StrokeShape="RoundRectangle 16"
-                                    BackgroundColor="{StaticResource SurfaceLight}" Stroke="{StaticResource Gray200}">
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer
-                                        Command="{Binding BindingContext.OpenMatchCommand, Source={x:Reference PageRoot}}"
-                                        CommandParameter="{Binding MatchId}" />
-                                </Border.GestureRecognizers>
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" />
-                                    <Label Text="{Binding FieldName}" TextColor="{StaticResource Gray500}" />
-                                    <Label TextColor="{StaticResource Secondary}">
-                                        <Label.Text>
-                                            <MultiBinding StringFormat="{}{0} accepted · {1} waiting · {2} TND to collect">
-                                                <Binding Path="AcceptedCount" />
-                                                <Binding Path="WaitingCount" />
-                                                <Binding Path="MoneyRemaining" />
-                                            </MultiBinding>
-                                        </Label.Text>
-                                    </Label>
+                    <Label Text="YOU'RE ORGANIZING" Style="{StaticResource SectionTitle}" />
+                    <CollectionView ItemsSource="{Binding Dashboard}">
+                        <CollectionView.EmptyView>
+                            <Border Style="{StaticResource StatTile}" Padding="20,24">
+                                <VerticalStackLayout Spacing="10">
+                                    <Border Style="{StaticResource EmptyIconBubble}">
+                                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconFlag}" WidthRequest="24" HeightRequest="24"
+                                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                              HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <Label Text="Nothing on your plate" Style="{StaticResource EmptyTitle}" />
+                                    <Label Text="Organize a match and manage everything from here."
+                                           Style="{StaticResource EmptyBody}" />
                                 </VerticalStackLayout>
                             </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-            </VerticalStackLayout>
-        </ScrollView>
-    </RefreshView>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,4" Style="{StaticResource StatTile}" StrokeShape="RoundRectangle 18" Padding="14">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding BindingContext.OpenMatchCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding MatchId}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="8">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" LineBreakMode="TailTruncation" />
+                                            <Label Grid.Column="1" Text="{Binding WhenLabel}" FontSize="12" TextColor="{StaticResource Gray500}" VerticalOptions="Center" />
+                                        </Grid>
+                                        <Label Text="{Binding FieldName}" FontSize="13" TextColor="{StaticResource Gray500}" />
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Border Style="{StaticResource Pill}">
+                                                <Label Style="{StaticResource PillLabel}" Text="{Binding AcceptedCount, StringFormat='{0} in'}" />
+                                            </Border>
+                                            <Border Style="{StaticResource Pill}"
+                                                    IsVisible="{Binding WaitingCount, Converter={StaticResource IntGreaterThanZero}}">
+                                                <Label Style="{StaticResource PillLabel}" Text="{Binding WaitingCount, StringFormat='{0} waiting'}" />
+                                            </Border>
+                                            <Border Style="{StaticResource Pill}" BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}">
+                                                <Label Style="{StaticResource PillLabel}" TextColor="{StaticResource Warning}"
+                                                       Text="{Binding MoneyRemaining, StringFormat='{0} TND left'}" />
+                                            </Border>
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </ScrollView>
+        </RefreshView>
+
+        <!-- Floating action button (Navigation.md: FAB visible only on Home) -->
+        <Border Style="{StaticResource Fab}" SemanticProperties.Description="Create match">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CreateMatchCommand}" />
+            </Border.GestureRecognizers>
+            <Path Style="{StaticResource Icon}" Data="{StaticResource IconPlus}" Fill="{StaticResource Volt}"
+                  WidthRequest="24" HeightRequest="24" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+    </Grid>
 </ContentPage>

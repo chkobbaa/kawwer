@@ -30,10 +30,10 @@ public sealed class CreateMatchCommandValidator : AbstractValidator<CreateMatchC
         RuleFor(x => x.MaxPlayers).GreaterThanOrEqualTo(2).When(x => x.MaxPlayers.HasValue);
         RuleFor(x => x.TotalFieldPrice).GreaterThanOrEqualTo(0).When(x => x.TotalFieldPrice.HasValue);
         RuleFor(x => x)
-            .Must(x => x.Visibility == MatchVisibility.Public
+            .Must(x => x.Visibility != MatchVisibility.Private
                        || x.InvitedUserIds.Count > 0
                        || x.InvitedGroupIds.Count > 0)
-            .WithMessage("A private match must invite at least one player or group.");
+            .WithMessage("An invitations-only match must invite at least one player or group.");
     }
 }
 
@@ -118,7 +118,9 @@ public sealed class CreateMatchCommandHandler : IRequestHandler<CreateMatchComma
             "New match invitation",
             $"You've been invited to \"{match.Title}\" on {match.MatchDate:dd MMM} at {match.StartTime:HH\\:mm}.",
             match.Id,
-            cancellationToken);
+            cancellationToken,
+            // Tells the mobile app to render Accept/Decline action buttons on the push.
+            new Dictionary<string, string> { ["type"] = "match_invitation" });
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return match.Id;

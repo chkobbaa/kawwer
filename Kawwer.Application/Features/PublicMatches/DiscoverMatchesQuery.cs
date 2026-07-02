@@ -4,10 +4,12 @@ using Kawwer.Application.Common.Mappings;
 using Kawwer.Application.Common.Messaging;
 using Kawwer.Contracts.Common;
 using Kawwer.Contracts.PublicMatches;
+using Kawwer.Domain.Enums;
 
 namespace Kawwer.Application.Features.PublicMatches;
 
 public sealed record DiscoverMatchesQuery(
+    Guid UserId,
     DateOnly? DateFrom,
     DateOnly? DateTo,
     decimal? Latitude,
@@ -21,18 +23,31 @@ public sealed class DiscoverMatchesQueryHandler : IRequestHandler<DiscoverMatche
     private readonly IMatchRepository _matches;
     private readonly IFootballFieldRepository _fields;
     private readonly IUserRepository _users;
+    private readonly IFriendshipRepository _friendships;
 
-    public DiscoverMatchesQueryHandler(IMatchRepository matches, IFootballFieldRepository fields, IUserRepository users)
+    public DiscoverMatchesQueryHandler(
+        IMatchRepository matches,
+        IFootballFieldRepository fields,
+        IUserRepository users,
+        IFriendshipRepository friendships)
     {
         _matches = matches;
         _fields = fields;
         _users = users;
+        _friendships = friendships;
     }
 
     public async Task<PagedResult<DiscoverMatchDto>> HandleAsync(DiscoverMatchesQuery request, CancellationToken cancellationToken)
     {
+        // Friends of the viewer: their friends-only matches are discoverable too.
+        var friendships = await _friendships.GetAcceptedForUserAsync(request.UserId, cancellationToken);
+        var friendIds = friendships
+            .Select(f => f.UserId == request.UserId ? f.FriendId : f.UserId)
+            .Distinct()
+            .ToList();
+
         // Pull a generous page from storage, then apply distance filtering/sorting in memory.
-        var (matches, _) = await _matches.GetPublicAsync(request.DateFrom, request.DateTo, 1, 500, cancellationToken);
+        var (matches, _) = await _matches.GetPublicAsync(request.DateFrom, request.DateTo, friendIds, 1, 500, cancellationToken);
 
         var fieldIds = matches.Select(m => m.FootballFieldId).Distinct().ToList();
         var organizerIds = matches.Select(m => m.OrganizerId).Distinct().ToList();
@@ -59,6 +74,11 @@ public sealed class DiscoverMatchesQueryHandler : IRequestHandler<DiscoverMatche
                 continue;
             }
 
+            if (match.OrganizerId == request.UserId)
+            {
+                continue;
+            }
+
             double? distance = null;
             if (request.Latitude.HasValue && request.Longitude.HasValue)
             {
@@ -68,6 +88,10 @@ public sealed class DiscoverMatchesQueryHandler : IRequestHandler<DiscoverMatche
                     continue;
                 }
             }
+
+            var isJoined = match.Participants.Any(p => 
+                p.UserId == request.UserId && 
+                p.Status is not (ParticipantStatus.Declined or ParticipantStatus.Cancelled or ParticipantStatus.Removed));
 
             var dto = new DiscoverMatchDto(
                 match.Id,
@@ -85,6 +109,7 @@ public sealed class DiscoverMatchesQueryHandler : IRequestHandler<DiscoverMatche
                 field.Indoor,
                 field.Surface,
                 distance.HasValue ? Math.Round(distance.Value, 1) : null,
+                isJoined,
                 organizer.ToSummaryDto());
 
             items.Add((dto, distance));

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Kawwer.Mobile.Models;
 using Microsoft.Maui.Storage;
 
@@ -12,6 +13,9 @@ public sealed class SessionState
     private const string AccessKey = "kawwer_access_token";
     private const string RefreshKey = "kawwer_refresh_token";
     private const string UserIdKey = "kawwer_user_id";
+    private const string HasSessionKey = "kawwer_has_session";
+
+    private Task? _loadTask;
 
     public string? AccessToken { get; private set; }
     public string? RefreshToken { get; private set; }
@@ -20,32 +24,103 @@ public sealed class SessionState
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(AccessToken);
 
-    public async Task LoadAsync()
+    /// <summary>
+    /// Fast, synchronous check used at startup to route straight to the main tabs without
+    /// waiting for secure storage. The actual tokens are loaded asynchronously.
+    /// </summary>
+    public bool HasPersistedSession
     {
-        AccessToken = await SecureStorage.Default.GetAsync(AccessKey);
-        RefreshToken = await SecureStorage.Default.GetAsync(RefreshKey);
-        var id = await SecureStorage.Default.GetAsync(UserIdKey);
-        UserId = Guid.TryParse(id, out var parsed) ? parsed : null;
+        get
+        {
+            try
+            {
+                return Preferences.Default.Get(HasSessionKey, false);
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 
-    public async Task SetAsync(AuthResponse auth)
+    /// <summary>Loads the tokens exactly once; callers can await this before using them.</summary>
+    public Task EnsureLoadedAsync() => _loadTask ??= LoadAsync();
+
+    public async Task LoadAsync()
+    {
+        try
+        {
+            AccessToken = await SecureStorage.Default.GetAsync(AccessKey);
+            RefreshToken = await SecureStorage.Default.GetAsync(RefreshKey);
+            var id = await SecureStorage.Default.GetAsync(UserIdKey);
+            UserId = Guid.TryParse(id, out var parsed) ? parsed : null;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Secure storage load failed: {ex}");
+            AccessToken = null;
+            RefreshToken = null;
+            UserId = null;
+        }
+    }
+
+    /// <summary>False when the user unticked "Remember me": tokens live in memory only.</summary>
+    private bool _persistTokens = true;
+
+    public async Task SetAsync(AuthResponse auth, bool persist = true)
     {
         AccessToken = auth.AccessToken;
         RefreshToken = auth.RefreshToken;
         UserId = auth.User.Id;
         CurrentUser = auth.User;
+        _persistTokens = persist;
 
-        await SecureStorage.Default.SetAsync(AccessKey, auth.AccessToken);
-        await SecureStorage.Default.SetAsync(RefreshKey, auth.RefreshToken);
-        await SecureStorage.Default.SetAsync(UserIdKey, auth.User.Id.ToString());
+        try
+        {
+            if (persist)
+            {
+                await SecureStorage.Default.SetAsync(AccessKey, auth.AccessToken);
+                await SecureStorage.Default.SetAsync(RefreshKey, auth.RefreshToken);
+                await SecureStorage.Default.SetAsync(UserIdKey, auth.User.Id.ToString());
+                Preferences.Default.Set(HasSessionKey, true);
+            }
+            else
+            {
+                // "Remember me" off: make sure nothing from a previous session lingers.
+                SecureStorage.Default.Remove(AccessKey);
+                SecureStorage.Default.Remove(RefreshKey);
+                SecureStorage.Default.Remove(UserIdKey);
+                Preferences.Default.Remove(HasSessionKey);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Secure storage save failed: {ex}");
+        }
     }
 
-    public void UpdateTokens(string accessToken, string refreshToken)
+    public async Task UpdateTokensAsync(string accessToken, string refreshToken)
     {
         AccessToken = accessToken;
         RefreshToken = refreshToken;
-        _ = SecureStorage.Default.SetAsync(AccessKey, accessToken);
-        _ = SecureStorage.Default.SetAsync(RefreshKey, refreshToken);
+
+        if (!_persistTokens)
+        {
+            return;
+        }
+
+        try
+        {
+            // Awaited on purpose: the refresh token was just rotated (the old one is revoked
+            // server-side), so losing the new one because the process died mid-write would
+            // log the user out on the next launch.
+            await SecureStorage.Default.SetAsync(AccessKey, accessToken);
+            await SecureStorage.Default.SetAsync(RefreshKey, refreshToken);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Secure storage update failed: {ex}");
+        }
     }
 
     public void Clear()
@@ -54,8 +129,17 @@ public sealed class SessionState
         RefreshToken = null;
         UserId = null;
         CurrentUser = null;
-        SecureStorage.Default.Remove(AccessKey);
-        SecureStorage.Default.Remove(RefreshKey);
-        SecureStorage.Default.Remove(UserIdKey);
+
+        try
+        {
+            SecureStorage.Default.Remove(AccessKey);
+            SecureStorage.Default.Remove(RefreshKey);
+            SecureStorage.Default.Remove(UserIdKey);
+            Preferences.Default.Remove(HasSessionKey);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Secure storage clear failed: {ex}");
+        }
     }
 }

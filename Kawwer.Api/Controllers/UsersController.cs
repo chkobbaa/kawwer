@@ -69,4 +69,11 @@ public sealed class UsersController : ApiControllerBase
         var result = await Dispatcher.SendAsync(new GetPlayerStatisticsQuery(id), cancellationToken);
         return Ok(result);
     }
+
+    [HttpGet("{id:guid}/organizing")]
+    public async Task<IActionResult> GetOrganizing(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Dispatcher.SendAsync(new GetUserOrganizingMatchesQuery(CurrentUserId, id), cancellationToken);
+        return Ok(result);
+    }
 }
