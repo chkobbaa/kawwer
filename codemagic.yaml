@@ -1,0 +1,112 @@
+workflows:
+
+  # ─────────────────────────────────────────────
+  # iOS – builds an unsigned .ipa for AltServer sideloading
+  # AltServer signs it locally with your free Apple ID — no paid certificate needed.
+  # ─────────────────────────────────────────────
+  ios-release:
+    name: Kawwer iOS (unsigned – AltServer)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: kawwer-ios-build
+          include: true
+        - pattern: main
+          include: true
+
+    environment:
+      vars:
+        DOTNET_VERSION: "10.0.109"
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Install .NET SDK + MAUI workload
+        script: |
+          set -e
+          curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version $DOTNET_VERSION
+          export PATH="$HOME/.dotnet:$PATH"
+          dotnet workload install maui-ios --skip-sign-check
+
+      - name: Restore NuGet packages
+        script: |
+          export PATH="$HOME/.dotnet:$PATH"
+          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj
+
+      - name: Build unsigned .ipa
+        script: |
+          export PATH="$HOME/.dotnet:$PATH"
+          dotnet publish Kawwer.Mobile/Kawwer.Mobile.csproj \
+            -f net10.0-ios \
+            -c Release \
+            -p:RuntimeIdentifier=ios-arm64 \
+            -p:CodesignKey="" \
+            -p:CodesignProvision="" \
+            -p:CodesignRequireProvisioningProfile=false
+
+    artifacts:
+      - "**/*.ipa"
+
+
+  # ─────────────────────────────────────────────
+  # Android – builds a signed .apk
+  # ─────────────────────────────────────────────
+  android-release:
+    name: Kawwer Android Release
+    max_build_duration: 60
+    instance_type: linux_x2       # Linux is fine for Android
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: kawwer-ios-build
+          include: true
+        - pattern: main
+          include: true
+
+    environment:
+      android_signing:
+        - kawwer_keystore           # name of the keystore you upload in Codemagic UI
+      vars:
+        DOTNET_VERSION: "10.0.109"
+
+    scripts:
+      - name: Install .NET SDK + MAUI workload
+        script: |
+          set -e
+          curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version $DOTNET_VERSION
+          export PATH="$HOME/.dotnet:$PATH"
+          dotnet workload install maui-android
+
+      - name: Restore NuGet packages
+        script: |
+          export PATH="$HOME/.dotnet:$PATH"
+          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj
+
+      - name: Build & publish Android .apk
+        script: |
+          export PATH="$HOME/.dotnet:$PATH"
+          dotnet publish Kawwer.Mobile/Kawwer.Mobile.csproj \
+            -f net10.0-android \
+            -c Release \
+            -p:AndroidSigningKeyStore=$CM_KEYSTORE_PATH \
+            -p:AndroidSigningKeyAlias=$CM_KEY_ALIAS \
+            -p:AndroidSigningKeyPass=$CM_KEY_PASSWORD \
+            -p:AndroidSigningStorePass=$CM_KEYSTORE_PASSWORD
+
+    artifacts:
+      - "**/*.apk"
+      - "**/*.aab"
+
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com   # ← replace with your email
+        notify:
+          success: true
+          failure: true
