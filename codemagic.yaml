@@ -42,7 +42,8 @@ workflows:
         script: |
           export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
           dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj \
-            -p:TargetFrameworks=net10.0-ios
+            -p:TargetFrameworks=net10.0-ios \
+            -r ios-arm64
 
       - name: Build unsigned .ipa
         script: |
