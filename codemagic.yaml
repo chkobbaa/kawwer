@@ -25,21 +25,22 @@ workflows:
       cocoapods: default
 
     scripts:
-      - name: Install .NET SDK + MAUI workload
+      - name: Install MAUI iOS workload
         script: |
           set -e
-          curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version $DOTNET_VERSION
-          export PATH="$HOME/.dotnet:$PATH"
-          dotnet workload install maui-ios --skip-sign-check
+          # Use Codemagic's pre-installed .NET SDK — do NOT reinstall from scratch.
+          # dotnet workload restore picks a workload version compatible with the
+          # Xcode already present on this machine.
+          dotnet workload restore Kawwer.Mobile/Kawwer.Mobile.csproj \
+            -p:TargetFrameworks=net10.0-ios
 
       - name: Restore NuGet packages (iOS only)
         script: |
-          export PATH="$HOME/.dotnet:$PATH"
-          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj -p:TargetFrameworks=net10.0-ios
+          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj \
+            -p:TargetFrameworks=net10.0-ios
 
       - name: Build unsigned .ipa
         script: |
-          export PATH="$HOME/.dotnet:$PATH"
           dotnet publish Kawwer.Mobile/Kawwer.Mobile.csproj \
             -f net10.0-ios \
             -c Release \
