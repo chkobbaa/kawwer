@@ -1,12 +1,11 @@
 workflows:
 
   # ─────────────────────────────────────────────
-  # iOS – builds an unsigned .ipa for AltServer sideloading
-  # AltServer signs it locally with your free Apple ID — no paid certificate needed.
+  # iOS – unsigned .ipa for AltServer sideloading
   # ─────────────────────────────────────────────
   ios-release:
     name: Kawwer iOS (unsigned – AltServer)
-    max_build_duration: 60
+    max_build_duration: 90
     instance_type: mac_mini_m2
 
     triggering:
@@ -20,47 +19,57 @@ workflows:
 
     environment:
       vars:
-        DOTNET_VERSION: "10.0.109"
+        DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+        DOTNET_NOLOGO: "1"
       xcode: latest
       cocoapods: default
 
     scripts:
+      - name: Install .NET 10 SDK
+        script: |
+          set -e
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel 10.0
+
       - name: Install MAUI iOS workload
         script: |
           set -e
-          # Use Codemagic's pre-installed .NET SDK — do NOT reinstall from scratch.
-          # dotnet workload restore picks a workload version compatible with the
-          # Xcode already present on this machine.
-          dotnet workload restore Kawwer.Mobile/Kawwer.Mobile.csproj \
-            -p:TargetFrameworks=net10.0-ios
+          export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
+          dotnet workload install maui-ios --skip-sign-check
 
-      - name: Restore NuGet packages (iOS only)
+      - name: Restore packages
         script: |
+          export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
           dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj \
             -p:TargetFrameworks=net10.0-ios
 
       - name: Build unsigned .ipa
         script: |
+          export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
           dotnet publish Kawwer.Mobile/Kawwer.Mobile.csproj \
             -f net10.0-ios \
             -c Release \
+            --no-restore \
             -p:TargetFrameworks=net10.0-ios \
             -p:RuntimeIdentifier=ios-arm64 \
+            -p:_XcodeVersionCheckEnabled=false \
             -p:CodesignKey="" \
             -p:CodesignProvision="" \
             -p:CodesignRequireProvisioningProfile=false
 
     artifacts:
       - "**/*.ipa"
+      - "**/*.app"
 
 
   # ─────────────────────────────────────────────
-  # Android – builds a signed .apk
+  # Android – .apk
   # ─────────────────────────────────────────────
   android-release:
     name: Kawwer Android Release
-    max_build_duration: 60
-    instance_type: linux_x2       # Linux is fine for Android
+    max_build_duration: 90
+    instance_type: linux_x2
 
     triggering:
       events:
@@ -73,29 +82,38 @@ workflows:
 
     environment:
       android_signing:
-        - kawwer_keystore           # name of the keystore you upload in Codemagic UI
+        - kawwer_keystore
       vars:
-        DOTNET_VERSION: "10.0.109"
+        DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+        DOTNET_NOLOGO: "1"
 
     scripts:
-      - name: Install .NET SDK + MAUI workload
+      - name: Install .NET 10 SDK
         script: |
           set -e
-          curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version $DOTNET_VERSION
-          export PATH="$HOME/.dotnet:$PATH"
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel 10.0
+
+      - name: Install MAUI Android workload
+        script: |
+          set -e
+          export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
           dotnet workload install maui-android
 
-      - name: Restore NuGet packages (Android only)
+      - name: Restore packages
         script: |
-          export PATH="$HOME/.dotnet:$PATH"
-          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj -p:TargetFrameworks=net10.0-android
+          export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
+          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj \
+            -p:TargetFrameworks=net10.0-android
 
-      - name: Build & publish Android .apk
+      - name: Build .apk
         script: |
-          export PATH="$HOME/.dotnet:$PATH"
+          export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
           dotnet publish Kawwer.Mobile/Kawwer.Mobile.csproj \
             -f net10.0-android \
             -c Release \
+            --no-restore \
             -p:TargetFrameworks=net10.0-android \
             -p:AndroidSigningKeyStore=$CM_KEYSTORE_PATH \
             -p:AndroidSigningKeyAlias=$CM_KEY_ALIAS \
@@ -105,11 +123,3 @@ workflows:
     artifacts:
       - "**/*.apk"
       - "**/*.aab"
-
-    publishing:
-      email:
-        recipients:
-          - your-email@example.com   # ← replace with your email
-        notify:
-          success: true
-          failure: true
