@@ -30,7 +30,7 @@ workflows:
           set -e
           curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
           chmod +x dotnet-install.sh
-          ./dotnet-install.sh --channel 10.0
+          ./dotnet-install.sh --version 10.0.109
 
       - name: Install MAUI iOS workload
         script: |
@@ -94,7 +94,7 @@ workflows:
           set -e
           curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
           chmod +x dotnet-install.sh
-          ./dotnet-install.sh --channel 10.0
+          ./dotnet-install.sh --version 10.0.109
 
       - name: Install MAUI Android workload
         script: |
