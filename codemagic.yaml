@@ -43,6 +43,7 @@ workflows:
           dotnet publish Kawwer.Mobile/Kawwer.Mobile.csproj \
             -f net10.0-ios \
             -c Release \
+            -p:TargetFrameworks=net10.0-ios \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:CodesignKey="" \
             -p:CodesignProvision="" \
@@ -94,6 +95,7 @@ workflows:
           dotnet publish Kawwer.Mobile/Kawwer.Mobile.csproj \
             -f net10.0-android \
             -c Release \
+            -p:TargetFrameworks=net10.0-android \
             -p:AndroidSigningKeyStore=$CM_KEYSTORE_PATH \
             -p:AndroidSigningKeyAlias=$CM_KEY_ALIAS \
             -p:AndroidSigningKeyPass=$CM_KEY_PASSWORD \
