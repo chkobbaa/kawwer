@@ -32,10 +32,10 @@ workflows:
           export PATH="$HOME/.dotnet:$PATH"
           dotnet workload install maui-ios --skip-sign-check
 
-      - name: Restore NuGet packages
+      - name: Restore NuGet packages (iOS only)
         script: |
           export PATH="$HOME/.dotnet:$PATH"
-          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj
+          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj -p:TargetFrameworks=net10.0-ios
 
       - name: Build unsigned .ipa
         script: |
@@ -83,10 +83,10 @@ workflows:
           export PATH="$HOME/.dotnet:$PATH"
           dotnet workload install maui-android
 
-      - name: Restore NuGet packages
+      - name: Restore NuGet packages (Android only)
         script: |
           export PATH="$HOME/.dotnet:$PATH"
-          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj
+          dotnet restore Kawwer.Mobile/Kawwer.Mobile.csproj -p:TargetFrameworks=net10.0-android
 
       - name: Build & publish Android .apk
         script: |
