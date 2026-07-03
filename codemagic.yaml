@@ -53,6 +53,7 @@ workflows:
             -c Release \
             --no-restore \
             -p:TargetFrameworks=net10.0-ios \
+            -p:ArchiveOnBuild=true \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:ValidateXcodeVersion=false \
             -p:CodesignKey="" \
@@ -61,7 +62,6 @@ workflows:
 
     artifacts:
       - "**/*.ipa"
-      - "**/*.app"
 
 
   # ─────────────────────────────────────────────
