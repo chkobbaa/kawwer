@@ -1,0 +1,6 @@
+# Copy to Caddyfile and replace the domain.
+# DNS A record must point api.yourdomain.com → your Oracle VM public IP.
+
+api.yourdomain.com {
+    reverse_proxy api:8080
+}

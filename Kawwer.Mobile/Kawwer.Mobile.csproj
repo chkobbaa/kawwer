@@ -42,6 +42,7 @@
 		<WindowsPackageType>None</WindowsPackageType>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+		<CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">Platforms\iOS\Entitlements.plist</CodesignEntitlements>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
@@ -80,6 +81,14 @@
 		     but pushes only activate once the file exists. -->
 		<GoogleServicesJson Include="Platforms\Android\google-services.json"
 		                    Condition="Exists('Platforms\Android\google-services.json')" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+		<PackageReference Include="Plugin.Firebase.CloudMessaging" Version="4.0.1" />
+		<!-- Download from Firebase Console (add iOS app, bundle id com.companyname.kawwer). -->
+		<BundleResource Include="Platforms\iOS\GoogleService-Info.plist"
+		                Link="GoogleService-Info.plist"
+		                Condition="Exists('Platforms\iOS\GoogleService-Info.plist')" />
 	</ItemGroup>
 
 </Project>

@@ -1,0 +1,12 @@
+**/.git
+**/.vs
+**/.idea
+**/bin
+**/obj
+**/*.user
+Kawwer.Mobile/
+Kawwer.Tests/
+**/*.md
+secrets/
+.env
+Caddyfile

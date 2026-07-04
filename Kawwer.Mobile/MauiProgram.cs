@@ -3,6 +3,10 @@ using Kawwer.Mobile.Services;
 using Kawwer.Mobile.ViewModels;
 using Kawwer.Mobile.Views;
 using Microsoft.Extensions.Logging;
+#if IOS
+using Plugin.Firebase.CloudMessaging;
+using Plugin.Firebase.Core.Platforms.iOS;
+#endif
 
 namespace kawwer;
 
@@ -18,6 +22,19 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
+
+#if IOS
+        builder.ConfigureLifecycleEvents(events =>
+        {
+            events.AddiOS(iOS => iOS.WillFinishLaunching((_, __) =>
+            {
+                CrossFirebase.Initialize(new CrossFirebaseSettings());
+                FirebaseCloudMessagingImplementation.Initialize();
+                PushNotifications.WireEvents();
+                return false;
+            }));
+        });
+#endif
 
 #if ANDROID
         // Icon-only bottom tabs + pop-to-root when the current tab is re-tapped.
