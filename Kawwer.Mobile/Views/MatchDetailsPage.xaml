@@ -206,7 +206,7 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Border Margin="4" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 16"
-                                    HeightRequest="150" BackgroundColor="{StaticResource Ink}" IsClippedToBounds="True">
+                                    HeightRequest="150" BackgroundColor="{StaticResource Ink}">
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding BindingContext.OpenProfileCommand, Source={x:Reference PageRoot}}"

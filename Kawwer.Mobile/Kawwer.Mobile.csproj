@@ -73,8 +73,9 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<!-- Styled, non-intrusive popups (SuccessPopup) instead of native DisplayAlert.
-		     v13+ targets .NET 10; align the version with the installed MAUI workload if needed. -->
-		<PackageReference Include="CommunityToolkit.Maui" Version="14.2.0" />
+		     13.0.0 targets .NET 10 and depends on Microsoft.Maui.Controls >= 10.0.10, which matches
+		     the .NET 10 MAUI workload; bump this if you move to a newer MAUI band. -->
+		<PackageReference Include="CommunityToolkit.Maui" Version="13.0.0" />
 	</ItemGroup>
 
 	<!-- Firebase Cloud Messaging (push notifications). -->
