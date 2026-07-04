@@ -60,6 +60,16 @@ public sealed class FirebasePushNotificationSender : IPushNotificationSender
                 Android = new AndroidConfig
                 {
                     Priority = Priority.High
+                },
+                // iOS needs an APNs alert to show notifications when the app is backgrounded.
+                Apns = new ApnsConfig
+                {
+                    Headers = new Dictionary<string, string> { ["apns-priority"] = "10" },
+                    Aps = new Aps
+                    {
+                        Alert = new ApsAlert { Title = title, Body = body },
+                        Sound = "default"
+                    }
                 }
             };
 

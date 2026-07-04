@@ -36,6 +36,21 @@ public sealed class PushRegistrationService
 
             await _api.UpdateDeviceTokenAsync(token);
             _registered = true;
+#elif IOS
+            var status = await Permissions.RequestAsync<Permissions.PostNotifications>();
+            if (status != PermissionStatus.Granted)
+            {
+                return;
+            }
+
+            var token = await kawwer.PushNotifications.GetTokenAsync();
+            if (string.IsNullOrEmpty(token))
+            {
+                return;
+            }
+
+            await _api.UpdateDeviceTokenAsync(token);
+            _registered = true;
 #else
             await Task.CompletedTask;
 #endif

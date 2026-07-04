@@ -115,6 +115,7 @@ publish/
 appsettings.Development.json
 .env
 .env.*
+secrets/
 
 ############################################
 # JetBrains
