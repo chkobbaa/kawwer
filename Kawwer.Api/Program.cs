@@ -1,6 +1,7 @@
 using System.Text;
 using Kawwer.Api.Middleware;
 using Kawwer.Api.Realtime;
+using Microsoft.AspNetCore.StaticFiles;
 using Kawwer.Application;
 using Kawwer.Application.Common.Interfaces;
 using Kawwer.Infrastructure;
@@ -26,6 +27,20 @@ builder.Services.AddSignalR();
 if (string.IsNullOrWhiteSpace(builder.Configuration["Jwt:SigningKey"]))
 {
     builder.Configuration["Jwt:SigningKey"] = "kawwer-development-signing-key-change-me-please-32+";
+}
+
+// Development fallback VAPID key pair for Web Push (the PWA). Set BEFORE AddInfrastructure binds
+// WebPushOptions. VAPID keys must stay stable (they are baked into every browser subscription), so
+// unlike a random secret these are a fixed pair. Override BOTH in production via configuration.
+if (string.IsNullOrWhiteSpace(builder.Configuration["WebPush:PublicKey"]))
+{
+    builder.Configuration["WebPush:PublicKey"] =
+        "BG6303GrR2S6Dr1ywiWQoWJ98QTaHI9AvOGizadFNGNTaSVTGwLLvNPt_PZs1PTcrlp1aLYkK-WI3VrvTys_4DU";
+}
+
+if (string.IsNullOrWhiteSpace(builder.Configuration["WebPush:PrivateKey"]))
+{
+    builder.Configuration["WebPush:PrivateKey"] = "s2kuX3_NjHUIRQo9pICitX5Ruzj00O5rP97FbgXcqaQ";
 }
 
 builder.Services.AddApplication();
@@ -115,6 +130,13 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+// Serve the installable PWA (Kawwer.Api/wwwroot): index.html at "/", plus the service worker,
+// manifest and icons. The web app uses hash-based routing, so no SPA fallback is needed.
+var pwaContentTypes = new FileExtensionContentTypeProvider();
+pwaContentTypes.Mappings[".webmanifest"] = "application/manifest+json";
+app.UseDefaultFiles();
+app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = pwaContentTypes });
 
 app.UseCors();
 app.UseAuthentication();

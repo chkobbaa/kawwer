@@ -21,6 +21,7 @@ public sealed class KawwerDbContext : DbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<Rating> Ratings => Set<Rating>();
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

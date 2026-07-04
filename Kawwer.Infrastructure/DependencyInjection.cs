@@ -17,6 +17,7 @@ public static class DependencyInjection
     {
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<FirebaseOptions>(configuration.GetSection(FirebaseOptions.SectionName));
+        services.Configure<WebPushOptions>(configuration.GetSection(WebPushOptions.SectionName));
 
         var connectionString = configuration.GetConnectionString("Postgres")
             ?? configuration.GetConnectionString("Default")
@@ -35,12 +36,14 @@ public static class DependencyInjection
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IRatingRepository, RatingRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IPushSubscriptionRepository, PushSubscriptionRepository>();
 
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
 
         services.AddSingleton<IPushNotificationSender, FirebasePushNotificationSender>();
+        services.AddSingleton<IWebPushSender, WebPushNotificationSender>();
 
         services.AddHostedService<MatchReminderService>();
 
