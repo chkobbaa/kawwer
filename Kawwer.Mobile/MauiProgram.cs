@@ -6,8 +6,9 @@ using Kawwer.Mobile.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 #if IOS
+using Plugin.Firebase.Bundled.Shared;
+using Plugin.Firebase.Bundled.Platforms.iOS;
 using Plugin.Firebase.CloudMessaging;
-using Plugin.Firebase.Core.Platforms.iOS;
 #endif
 
 namespace kawwer;
@@ -31,7 +32,7 @@ public static class MauiProgram
         {
             events.AddiOS(iOS => iOS.WillFinishLaunching((_, __) =>
             {
-                CrossFirebase.Initialize(new CrossFirebaseSettings());
+                CrossFirebase.Initialize(new CrossFirebaseSettings(isCloudMessagingEnabled: true));
                 FirebaseCloudMessagingImplementation.Initialize();
                 PushNotifications.WireEvents();
                 return false;
