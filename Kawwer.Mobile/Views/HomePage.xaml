@@ -11,11 +11,11 @@
             <ScrollView>
                 <VerticalStackLayout Padding="16,12,16,88" Spacing="12">
 
-                    <!-- Header: greeting + notification bell with unread badge -->
+                    <!-- Header: logo + tagline, with notification bell + unread badge -->
                     <Grid ColumnDefinitions="*,Auto">
-                        <VerticalStackLayout Spacing="2" VerticalOptions="Center">
-                            <Label Text="{Binding Greeting}" Style="{StaticResource ScreenTitle}" />
-                            <Label Text="Ready to play?" FontSize="14" TextColor="{StaticResource Gray500}" />
+                        <VerticalStackLayout Spacing="4" VerticalOptions="Center">
+                            <Image Source="kawwer_logo.png" HeightRequest="40" HorizontalOptions="Start" />
+                            <Label Text="Ready to play?" Style="{StaticResource ScreenTitle}" />
                         </VerticalStackLayout>
                         <Grid Grid.Column="1" VerticalOptions="Start">
                             <Border Style="{StaticResource IconBubble}" WidthRequest="44" HeightRequest="44"

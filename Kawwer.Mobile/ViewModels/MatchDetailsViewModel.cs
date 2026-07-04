@@ -59,6 +59,12 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
     [ObservableProperty] private bool _canInvite;
     [ObservableProperty] private string _inviteButtonText = "Invite players";
 
+    /// <summary>Players list layout: grid of image cards (default) vs. a compact list.</summary>
+    [ObservableProperty] private bool _isGridView = true;
+
+    [RelayCommand]
+    private void ToggleView() => IsGridView = !IsGridView;
+
     partial void OnMatchIdChanged(Guid value) => _ = LoadAsync();
 
     [RelayCommand]
@@ -112,7 +118,10 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
         // A cancelled or finished match accepts no responses of any kind.
         CanRespond = !isClosed
                      && Me is { Status: ParticipantStatus.Invited or ParticipantStatus.Seen or ParticipantStatus.Thinking };
+        // The organizer now appears in the players list (as an Accepted participant), so guard
+        // against showing them a "Leave" button for their own match; they cancel instead.
         CanLeave = !isClosed
+                   && !IsOrganizer
                    && Me is { Status: ParticipantStatus.Accepted or ParticipantStatus.WaitingList };
 
         // Viewers discovering a public (or friends-only) match can ask to join from here.
@@ -149,12 +158,21 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
     private Task JoinAsync() => RunAsync(async () =>
     {
         var joined = await _api.JoinPublicMatchAsync(MatchId);
-        await Shell.Current.DisplayAlertAsync(
-            "Join match",
-            joined
-                ? "You're in! The match is now in your calendar."
-                : "The match is full or needs the organizer's approval. You're in the queue and will be notified.",
-            "OK");
+
+        // Hide the Join button immediately; the reload below settles the exact spot/waitlist state.
+        CanJoin = false;
+
+        if (joined)
+        {
+            await Dialog.ShowSuccessAsync("You're in! The match is now in your calendar.");
+        }
+        else
+        {
+            await Dialog.ShowAlertAsync(
+                "Join match",
+                "The match is full or needs the organizer's approval. You're in the queue and will be notified.");
+        }
+
         await LoadCoreAsync();
     });
 
@@ -229,6 +247,10 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
     private Task ApproveJoinAsync(Guid userId) => RunAsync(async () =>
     {
         await _api.ApproveJoinRequestAsync(MatchId, userId);
+
+        // Instantly drop the handled request from the pending list; the reload then places the
+        // player in the correct bucket (a free spot vs. the waiting list, which the server decides).
+        RemovePending(userId);
         await LoadCoreAsync();
     });
 
@@ -236,8 +258,22 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
     private Task RejectJoinAsync(Guid userId) => RunAsync(async () =>
     {
         await _api.RejectJoinRequestAsync(MatchId, userId);
-        await LoadCoreAsync();
+
+        // Rejecting only removes the request; no spot changes hands, so update the list in place.
+        RemovePending(userId);
     });
+
+    /// <summary>Removes a pending row (join request/invitation) for the given user, in place.</summary>
+    private void RemovePending(Guid userId)
+    {
+        var pending = Pending.FirstOrDefault(p => p.User.Id == userId);
+        if (pending is not null)
+        {
+            Pending.Remove(pending);
+            Participants.Remove(pending);
+            HasPending = IsOrganizer && Pending.Count > 0;
+        }
+    }
 
     [RelayCommand]
     private async Task CancelAsync()

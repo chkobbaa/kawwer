@@ -1,3 +1,4 @@
+using kawwer;
 using Kawwer.Mobile.Models;
 
 namespace Kawwer.Mobile.Services;
@@ -45,5 +46,10 @@ public sealed class AuthService
         }
 
         _session.Clear();
+
+        // Rebuild the shell from scratch. This tears down the entire navigation stack and every
+        // transient view model, so logging back in starts on a clean Login screen instead of
+        // whatever page (and cached data) was last open.
+        AppShell.ResetToLogin(this);
     }
 }

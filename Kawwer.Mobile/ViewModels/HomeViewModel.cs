@@ -8,17 +8,26 @@ namespace Kawwer.Mobile.ViewModels;
 
 public sealed partial class HomeViewModel : BaseViewModel
 {
+    private static bool _checkedForUpdate;
+
     private readonly KawwerApiClient _api;
     private readonly SessionState _session;
     private readonly PushRegistrationService _push;
     private readonly MatchReminderService _reminders;
+    private readonly UpdateService _update;
 
-    public HomeViewModel(KawwerApiClient api, SessionState session, PushRegistrationService push, MatchReminderService reminders)
+    public HomeViewModel(
+        KawwerApiClient api,
+        SessionState session,
+        PushRegistrationService push,
+        MatchReminderService reminders,
+        UpdateService update)
     {
         _api = api;
         _session = session;
         _push = push;
         _reminders = reminders;
+        _update = update;
         Title = "Home";
     }
 
@@ -87,6 +96,13 @@ public sealed partial class HomeViewModel : BaseViewModel
         catch
         {
             UnreadNotifications = 0;
+        }
+
+        // Check for a new APK once per app session (best effort; never blocks the home screen).
+        if (!_checkedForUpdate)
+        {
+            _checkedForUpdate = true;
+            _ = _update.CheckForUpdateAsync();
         }
     });
 

@@ -6,6 +6,7 @@
              Title="Friends"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
+    <RefreshView Command="{Binding LoadCommand}" IsRefreshing="{Binding IsRefreshing}">
     <ScrollView>
         <VerticalStackLayout Padding="16,12,16,24" Spacing="10">
 
@@ -19,6 +20,17 @@
                         BackgroundColor="{StaticResource Ink}" TextColor="{StaticResource Volt}"
                         Command="{Binding OpenGroupsCommand}" />
             </Grid>
+
+            <!-- Error + retry: shown instead of leaving the screen blank when a load fails. -->
+            <Border Style="{StaticResource ErrorBanner}" IsVisible="{Binding IsErrorState}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" VerticalOptions="Center" />
+                    <Button Grid.Column="1" Text="Retry" FontSize="13" FontAttributes="Bold" CornerRadius="18"
+                            HeightRequest="36" Padding="16,0" VerticalOptions="Center"
+                            BackgroundColor="{StaticResource Ink}" TextColor="{StaticResource Volt}"
+                            Command="{Binding LoadCommand}" />
+                </Grid>
+            </Border>
 
             <!-- Search -->
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -162,4 +174,5 @@
             </CollectionView>
         </VerticalStackLayout>
     </ScrollView>
+    </RefreshView>
 </ContentPage>

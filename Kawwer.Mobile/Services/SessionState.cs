@@ -136,6 +136,12 @@ public sealed class SessionState
             SecureStorage.Default.Remove(RefreshKey);
             SecureStorage.Default.Remove(UserIdKey);
             Preferences.Default.Remove(HasSessionKey);
+
+            // Drop cached profile/home data so the next user never sees the previous user's info.
+            foreach (var key in JsonCache.Keys.All)
+            {
+                JsonCache.Remove(key);
+            }
         }
         catch (Exception ex)
         {

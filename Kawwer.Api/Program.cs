@@ -117,6 +117,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+
+// Serve uploaded assets (e.g. profile pictures under /uploads/avatars).
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
