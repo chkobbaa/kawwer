@@ -8,7 +8,7 @@ public static class AppConfig
 {
     // Local dev:  http://192.168.x.x:5251  (your PC's LAN address — phone must be on same Wi‑Fi)
     // Production: https://api.yourdomain.com  (see docs/AzureDeployment.md)
-    private const string Host = "http://192.168.1.6:5251";
+    private const string Host = "https://api.bahroun.com";
 
     public static string ApiBaseUrl { get; set; } = $"{Host}/api/v1";
     public static string HubBaseUrl { get; set; } = $"{Host}/hubs/match";
