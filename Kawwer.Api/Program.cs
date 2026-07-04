@@ -135,6 +135,7 @@ if (!app.Environment.IsDevelopment())
 // manifest and icons. The web app uses hash-based routing, so no SPA fallback is needed.
 var pwaContentTypes = new FileExtensionContentTypeProvider();
 pwaContentTypes.Mappings[".webmanifest"] = "application/manifest+json";
+pwaContentTypes.Mappings[".apk"] = "application/vnd.android.package-archive";
 app.UseDefaultFiles();
 app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = pwaContentTypes });
 
