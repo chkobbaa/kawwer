@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Kawwer.Mobile.Models;
 using Kawwer.Mobile.Services;
+using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Graphics.Platform;
 
 namespace Kawwer.Mobile.ViewModels;
 
@@ -12,15 +14,20 @@ public sealed partial class SettingsViewModel : BaseViewModel
     private const string NotifyPaymentsKey = "pref_notify_payments";
     private const string NotifyFriendsKey = "pref_notify_friends";
 
+    // Largest edge (px) we upload; keeps avatars small and fast on mobile data.
+    private const int MaxAvatarDimension = 1024;
+
     private readonly KawwerApiClient _api;
     private readonly AuthService _auth;
     private readonly PushRegistrationService _push;
+    private readonly UpdateService _update;
 
-    public SettingsViewModel(KawwerApiClient api, AuthService auth, PushRegistrationService push)
+    public SettingsViewModel(KawwerApiClient api, AuthService auth, PushRegistrationService push, UpdateService update)
     {
         _api = api;
         _auth = auth;
         _push = push;
+        _update = update;
         Title = "Settings";
 
         NotifyMatches = Preferences.Default.Get(NotifyMatchesKey, true);
@@ -39,12 +46,22 @@ public sealed partial class SettingsViewModel : BaseViewModel
     public ObservableCollection<string> VisibilityOptions { get; } = new() { "Public", "Friends only", "Private" };
 
     // ----- Profile -----
-    [ObservableProperty] private string _firstName = string.Empty;
-    [ObservableProperty] private string _lastName = string.Empty;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Initials))]
+    private string _firstName = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Initials))]
+    private string _lastName = string.Empty;
+
     [ObservableProperty] private string _phoneNumber = string.Empty;
     [ObservableProperty] private string _selectedPosition = "Not set";
     [ObservableProperty] private string _selectedFoot = "Not set";
     [ObservableProperty] private string _selectedVisibility = "Public";
+    [ObservableProperty] private string? _profilePictureUrl;
+
+    public string Initials =>
+        $"{(FirstName.Length > 0 ? char.ToUpperInvariant(FirstName[0]) : ' ')}{(LastName.Length > 0 ? char.ToUpperInvariant(LastName[0]) : ' ')}".Trim();
 
     // ----- Notification preferences (stored on device) -----
     [ObservableProperty] private bool _notifyMatches;
@@ -70,6 +87,7 @@ public sealed partial class SettingsViewModel : BaseViewModel
         FirstName = user.FirstName;
         LastName = user.LastName;
         PhoneNumber = user.PhoneNumber ?? string.Empty;
+        ProfilePictureUrl = user.ProfilePictureUrl;
         _birthDate = user.BirthDate;
         SelectedPosition = user.PreferredPosition?.ToString() ?? "Not set";
         SelectedFoot = user.PreferredFoot?.ToString() ?? "Not set";
@@ -112,21 +130,98 @@ public sealed partial class SettingsViewModel : BaseViewModel
         });
 
         _auth.Session.CurrentUser = updated;
-        await Shell.Current.DisplayAlertAsync("Settings", "Profile updated.", "OK");
+        await Dialog.ShowSuccessAsync("Profile updated.");
     });
+
+    /// <summary>Pick a photo, downscale/compress it, and upload it as the profile picture.</summary>
+    [RelayCommand]
+    private async Task PickPhotoAsync()
+    {
+        FileResult? photo;
+        try
+        {
+            photo = await MediaPicker.Default.PickPhotoAsync();
+        }
+        catch (FeatureNotSupportedException)
+        {
+            ErrorMessage = "Picking photos isn't supported on this device.";
+            return;
+        }
+        catch (PermissionException)
+        {
+            ErrorMessage = "Permission to access photos was denied.";
+            return;
+        }
+
+        if (photo is null)
+        {
+            return; // user cancelled
+        }
+
+        await RunAsync(async () =>
+        {
+            byte[] jpeg;
+            using (var source = await photo.OpenReadAsync())
+            {
+                // Standard MAUI image pipeline: decode, downscale to a max edge, re-encode as JPEG.
+                var image = PlatformImage.FromStream(source);
+                using var resized = image.Downsize(MaxAvatarDimension, disposeOriginal: true);
+                using var buffer = new MemoryStream();
+                resized.Save(buffer, ImageFormat.Jpeg, quality: 0.8f);
+                jpeg = buffer.ToArray();
+            }
+
+            using var upload = new MemoryStream(jpeg);
+            var updated = await _api.UploadProfilePhotoAsync(upload, "avatar.jpg", "image/jpeg");
+
+            _auth.Session.CurrentUser = updated;
+            ProfilePictureUrl = updated.ProfilePictureUrl;
+            await Dialog.ShowSuccessAsync("Profile picture updated.");
+        });
+    }
+
+    [RelayCommand]
+    private Task CheckForUpdatesAsync() => _update.CheckForUpdateAsync(announceUpToDate: true);
 
     [RelayCommand]
     private async Task LogoutAsync()
     {
-        var confirm = await Shell.Current.DisplayAlertAsync("Log out", "Are you sure you want to log out?", "Log out", "Cancel");
+        var confirm = await Dialog.ConfirmAsync("Log out", "Are you sure you want to log out?", "Log out", "Cancel");
         if (!confirm)
         {
             return;
         }
 
-        // Detach this device from pushes, then end the session.
+        // Detach this device from pushes, then end the session. AuthService rebuilds the shell,
+        // which returns us to a clean Login screen.
         await _push.UnregisterAsync();
         await _auth.LogoutAsync();
-        await Shell.Current.GoToAsync("//login");
+    }
+
+    [RelayCommand]
+    private async Task DeleteAccountAsync()
+    {
+        var confirm = await Dialog.ConfirmAsync(
+            "Delete account",
+            "This deactivates your account and signs you out on every device. This cannot be undone. Continue?",
+            "Delete",
+            "Cancel");
+        if (!confirm)
+        {
+            return;
+        }
+
+        var ok = false;
+        await RunAsync(async () =>
+        {
+            await _api.DeleteAccountAsync();
+            ok = true;
+        });
+
+        if (ok)
+        {
+            await _push.UnregisterAsync();
+            await _auth.LogoutAsync();
+        }
     }
 }

@@ -8,7 +8,9 @@ namespace Kawwer.Mobile.Services;
 
 /// <summary>
 /// Attaches the access token to every request. On a 401 it transparently refreshes the token
-/// once (using the refresh token) and retries.
+/// once (using the refresh token) and retries. If the server definitively rejects the refresh
+/// token (it expired or was revoked), the session is cleared and the user is sent to the login
+/// screen instead of the app hanging on a perpetual "loading" state.
 /// </summary>
 public sealed class AuthHeaderHandler : DelegatingHandler
 {
@@ -18,9 +20,24 @@ public sealed class AuthHeaderHandler : DelegatingHandler
     // refresh token on every use, so concurrent refreshes would kill the session.
     private static readonly SemaphoreSlim RefreshLock = new(1, 1);
 
+    // Ensures a burst of concurrent 401s triggers exactly one logout + navigation.
+    private static int _loggingOut;
+
     private readonly SessionState _session;
 
     public AuthHeaderHandler(SessionState session) => _session = session;
+
+    private enum RefreshOutcome
+    {
+        /// <summary>A fresh access token was obtained.</summary>
+        Refreshed,
+
+        /// <summary>The server rejected the refresh token (expired/revoked). The session is dead.</summary>
+        Rejected,
+
+        /// <summary>A transient/network error; keep the session so a later attempt can recover.</summary>
+        Transient
+    }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -38,12 +55,20 @@ public sealed class AuthHeaderHandler : DelegatingHandler
         }
 
         bool refreshed;
+        var outcome = RefreshOutcome.Transient;
         await RefreshLock.WaitAsync(cancellationToken);
         try
         {
             // Another request may have already refreshed the token while we waited.
-            refreshed = (!string.IsNullOrEmpty(_session.AccessToken) && _session.AccessToken != tokenUsed)
-                        || await TryRefreshAsync(cancellationToken);
+            if (!string.IsNullOrEmpty(_session.AccessToken) && _session.AccessToken != tokenUsed)
+            {
+                refreshed = true;
+            }
+            else
+            {
+                outcome = await TryRefreshAsync(cancellationToken);
+                refreshed = outcome == RefreshOutcome.Refreshed;
+            }
         }
         finally
         {
@@ -52,6 +77,13 @@ public sealed class AuthHeaderHandler : DelegatingHandler
 
         if (!refreshed)
         {
+            // Only tear down the session when the server actually rejected the refresh token.
+            // Transient failures keep the tokens so the next request (or app start) can recover.
+            if (outcome == RefreshOutcome.Rejected)
+            {
+                ForceLogout();
+            }
+
             return response;
         }
 
@@ -69,7 +101,7 @@ public sealed class AuthHeaderHandler : DelegatingHandler
         }
     }
 
-    private async Task<bool> TryRefreshAsync(CancellationToken cancellationToken)
+    private async Task<RefreshOutcome> TryRefreshAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -81,26 +113,57 @@ public sealed class AuthHeaderHandler : DelegatingHandler
 
             if (!response.IsSuccessStatusCode)
             {
-                // The refresh failed. The user is NEVER logged out automatically: only an
-                // explicit logout clears the session. We keep the tokens so a later refresh
-                // attempt (or the next app start) can recover the session.
-                return false;
+                // A 4xx means the refresh token is no longer valid (expired/revoked): the session
+                // is genuinely dead. A 5xx (or other) is transient, so we keep the session.
+                return (int)response.StatusCode is >= 400 and < 500
+                    ? RefreshOutcome.Rejected
+                    : RefreshOutcome.Transient;
             }
 
             var payload = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponse>>(JsonOptions, cancellationToken);
             if (payload?.Data is null)
             {
-                return false;
+                return RefreshOutcome.Transient;
             }
 
             await _session.UpdateTokensAsync(payload.Data.AccessToken, payload.Data.RefreshToken);
-            return true;
+            return RefreshOutcome.Refreshed;
         }
         catch
         {
-            // Transient/network failure: keep the session so a later request can retry.
-            return false;
+            // Network failure/timeout: keep the session so a later request can retry.
+            return RefreshOutcome.Transient;
         }
+    }
+
+    /// <summary>Clears the dead session and routes to the login screen exactly once.</summary>
+    private void ForceLogout()
+    {
+        if (Interlocked.Exchange(ref _loggingOut, 1) == 1)
+        {
+            return;
+        }
+
+        _session.Clear();
+
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            try
+            {
+                if (Shell.Current is not null)
+                {
+                    await Shell.Current.GoToAsync("//login");
+                }
+            }
+            catch
+            {
+                // The Shell may not be ready yet; the next app start will land on login anyway.
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _loggingOut, 0);
+            }
+        });
     }
 
     private static async Task<HttpRequestMessage> CloneAsync(HttpRequestMessage request)

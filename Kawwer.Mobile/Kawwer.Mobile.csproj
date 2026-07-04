@@ -72,6 +72,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<!-- Styled, non-intrusive popups (SuccessPopup) instead of native DisplayAlert.
+		     v13+ targets .NET 10; align the version with the installed MAUI workload if needed. -->
+		<PackageReference Include="CommunityToolkit.Maui" Version="14.2.0" />
 	</ItemGroup>
 
 	<!-- Firebase Cloud Messaging (push notifications). -->

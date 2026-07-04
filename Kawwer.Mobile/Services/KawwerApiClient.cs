@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -37,6 +38,25 @@ public sealed class KawwerApiClient
 
     public Task UpdateDeviceTokenAsync(string? token, CancellationToken ct = default)
         => PutAsync("users/me/device-token", new { deviceToken = token }, ct);
+
+    /// <summary>Deletes (deactivates) the signed-in user's own account.</summary>
+    public Task DeleteAccountAsync(CancellationToken ct = default) => DeleteAsync("users/me", ct);
+
+    /// <summary>Uploads a new profile picture (multipart) and returns the refreshed profile.</summary>
+    public async Task<UserDto> UploadProfilePhotoAsync(Stream content, string fileName, string contentType, CancellationToken ct = default)
+    {
+        using var form = new MultipartFormDataContent();
+        var fileContent = new StreamContent(content);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        form.Add(fileContent, "file", fileName);
+
+        using var response = await _http.PostAsync("users/me/photo", form, ct);
+        return await UnwrapAsync<UserDto>(response, ct);
+    }
+
+    // ----- System -----
+    public Task<AppVersionDto> GetAppVersionAsync(CancellationToken ct = default)
+        => GetAsync<AppVersionDto>("system/version", ct);
 
     public Task<UserDto> GetUserAsync(Guid userId, CancellationToken ct = default)
         => GetAsync<UserDto>($"users/{userId}", ct);

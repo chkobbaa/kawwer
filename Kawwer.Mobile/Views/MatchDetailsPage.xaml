@@ -12,7 +12,27 @@
                 <!-- Match hero -->
                 <Border Style="{StaticResource HeroCard}">
                     <VerticalStackLayout Spacing="12">
-                        <Label Text="{Binding Match.Title}" FontSize="24" FontAttributes="Bold" TextColor="White" />
+                        <!-- Title + organizer (top-right, filling the previously empty space) -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <Label Text="{Binding Match.Title}" FontSize="24" FontAttributes="Bold" TextColor="White"
+                                   VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="3" HorizontalOptions="End" VerticalOptions="Start">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenProfileCommand}"
+                                                          CommandParameter="{Binding Match.Organizer.Id}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Border WidthRequest="40" HeightRequest="40" StrokeThickness="0" StrokeShape="RoundRectangle 20"
+                                        BackgroundColor="{StaticResource Volt}" HorizontalOptions="End">
+                                    <Label Text="{Binding Match.Organizer.Initials}" FontSize="14" FontAttributes="Bold"
+                                           TextColor="{StaticResource Ink}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <Label Text="{Binding Match.Organizer.FullName}" FontSize="12" FontAttributes="Bold"
+                                       TextColor="White" HorizontalTextAlignment="End" LineBreakMode="TailTruncation"
+                                       MaximumWidthRequest="120" />
+                                <Label Text="Organizer" FontSize="10" TextColor="{StaticResource Volt}"
+                                       HorizontalTextAlignment="End" />
+                            </VerticalStackLayout>
+                        </Grid>
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                             <Label Text="{Binding Match.TimeLabel}" FontSize="34" FontAttributes="Bold"
                                    TextColor="{StaticResource Volt}" VerticalOptions="Center" />
@@ -47,25 +67,6 @@
                 <Border Style="{StaticResource ErrorBanner}"
                         IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
                     <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
-                </Border>
-
-                <!-- Organizer -->
-                <Border Style="{StaticResource StatTile}" Padding="10">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding OpenProfileCommand}"
-                                              CommandParameter="{Binding Match.Organizer.Id}" />
-                    </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                        <Border Style="{StaticResource Avatar}" WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19">
-                            <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding Match.Organizer.Initials}" />
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
-                            <Label Text="{Binding Match.Organizer.FullName}" FontSize="15" FontAttributes="Bold" />
-                            <Label Text="Organizer" FontSize="12" TextColor="{StaticResource Gray500}" />
-                        </VerticalStackLayout>
-                        <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
-                              Fill="{StaticResource Gray300}" VerticalOptions="Center" />
-                    </Grid>
                 </Border>
 
                 <!-- Join (public/friends-only matches, viewer not yet in) -->
@@ -160,13 +161,77 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Invite players: the organizer invites directly; members suggest players
-                     that the organizer must confirm. -->
-                <Button Text="{Binding InviteButtonText}" Style="{StaticResource OutlineButton}" HeightRequest="46"
-                        FontSize="14" IsVisible="{Binding CanInvite}" Command="{Binding OpenInviteCommand}" />
+                <!-- PLAYERS IN header: title, layout toggle, and a compact invite/suggest action.
+                     The organizer invites directly; members suggest players to confirm. -->
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                    <Label Text="PLAYERS IN" Style="{StaticResource SectionTitle}" VerticalOptions="Center" />
 
-                <Label Text="PLAYERS IN" Style="{StaticResource SectionTitle}" />
-                <CollectionView ItemsSource="{Binding Players}">
+                    <!-- Grid/list toggle: shows the icon of the layout you'll switch to -->
+                    <Border Grid.Column="1" Style="{StaticResource IconBubble}" WidthRequest="38" HeightRequest="38"
+                            SemanticProperties.Description="Toggle players layout">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleViewCommand}" />
+                        </Border.GestureRecognizers>
+                        <Grid>
+                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconViewList}"
+                                  Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                  HorizontalOptions="Center" VerticalOptions="Center" IsVisible="{Binding IsGridView}" />
+                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconViewGrid}"
+                                  Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                  HorizontalOptions="Center" VerticalOptions="Center"
+                                  IsVisible="{Binding IsGridView, Converter={StaticResource InvertedBool}}" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Compact invite/suggest button -->
+                    <Border Grid.Column="2" Style="{StaticResource IconBubble}" WidthRequest="38" HeightRequest="38"
+                            BackgroundColor="{StaticResource Ink}" IsVisible="{Binding CanInvite}"
+                            SemanticProperties.Description="{Binding InviteButtonText}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenInviteCommand}" />
+                        </Border.GestureRecognizers>
+                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconAccountPlus}" Fill="{StaticResource Volt}"
+                              HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                </Grid>
+
+                <!-- Grid layout: full-bleed image cards, 2 columns (default) -->
+                <CollectionView ItemsSource="{Binding Players}" IsVisible="{Binding IsGridView}">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical" Span="2" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.EmptyView>
+                        <Label Text="No players yet." Style="{StaticResource EmptyBody}" Padding="0,8" />
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="4" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 16"
+                                    HeightRequest="150" BackgroundColor="{StaticResource Ink}" IsClippedToBounds="True">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding BindingContext.OpenProfileCommand, Source={x:Reference PageRoot}}"
+                                        CommandParameter="{Binding User.Id}" />
+                                </Border.GestureRecognizers>
+                                <Grid RowDefinitions="4*,*">
+                                    <!-- Initials show through as a placeholder when there's no photo -->
+                                    <Label Grid.RowSpan="2" Text="{Binding User.Initials}" FontSize="40" FontAttributes="Bold"
+                                           TextColor="{StaticResource Volt}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    <Image Grid.RowSpan="2" Source="{Binding User.ProfilePictureUrl}" Aspect="AspectFill" />
+                                    <!-- Name band: bottom 20%, full width, dimmed background -->
+                                    <Grid Grid.Row="1">
+                                        <BoxView Color="#B3000000" />
+                                        <Label Text="{Binding User.FullName}" TextColor="White" FontAttributes="Bold" FontSize="12"
+                                               Padding="8,0" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- List layout: compact rows -->
+                <CollectionView ItemsSource="{Binding Players}"
+                                IsVisible="{Binding IsGridView, Converter={StaticResource InvertedBool}}">
                     <CollectionView.EmptyView>
                         <Label Text="No players yet." Style="{StaticResource EmptyBody}" Padding="0,8" />
                     </CollectionView.EmptyView>

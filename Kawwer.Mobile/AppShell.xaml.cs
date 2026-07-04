@@ -60,6 +60,22 @@ public partial class AppShell : Shell
         CurrentItem = main;
     }
 
+    /// <summary>
+    /// Replaces the app's root page with a brand-new <see cref="AppShell"/>. Assigning a fresh
+    /// shell destroys the current navigation stack and every transient view model, so a user who
+    /// logs out (and back in) lands on a clean Login screen rather than the last page they viewed.
+    /// </summary>
+    public static void ResetToLogin(AuthService auth)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (Application.Current is { } app && app.Windows.Count > 0)
+            {
+                app.Windows[0].Page = new AppShell(auth);
+            }
+        });
+    }
+
     protected override async void OnNavigated(ShellNavigatedEventArgs args)
     {
         base.OnNavigated(args);

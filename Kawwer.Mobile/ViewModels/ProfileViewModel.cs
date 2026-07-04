@@ -7,6 +7,9 @@ namespace Kawwer.Mobile.ViewModels;
 
 public sealed partial class ProfileViewModel : BaseViewModel
 {
+    private const string UserCacheKey = JsonCache.Keys.ProfileUser;
+    private const string StatsCacheKey = JsonCache.Keys.ProfileStats;
+
     private readonly KawwerApiClient _api;
     private readonly AuthService _auth;
 
@@ -16,12 +19,16 @@ public sealed partial class ProfileViewModel : BaseViewModel
         _auth = auth;
         Title = "Profile";
 
-        // Show the cached user immediately; the network refresh replaces it when it completes.
-        if (auth.Session.CurrentUser is { } cached)
+        // Cold-start instant paint: show the in-memory session user if present, otherwise the last
+        // profile we cached on disk. The network refresh in LoadAsync then overwrites both.
+        var cachedUser = _auth.Session.CurrentUser ?? JsonCache.Load<UserDto>(UserCacheKey);
+        if (cachedUser is not null)
         {
-            User = cached;
-            Badge = FormatBadge(cached.ReliabilityBadge);
+            User = cachedUser;
+            Badge = FormatBadge(cachedUser.ReliabilityBadge);
         }
+
+        Statistics = JsonCache.Load<PlayerStatisticsDto>(StatsCacheKey);
     }
 
     [ObservableProperty] private UserDto? _user;
@@ -35,6 +42,10 @@ public sealed partial class ProfileViewModel : BaseViewModel
         _auth.Session.CurrentUser = User;
         Statistics = await _api.GetMyStatisticsAsync();
         Badge = FormatBadge(User.ReliabilityBadge);
+
+        // Overwrite the cache so the next cold start paints the freshest values.
+        JsonCache.Save(UserCacheKey, User);
+        JsonCache.Save(StatsCacheKey, Statistics);
     });
 
     [RelayCommand]

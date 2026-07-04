@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using CommunityToolkit.Maui;
 using Kawwer.Mobile.Services;
 using Kawwer.Mobile.ViewModels;
 using Kawwer.Mobile.Views;
@@ -17,6 +18,7 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -41,11 +43,18 @@ public static class MauiProgram
         builder.ConfigureMauiHandlers(handlers => handlers.AddHandler(typeof(AppShell), typeof(KawwerShellRenderer)));
 #endif
 
+#if IOS
+        // Icon-only bottom tabs on iOS (hide titles, center the icons).
+        builder.ConfigureMauiHandlers(handlers => handlers.AddHandler(typeof(AppShell), typeof(CustomShellRenderer)));
+#endif
+
         // ----- Core services -----
         builder.Services.AddSingleton<SessionState>();
         builder.Services.AddSingleton<AuthService>();
         builder.Services.AddSingleton<PushRegistrationService>();
         builder.Services.AddSingleton<MatchReminderService>();
+        builder.Services.AddSingleton<IDialogService, DialogService>();
+        builder.Services.AddTransient<UpdateService>();
         builder.Services.AddTransient<AuthHeaderHandler>();
 
         builder.Services

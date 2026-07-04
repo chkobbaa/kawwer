@@ -24,6 +24,14 @@ public sealed class AuthResponse
     public UserDto User { get; set; } = new();
 }
 
+/// <summary>Latest published app version + download URL, returned by GET /system/version.</summary>
+public sealed class AppVersionDto
+{
+    public string LatestVersion { get; set; } = string.Empty;
+    public string DownloadUrl { get; set; } = string.Empty;
+    public bool Mandatory { get; set; }
+}
+
 public sealed class UserDto
 {
     public Guid Id { get; set; }

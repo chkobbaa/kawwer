@@ -63,33 +63,69 @@ public sealed partial class FriendsViewModel : BaseViewModel
     private Task SendRequestAsync(Guid userId) => RunAsync(async () =>
     {
         await _api.SendFriendRequestAsync(userId);
-        await Shell.Current.DisplayAlertAsync("Friends", "Friend request sent.", "OK");
+
+        // Reflect it right away: drop the person from the search results so the "Add" button
+        // doesn't invite a second time, then confirm with a non-intrusive popup.
+        var target = SearchResults.FirstOrDefault(u => u.Id == userId);
+        if (target is not null)
+        {
+            SearchResults.Remove(target);
+        }
+
+        await Dialog.ShowSuccessAsync("Friend request sent.");
     });
 
     [RelayCommand]
     private Task AcceptAsync(Guid friendshipId) => RunAsync(async () =>
     {
         await _api.AcceptFriendRequestAsync(friendshipId);
-        await LoadCoreAsync();
+
+        // Move the request straight into the friends list instead of waiting for a full reload.
+        var request = Requests.FirstOrDefault(r => r.FriendshipId == friendshipId);
+        if (request is not null)
+        {
+            Requests.Remove(request);
+            Friends.Add(new FriendDto
+            {
+                FriendshipId = request.FriendshipId,
+                User = request.User,
+                FriendsSince = DateTime.UtcNow
+            });
+        }
     });
 
     [RelayCommand]
     private Task RejectAsync(Guid friendshipId) => RunAsync(async () =>
     {
         await _api.RejectFriendRequestAsync(friendshipId);
-        await LoadCoreAsync();
+
+        var request = Requests.FirstOrDefault(r => r.FriendshipId == friendshipId);
+        if (request is not null)
+        {
+            Requests.Remove(request);
+        }
     });
 
     [RelayCommand]
-    private Task RemoveFriendAsync(Guid userId) => RunAsync(async () =>
+    private async Task RemoveFriendAsync(Guid userId)
     {
-        var confirm = await Shell.Current.DisplayAlert("Remove Friend", "Are you sure you want to remove this friend?", "Yes", "Cancel");
-        if (confirm)
+        var confirm = await Dialog.ConfirmAsync("Remove Friend", "Are you sure you want to remove this friend?", "Yes", "Cancel");
+        if (!confirm)
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
         {
             await _api.RemoveFriendAsync(userId);
-            await LoadCoreAsync();
-        }
-    });
+
+            var friend = Friends.FirstOrDefault(f => f.User.Id == userId);
+            if (friend is not null)
+            {
+                Friends.Remove(friend);
+            }
+        });
+    }
 
     [RelayCommand]
     private Task OpenGroupsAsync() => Shell.Current.GoToAsync("groups");
