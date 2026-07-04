@@ -1,9 +1,10 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using CommunityToolkit.Maui;
 using Kawwer.Mobile.Services;
 using Kawwer.Mobile.ViewModels;
 using Kawwer.Mobile.Views;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.LifecycleEvents;
 #if IOS
 using Plugin.Firebase.CloudMessaging;
 using Plugin.Firebase.Core.Platforms.iOS;
