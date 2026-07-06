@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.OnboardingPage"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
+             BackgroundColor="{StaticResource Ink}">
+
+    <ContentPage.Resources>
+        <!-- Tappable answer card. Selection is applied per-option with a DataTrigger below. -->
+        <Style x:Key="OnboardOption" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="{StaticResource InkSoft}" />
+            <Setter Property="Stroke" Value="Transparent" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Padding" Value="18,16" />
+        </Style>
+
+        <Style x:Key="OptionEmoji" TargetType="Label">
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+
+        <Style x:Key="OptionLabel" TargetType="Label">
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+
+        <!-- Bright accent primary action, sitting on the dark "Night Pitch" background. -->
+        <Style x:Key="VoltButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource Volt}" />
+            <Setter Property="TextColor" Value="{StaticResource Ink}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="HeightRequest" Value="54" />
+        </Style>
+
+        <Style x:Key="OnboardGhostButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="#9DB5A5" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="HeightRequest" Value="44" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="24,56,24,36">
+
+        <!-- Top bar: back + slim progress -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" HeightRequest="28">
+            <Button Grid.Column="0"
+                    Text="‹  Back"
+                    Style="{StaticResource OnboardGhostButton}"
+                    Padding="0"
+                    HorizontalOptions="Start"
+                    HeightRequest="28"
+                    IsVisible="{Binding CanGoBack}"
+                    Command="{Binding BackCommand}" />
+            <ProgressBar Grid.Column="1"
+                         VerticalOptions="Center"
+                         Progress="{Binding Progress}"
+                         ProgressColor="{StaticResource Volt}"
+                         BackgroundColor="{StaticResource InkSoft}"
+                         IsVisible="{Binding IsDataStep}" />
+        </Grid>
+
+        <!-- Content -->
+        <VerticalStackLayout Grid.Row="1" Spacing="24" VerticalOptions="Start" Margin="0,28,0,0">
+
+            <!-- Heading (animated separately from the inputs) -->
+            <VerticalStackLayout x:Name="HeadingStack" Spacing="8">
+                <Label Text="{Binding StepTitle}" TextColor="White" FontSize="30" FontAttributes="Bold" LineHeight="1.15" />
+                <Label Text="{Binding StepSubtitle}" TextColor="#9DB5A5" FontSize="15" />
+            </VerticalStackLayout>
+
+            <!-- Step host: one panel visible at a time -->
+            <Grid x:Name="StepHost">
+
+                <!-- Step 1: Date of birth -->
+                <Border IsVisible="{Binding IsStep1}"
+                        BackgroundColor="{StaticResource InkSoft}"
+                        Stroke="Transparent"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="16,6">
+                    <DatePicker Date="{Binding BirthDate}"
+                                MinimumDate="{Binding MinimumBirthDate}"
+                                MaximumDate="{Binding MaximumBirthDate}"
+                                Format="D"
+                                TextColor="White"
+                                FontSize="16" />
+                </Border>
+
+                <!-- Step 2: Preferred position -->
+                <VerticalStackLayout IsVisible="{Binding IsStep2}" Spacing="12">
+                    <Border Style="{StaticResource OnboardOption}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectPositionCommand}" CommandParameter="Goalkeeper" />
+                        </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding SelectedPositionValue}" Value="1">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="Stroke" Value="{StaticResource Volt}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <HorizontalStackLayout Spacing="14">
+                            <Label Text="🧤" Style="{StaticResource OptionEmoji}" />
+                            <Label Text="Goalkeeper" Style="{StaticResource OptionLabel}" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource OnboardOption}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectPositionCommand}" CommandParameter="Defender" />
+                        </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding SelectedPositionValue}" Value="2">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="Stroke" Value="{StaticResource Volt}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <HorizontalStackLayout Spacing="14">
+                            <Label Text="🛡️" Style="{StaticResource OptionEmoji}" />
+                            <Label Text="Defender" Style="{StaticResource OptionLabel}" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource OnboardOption}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectPositionCommand}" CommandParameter="Midfielder" />
+                        </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding SelectedPositionValue}" Value="3">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="Stroke" Value="{StaticResource Volt}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <HorizontalStackLayout Spacing="14">
+                            <Label Text="🎯" Style="{StaticResource OptionEmoji}" />
+                            <Label Text="Midfielder" Style="{StaticResource OptionLabel}" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource OnboardOption}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectPositionCommand}" CommandParameter="Forward" />
+                        </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding SelectedPositionValue}" Value="4">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="Stroke" Value="{StaticResource Volt}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <HorizontalStackLayout Spacing="14">
+                            <Label Text="⚽" Style="{StaticResource OptionEmoji}" />
+                            <Label Text="Forward" Style="{StaticResource OptionLabel}" />
+                        </HorizontalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Step 3: Preferred foot -->
+                <VerticalStackLayout IsVisible="{Binding IsStep3}" Spacing="12">
+                    <Border Style="{StaticResource OnboardOption}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectFootCommand}" CommandParameter="Left" />
+                        </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding SelectedFootValue}" Value="1">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="Stroke" Value="{StaticResource Volt}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <HorizontalStackLayout Spacing="14">
+                            <Label Text="🦵" Style="{StaticResource OptionEmoji}" />
+                            <Label Text="Left" Style="{StaticResource OptionLabel}" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource OnboardOption}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectFootCommand}" CommandParameter="Right" />
+                        </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding SelectedFootValue}" Value="2">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="Stroke" Value="{StaticResource Volt}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <HorizontalStackLayout Spacing="14">
+                            <Label Text="🦶" Style="{StaticResource OptionEmoji}" />
+                            <Label Text="Right" Style="{StaticResource OptionLabel}" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource OnboardOption}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectFootCommand}" CommandParameter="Both" />
+                        </Border.GestureRecognizers>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding SelectedFootValue}" Value="3">
+                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                <Setter Property="Stroke" Value="{StaticResource Volt}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <HorizontalStackLayout Spacing="14">
+                            <Label Text="👣" Style="{StaticResource OptionEmoji}" />
+                            <Label Text="Both" Style="{StaticResource OptionLabel}" />
+                        </HorizontalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Final step: find friends / skip -->
+                <VerticalStackLayout IsVisible="{Binding IsDoneStep}" Spacing="18" Padding="0,8,0,0">
+                    <Border BackgroundColor="{StaticResource InkSoft}"
+                            Stroke="{StaticResource Volt}"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 44"
+                            WidthRequest="88"
+                            HeightRequest="88"
+                            HorizontalOptions="Start">
+                        <Label Text="✓" TextColor="{StaticResource Volt}" FontSize="44"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="Kawwer is more fun with friends. Search for teammates or do it later from the Friends tab."
+                           TextColor="#9DB5A5" FontSize="15" />
+                </VerticalStackLayout>
+
+            </Grid>
+        </VerticalStackLayout>
+
+        <!-- Bottom actions -->
+        <VerticalStackLayout Grid.Row="2" Spacing="12">
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="{StaticResource Error}"
+                   FontSize="13"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource Volt}" />
+
+            <Button Text="{Binding PrimaryLabel}"
+                    Style="{StaticResource VoltButton}"
+                    IsVisible="{Binding IsDataStep}"
+                    Command="{Binding ContinueCommand}" />
+
+            <Button Text="Find friends"
+                    Style="{StaticResource VoltButton}"
+                    IsVisible="{Binding IsDoneStep}"
+                    Command="{Binding FindFriendsCommand}" />
+
+            <Button Text="Skip for now"
+                    Style="{StaticResource OnboardGhostButton}"
+                    IsVisible="{Binding IsDoneStep}"
+                    Command="{Binding SkipCommand}" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

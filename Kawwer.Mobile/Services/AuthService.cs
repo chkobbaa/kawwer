@@ -17,6 +17,20 @@ public sealed class AuthService
 
     public SessionState Session => _session;
 
+    /// <summary>
+    /// True when a signed-in user still needs to go through the first-run onboarding flow. Prefers
+    /// the freshest loaded profile and falls back to the fast persisted flag used at cold start, so
+    /// startup routing can decide between onboarding and the main tabs without a network round-trip.
+    /// </summary>
+    public bool RequiresOnboarding =>
+        _session.IsAuthenticated
+        && !(_session.CurrentUser?.OnboardingCompleted ?? _session.OnboardingCompleted);
+
+    /// <summary>
+    /// Restores any persisted tokens. The access token itself is refreshed lazily: the first
+    /// authenticated request that gets a 401 transparently rotates it via <c>AuthHeaderHandler</c>,
+    /// which keeps the user signed in across restarts until they explicitly log out.
+    /// </summary>
     public Task InitializeAsync() => _session.EnsureLoadedAsync();
 
     public async Task LoginAsync(string usernameOrEmail, string password, bool rememberMe = true)

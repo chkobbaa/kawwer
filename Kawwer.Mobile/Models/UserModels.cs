@@ -48,6 +48,7 @@ public sealed class UserDto
     public decimal Reputation { get; set; }
     public ReliabilityBadge ReliabilityBadge { get; set; }
     public ProfileVisibility Visibility { get; set; }
+    public bool OnboardingCompleted { get; set; }
     public string DisplayFirstName => NameFormat.Capitalize(FirstName);
     public string FullName => $"{NameFormat.Capitalize(FirstName)} {NameFormat.Capitalize(LastName)}".Trim();
     public string Initials => $"{(FirstName.Length > 0 ? char.ToUpperInvariant(FirstName[0]) : ' ')}{(LastName.Length > 0 ? char.ToUpperInvariant(LastName[0]) : ' ')}".Trim();

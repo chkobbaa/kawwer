@@ -14,15 +14,53 @@ public sealed class SessionState
     private const string RefreshKey = "kawwer_refresh_token";
     private const string UserIdKey = "kawwer_user_id";
     private const string HasSessionKey = "kawwer_has_session";
+    private const string OnboardingKey = "kawwer_onboarding_completed";
 
     private Task? _loadTask;
+    private UserDto? _currentUser;
 
     public string? AccessToken { get; private set; }
     public string? RefreshToken { get; private set; }
     public Guid? UserId { get; private set; }
-    public UserDto? CurrentUser { get; set; }
+
+    /// <summary>
+    /// The signed-in user. Assigning a non-null value also refreshes the persisted onboarding flag,
+    /// so any profile fetch (login, register, GET /users/me) keeps the fast startup check accurate.
+    /// </summary>
+    public UserDto? CurrentUser
+    {
+        get => _currentUser;
+        set
+        {
+            _currentUser = value;
+            if (value is not null)
+            {
+                PersistOnboardingFlag(value.OnboardingCompleted);
+            }
+        }
+    }
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(AccessToken);
+
+    /// <summary>
+    /// Fast, synchronous check used at startup to decide between the onboarding flow and the main
+    /// tabs without waiting for the network. Defaults to true so existing installs (which have no
+    /// flag yet) are never pushed back through onboarding; a fresh login/register overwrites it.
+    /// </summary>
+    public bool OnboardingCompleted
+    {
+        get
+        {
+            try
+            {
+                return Preferences.Default.Get(OnboardingKey, true);
+            }
+            catch
+            {
+                return true;
+            }
+        }
+    }
 
     /// <summary>
     /// Fast, synchronous check used at startup to route straight to the main tabs without
@@ -72,7 +110,7 @@ public sealed class SessionState
         AccessToken = auth.AccessToken;
         RefreshToken = auth.RefreshToken;
         UserId = auth.User.Id;
-        CurrentUser = auth.User;
+        CurrentUser = auth.User; // also persists the onboarding flag (see the property setter)
         _persistTokens = persist;
 
         try
@@ -91,6 +129,7 @@ public sealed class SessionState
                 SecureStorage.Default.Remove(RefreshKey);
                 SecureStorage.Default.Remove(UserIdKey);
                 Preferences.Default.Remove(HasSessionKey);
+                Preferences.Default.Remove(OnboardingKey);
             }
         }
         catch (Exception ex)
@@ -123,6 +162,18 @@ public sealed class SessionState
         }
     }
 
+    private static void PersistOnboardingFlag(bool completed)
+    {
+        try
+        {
+            Preferences.Default.Set(OnboardingKey, completed);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Onboarding flag save failed: {ex}");
+        }
+    }
+
     public void Clear()
     {
         AccessToken = null;
@@ -136,6 +187,7 @@ public sealed class SessionState
             SecureStorage.Default.Remove(RefreshKey);
             SecureStorage.Default.Remove(UserIdKey);
             Preferences.Default.Remove(HasSessionKey);
+            Preferences.Default.Remove(OnboardingKey);
 
             // Drop cached profile/home data so the next user never sees the previous user's info.
             foreach (var key in JsonCache.Keys.All)

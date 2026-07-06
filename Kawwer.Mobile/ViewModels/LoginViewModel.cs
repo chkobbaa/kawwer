@@ -33,7 +33,9 @@ public sealed partial class LoginViewModel : BaseViewModel
         }
 
         await _auth.LoginAsync(UsernameOrEmail.Trim(), Password, RememberMe);
-        await Shell.Current.GoToAsync("//main/hometab");
+
+        // Send users who have not finished the first-run flow into onboarding; everyone else home.
+        await Shell.Current.GoToAsync(_auth.RequiresOnboarding ? "//onboarding" : "//main/hometab");
     });
 
     [RelayCommand]
