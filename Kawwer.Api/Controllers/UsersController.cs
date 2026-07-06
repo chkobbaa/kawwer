@@ -46,6 +46,20 @@ public sealed class UsersController : ApiControllerBase
         return Ok(result, "Profile updated.");
     }
 
+    /// <summary>Saves the first-run onboarding answers for the caller and marks onboarding complete.</summary>
+    [HttpPut("onboarding")]
+    public async Task<IActionResult> CompleteOnboarding(CompleteOnboardingRequest request, CancellationToken cancellationToken)
+    {
+        var command = new CompleteOnboardingCommand(
+            CurrentUserId,
+            request.BirthDate,
+            request.PreferredPosition,
+            request.PreferredFoot);
+
+        var result = await Dispatcher.SendAsync(command, cancellationToken);
+        return Ok(result, "Onboarding completed.");
+    }
+
     /// <summary>Deletes (deactivates) the caller's own account and ends the session.</summary>
     [HttpDelete("me")]
     public async Task<IActionResult> DeleteMe(CancellationToken cancellationToken)

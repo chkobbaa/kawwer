@@ -20,7 +20,8 @@ public static class UserMappings
         user.Reputation,
         user.GetReliabilityBadge(),
         user.Visibility,
-        user.CreatedAt);
+        user.CreatedAt,
+        user.OnboardingCompleted);
 
     public static UserSummaryDto ToSummaryDto(this User user) => new(
         user.Id,

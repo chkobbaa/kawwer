@@ -40,6 +40,44 @@ public sealed class UserTests
     }
 
     [Fact]
+    public void NewUser_HasNotCompletedOnboarding()
+    {
+        var user = CreateUser();
+        Assert.False(user.OnboardingCompleted);
+        Assert.Null(user.OnboardingCompletedAt);
+    }
+
+    [Fact]
+    public void CompleteOnboarding_StoresAnswersAndMarksCompleted()
+    {
+        var user = CreateUser();
+        var dob = new DateOnly(1998, 5, 20);
+
+        user.CompleteOnboarding(dob, PreferredPosition.Midfielder, PreferredFoot.Left);
+
+        Assert.True(user.OnboardingCompleted);
+        Assert.NotNull(user.OnboardingCompletedAt);
+        Assert.Equal(dob, user.BirthDate);
+        Assert.Equal(PreferredPosition.Midfielder, user.PreferredPosition);
+        Assert.Equal(PreferredFoot.Left, user.PreferredFoot);
+    }
+
+    [Fact]
+    public void CompleteOnboarding_IsIdempotent_AndDoesNotResetTheCompletionStamp()
+    {
+        var user = CreateUser();
+        user.CompleteOnboarding(new DateOnly(1998, 5, 20), PreferredPosition.Midfielder, PreferredFoot.Left);
+        var firstStamp = user.OnboardingCompletedAt;
+
+        // A replayed/retried command may update the answers, but must not move the completion time.
+        user.CompleteOnboarding(new DateOnly(2000, 1, 1), PreferredPosition.Forward, PreferredFoot.Right);
+
+        Assert.Equal(firstStamp, user.OnboardingCompletedAt);
+        Assert.Equal(PreferredPosition.Forward, user.PreferredPosition);
+        Assert.Equal(PreferredFoot.Right, user.PreferredFoot);
+    }
+
+    [Fact]
     public void FailedLogins_LockAccountAfterThreshold()
     {
         var user = CreateUser();
