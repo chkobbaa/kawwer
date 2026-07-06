@@ -49,6 +49,9 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // IRealtimeNotifier is backed by SignalR, which lives in the API host.
 builder.Services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
 
+// Route user-scoped SignalR messages (Clients.User) by the JWT subject/NameIdentifier claim.
+builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, SubjectUserIdProvider>();
+
 // ----- Authentication -----
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 

@@ -1,6 +1,8 @@
 using Kawwer.Application.Common.Interfaces;
 using Kawwer.Application.Common.Services;
 using Kawwer.Application.Features.Push;
+using Kawwer.Contracts.Chat;
+using Kawwer.Contracts.Realtime;
 using Kawwer.Domain.Entities;
 using Kawwer.Domain.Enums;
 
@@ -58,7 +60,7 @@ public sealed class WebPushTests
         var webPush = new FakeWebPushSender { Configured = true };
         var notifications = new FakeNotificationRepository();
 
-        var service = new NotificationService(notifications, users, new FakePushSender(), webPush, subs);
+        var service = new NotificationService(notifications, users, new FakePushSender(), webPush, subs, new FakeRealtimeNotifier());
 
         await service.NotifyAsync(user.Id, NotificationCategory.Invitation, "Title", "Body");
 
@@ -77,7 +79,7 @@ public sealed class WebPushTests
         subs.Add(new PushSubscription(user.Id, "https://push.example.com/dead", "k", "a"));
         var webPush = new FakeWebPushSender { Configured = true, Result = WebPushResult.Expired };
 
-        var service = new NotificationService(new FakeNotificationRepository(), users, new FakePushSender(), webPush, subs);
+        var service = new NotificationService(new FakeNotificationRepository(), users, new FakePushSender(), webPush, subs, new FakeRealtimeNotifier());
 
         await service.NotifyAsync(user.Id, NotificationCategory.Match, "Title", "Body");
 
@@ -93,12 +95,34 @@ public sealed class WebPushTests
         subs.Add(new PushSubscription(user.Id, "https://push.example.com/1", "k", "a"));
         var webPush = new FakeWebPushSender { Configured = false };
 
-        var service = new NotificationService(new FakeNotificationRepository(), users, new FakePushSender(), webPush, subs);
+        var service = new NotificationService(new FakeNotificationRepository(), users, new FakePushSender(), webPush, subs, new FakeRealtimeNotifier());
 
         await service.NotifyAsync(user.Id, NotificationCategory.Match, "Title", "Body");
 
         Assert.Empty(webPush.SentEndpoints);
         Assert.Single(subs.Items);
+    }
+
+    [Fact]
+    public async Task Notify_EmitsUserScopedRealtimeSignal_ToRecipient()
+    {
+        var user = new User("ali", "ali@example.com", "h", "Ali", "Ben");
+        var users = new FakeUserRepository(user);
+        var realtime = new FakeRealtimeNotifier();
+
+        var service = new NotificationService(
+            new FakeNotificationRepository(), users, new FakePushSender(),
+            new FakeWebPushSender(), new FakeSubscriptionRepository(), realtime);
+
+        await service.NotifyAsync(
+            user.Id, NotificationCategory.Friend, "New friend request", "Ali sent you a friend request.",
+            data: new Dictionary<string, string> { ["type"] = "friend_request", ["friendshipId"] = "abc" });
+
+        var (userId, evt) = Assert.Single(realtime.UserEvents);
+        Assert.Equal(user.Id, userId);
+        Assert.Equal("Friend", evt.Category);
+        Assert.Equal("friend_request", evt.Type);
+        Assert.Equal("abc", evt.FriendshipId);
     }
 
     // ----- Fakes -----
@@ -140,6 +164,23 @@ public sealed class WebPushTests
         public Task SendAsync(string deviceToken, string title, string body,
             IReadOnlyDictionary<string, string>? data = null, CancellationToken ct = default)
             => Task.CompletedTask;
+    }
+
+    private sealed class FakeRealtimeNotifier : IRealtimeNotifier
+    {
+        public List<(Guid UserId, RealtimeUserEvent Event)> UserEvents { get; } = new();
+
+        public Task ChatMessagePostedAsync(Guid matchId, ChatMessageDto message, CancellationToken ct = default)
+            => Task.CompletedTask;
+        public Task MatchUpdatedAsync(Guid matchId, CancellationToken ct = default) => Task.CompletedTask;
+        public Task PaymentUpdatedAsync(Guid matchId, CancellationToken ct = default) => Task.CompletedTask;
+        public Task WaitingListUpdatedAsync(Guid matchId, CancellationToken ct = default) => Task.CompletedTask;
+
+        public Task NotifyUserAsync(Guid userId, RealtimeUserEvent @event, CancellationToken ct = default)
+        {
+            UserEvents.Add((userId, @event));
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FakeNotificationRepository : INotificationRepository
