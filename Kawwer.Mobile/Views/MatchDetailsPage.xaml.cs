@@ -16,6 +16,18 @@ public partial class MatchDetailsPage : ContentPage
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        _viewModel.SubscribeRealtime();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _viewModel.UnsubscribeRealtime();
+    }
+
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MatchDetailsViewModel.Match))

@@ -23,12 +23,35 @@ public sealed partial class LiveMatchViewModel : BaseViewModel
 
     private readonly KawwerApiClient _api;
     private readonly SessionState _session;
+    private readonly RealtimeService _realtime;
 
-    public LiveMatchViewModel(KawwerApiClient api, SessionState session)
+    public LiveMatchViewModel(KawwerApiClient api, SessionState session, RealtimeService realtime)
     {
         _api = api;
         _session = session;
+        _realtime = realtime;
         Title = "Live match";
+    }
+
+    /// <summary>Watch this match so attendance and shared locations update live.</summary>
+    public void SubscribeRealtime()
+    {
+        _realtime.MatchUpdated += OnMatchChanged;
+        _ = _realtime.JoinMatchAsync(MatchId);
+    }
+
+    public void UnsubscribeRealtime()
+    {
+        _realtime.MatchUpdated -= OnMatchChanged;
+        _ = _realtime.LeaveMatchAsync(MatchId);
+    }
+
+    private void OnMatchChanged(Guid matchId)
+    {
+        if (matchId == MatchId)
+        {
+            LoadCommand.Execute(null);
+        }
     }
 
     public ObservableCollection<LivePlayerItem> Players { get; } = new();

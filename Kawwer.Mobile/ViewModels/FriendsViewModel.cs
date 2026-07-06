@@ -9,10 +9,12 @@ namespace Kawwer.Mobile.ViewModels;
 public sealed partial class FriendsViewModel : BaseViewModel
 {
     private readonly KawwerApiClient _api;
+    private readonly RealtimeService _realtime;
 
-    public FriendsViewModel(KawwerApiClient api)
+    public FriendsViewModel(KawwerApiClient api, RealtimeService realtime)
     {
         _api = api;
+        _realtime = realtime;
         Title = "Friends";
     }
 
@@ -21,6 +23,23 @@ public sealed partial class FriendsViewModel : BaseViewModel
     public ObservableCollection<UserSummaryDto> SearchResults { get; } = new();
 
     [ObservableProperty] private string _searchTerm = string.Empty;
+
+    /// <summary>Live-refresh the list the instant a friend request/acceptance arrives.</summary>
+    public void SubscribeRealtime()
+    {
+        _realtime.UserEvent += OnUserEvent;
+        _ = _realtime.StartAsync();
+    }
+
+    public void UnsubscribeRealtime() => _realtime.UserEvent -= OnUserEvent;
+
+    private void OnUserEvent(RealtimeUserEvent e)
+    {
+        if (e.Category == nameof(NotificationCategory.Friend))
+        {
+            LoadCommand.Execute(null);
+        }
+    }
 
     [RelayCommand]
     public Task LoadAsync() => RunAsync(LoadCoreAsync);

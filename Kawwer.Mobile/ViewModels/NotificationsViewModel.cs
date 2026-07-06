@@ -8,14 +8,27 @@ namespace Kawwer.Mobile.ViewModels;
 public sealed partial class NotificationsViewModel : BaseViewModel
 {
     private readonly KawwerApiClient _api;
+    private readonly RealtimeService _realtime;
 
-    public NotificationsViewModel(KawwerApiClient api)
+    public NotificationsViewModel(KawwerApiClient api, RealtimeService realtime)
     {
         _api = api;
+        _realtime = realtime;
         Title = "Notifications";
     }
 
     public ObservableCollection<NotificationDto> Notifications { get; } = new();
+
+    /// <summary>Live-refresh the list as new notifications land.</summary>
+    public void SubscribeRealtime()
+    {
+        _realtime.UserEvent += OnUserEvent;
+        _ = _realtime.StartAsync();
+    }
+
+    public void UnsubscribeRealtime() => _realtime.UserEvent -= OnUserEvent;
+
+    private void OnUserEvent(RealtimeUserEvent e) => LoadCommand.Execute(null);
 
     [RelayCommand]
     public Task LoadAsync() => RunAsync(LoadCoreAsync);

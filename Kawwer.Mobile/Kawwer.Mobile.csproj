@@ -71,6 +71,8 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
+		<!-- Real-time client (SignalR) for instant UI updates without polling. -->
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<!-- Styled, non-intrusive popups (SuccessPopup) instead of native DisplayAlert.
 		     13.0.0 targets .NET 10 and depends on Microsoft.Maui.Controls >= 10.0.10, which matches

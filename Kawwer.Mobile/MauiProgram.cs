@@ -52,6 +52,7 @@ public static class MauiProgram
 
         // ----- Core services -----
         builder.Services.AddSingleton<SessionState>();
+        builder.Services.AddSingleton<RealtimeService>();
         builder.Services.AddSingleton<AuthService>();
         builder.Services.AddSingleton<PushRegistrationService>();
         builder.Services.AddSingleton<MatchReminderService>();

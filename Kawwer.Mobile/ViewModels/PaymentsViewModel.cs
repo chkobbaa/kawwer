@@ -22,10 +22,12 @@ public sealed partial class PaymentsViewModel : BaseViewModel
     }
 
     private readonly KawwerApiClient _api;
+    private readonly RealtimeService _realtime;
 
-    public PaymentsViewModel(KawwerApiClient api)
+    public PaymentsViewModel(KawwerApiClient api, RealtimeService realtime)
     {
         _api = api;
+        _realtime = realtime;
         Title = "Payments";
     }
 
@@ -35,6 +37,27 @@ public sealed partial class PaymentsViewModel : BaseViewModel
     [ObservableProperty] private PaymentSummaryDto? _summary;
 
     partial void OnMatchIdChanged(Guid value) => _ = LoadAsync();
+
+    /// <summary>Watch this match so the ledger updates the instant a payment is recorded.</summary>
+    public void SubscribeRealtime()
+    {
+        _realtime.PaymentUpdated += OnPaymentChanged;
+        _ = _realtime.JoinMatchAsync(MatchId);
+    }
+
+    public void UnsubscribeRealtime()
+    {
+        _realtime.PaymentUpdated -= OnPaymentChanged;
+        _ = _realtime.LeaveMatchAsync(MatchId);
+    }
+
+    private void OnPaymentChanged(Guid matchId)
+    {
+        if (matchId == MatchId)
+        {
+            LoadCommand.Execute(null);
+        }
+    }
 
     [RelayCommand]
     public Task LoadAsync() => RunAsync(LoadCoreAsync);

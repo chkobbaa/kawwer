@@ -4,9 +4,23 @@ namespace Kawwer.Mobile.Views;
 
 public partial class LiveMatchPage : ContentPage
 {
+    private readonly LiveMatchViewModel _viewModel;
+
     public LiveMatchPage(LiveMatchViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = viewModel;
+        BindingContext = _viewModel = viewModel;
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        _viewModel.SubscribeRealtime();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _viewModel.UnsubscribeRealtime();
     }
 }

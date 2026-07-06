@@ -23,11 +23,13 @@ public sealed partial class ChatViewModel : BaseViewModel
 
     private readonly KawwerApiClient _api;
     private readonly SessionState _session;
+    private readonly RealtimeService _realtime;
 
-    public ChatViewModel(KawwerApiClient api, SessionState session)
+    public ChatViewModel(KawwerApiClient api, SessionState session, RealtimeService realtime)
     {
         _api = api;
         _session = session;
+        _realtime = realtime;
         Title = "Match chat";
     }
 
@@ -37,6 +39,31 @@ public sealed partial class ChatViewModel : BaseViewModel
     [ObservableProperty] private string _draft = string.Empty;
 
     partial void OnMatchIdChanged(Guid value) => _ = LoadAsync();
+
+    /// <summary>Watch this match so new messages appear instantly, live.</summary>
+    public void SubscribeRealtime()
+    {
+        _realtime.ChatMessagePosted += OnChatMessagePosted;
+        _ = _realtime.JoinMatchAsync(MatchId);
+    }
+
+    public void UnsubscribeRealtime()
+    {
+        _realtime.ChatMessagePosted -= OnChatMessagePosted;
+        _ = _realtime.LeaveMatchAsync(MatchId);
+    }
+
+    private void OnChatMessagePosted(Guid matchId, ChatMessageDto message)
+    {
+        if (matchId != MatchId || Messages.Any(m => m.Id == message.Id))
+        {
+            // Not this chat, or a message we already added optimistically after sending it.
+            return;
+        }
+
+        message.IsMine = message.SenderId is { } sender && sender == _session.UserId;
+        Messages.Add(message);
+    }
 
     [RelayCommand]
     public Task LoadAsync() => RunAsync(async () =>

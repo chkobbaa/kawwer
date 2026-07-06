@@ -8,11 +8,13 @@ public sealed class AuthService
 {
     private readonly KawwerApiClient _api;
     private readonly SessionState _session;
+    private readonly RealtimeService _realtime;
 
-    public AuthService(KawwerApiClient api, SessionState session)
+    public AuthService(KawwerApiClient api, SessionState session, RealtimeService realtime)
     {
         _api = api;
         _session = session;
+        _realtime = realtime;
     }
 
     public SessionState Session => _session;
@@ -23,12 +25,16 @@ public sealed class AuthService
     {
         var auth = await _api.LoginAsync(usernameOrEmail, password);
         await _session.SetAsync(auth, persist: rememberMe);
+
+        // Open the real-time connection right away so the first screen is already live.
+        _ = _realtime.StartAsync();
     }
 
     public async Task RegisterAsync(object body)
     {
         var auth = await _api.RegisterAsync(body);
         await _session.SetAsync(auth);
+        _ = _realtime.StartAsync();
     }
 
     public async Task LogoutAsync()
@@ -44,6 +50,9 @@ public sealed class AuthService
                 // Best effort; clear the local session regardless.
             }
         }
+
+        // Drop the real-time connection so no pushes leak into the next session.
+        await _realtime.StopAsync();
 
         _session.Clear();
 

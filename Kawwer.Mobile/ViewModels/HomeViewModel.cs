@@ -15,21 +15,37 @@ public sealed partial class HomeViewModel : BaseViewModel
     private readonly PushRegistrationService _push;
     private readonly MatchReminderService _reminders;
     private readonly UpdateService _update;
+    private readonly RealtimeService _realtime;
 
     public HomeViewModel(
         KawwerApiClient api,
         SessionState session,
         PushRegistrationService push,
         MatchReminderService reminders,
-        UpdateService update)
+        UpdateService update,
+        RealtimeService realtime)
     {
         _api = api;
         _session = session;
         _push = push;
         _reminders = reminders;
         _update = update;
+        _realtime = realtime;
         Title = "Home";
     }
+
+    /// <summary>Keeps the home dashboard and unread badge live without polling.</summary>
+    public void SubscribeRealtime()
+    {
+        _realtime.UserEvent += OnUserEvent;
+        _ = _realtime.StartAsync();
+    }
+
+    public void UnsubscribeRealtime() => _realtime.UserEvent -= OnUserEvent;
+
+    // Any invitation, match change or waiting-list move affects the upcoming list and/or the
+    // unread badge, so refresh the dashboard whenever a user-scoped signal arrives.
+    private void OnUserEvent(RealtimeUserEvent e) => LoadCommand.Execute(null);
 
     public ObservableCollection<MatchDto> Upcoming { get; } = new();
     public ObservableCollection<OrganizerDashboardItemDto> Dashboard { get; } = new();
