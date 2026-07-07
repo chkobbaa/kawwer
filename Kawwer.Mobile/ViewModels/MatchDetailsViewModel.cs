@@ -23,12 +23,37 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
 
     private readonly KawwerApiClient _api;
     private readonly SessionState _session;
+    private readonly RealtimeService _realtime;
 
-    public MatchDetailsViewModel(KawwerApiClient api, SessionState session)
+    public MatchDetailsViewModel(KawwerApiClient api, SessionState session, RealtimeService realtime)
     {
         _api = api;
         _session = session;
+        _realtime = realtime;
         Title = "Match";
+    }
+
+    /// <summary>Watch this match so the roster, capacity and status update live.</summary>
+    public void SubscribeRealtime()
+    {
+        _realtime.MatchUpdated += OnMatchChanged;
+        _realtime.WaitingListUpdated += OnMatchChanged;
+        _ = _realtime.JoinMatchAsync(MatchId);
+    }
+
+    public void UnsubscribeRealtime()
+    {
+        _realtime.MatchUpdated -= OnMatchChanged;
+        _realtime.WaitingListUpdated -= OnMatchChanged;
+        _ = _realtime.LeaveMatchAsync(MatchId);
+    }
+
+    private void OnMatchChanged(Guid matchId)
+    {
+        if (matchId == MatchId)
+        {
+            LoadCommand.Execute(null);
+        }
     }
 
     public ObservableCollection<MatchParticipantDto> Participants { get; } = new();

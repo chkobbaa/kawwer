@@ -12,11 +12,13 @@ public sealed partial class ProfileViewModel : BaseViewModel
 
     private readonly KawwerApiClient _api;
     private readonly AuthService _auth;
+    private readonly RealtimeService _realtime;
 
-    public ProfileViewModel(KawwerApiClient api, AuthService auth)
+    public ProfileViewModel(KawwerApiClient api, AuthService auth, RealtimeService realtime)
     {
         _api = api;
         _auth = auth;
+        _realtime = realtime;
         Title = "Profile";
 
         // Cold-start instant paint: show the in-memory session user if present, otherwise the last
@@ -34,6 +36,23 @@ public sealed partial class ProfileViewModel : BaseViewModel
     [ObservableProperty] private UserDto? _user;
     [ObservableProperty] private PlayerStatisticsDto? _statistics;
     [ObservableProperty] private string _badge = string.Empty;
+
+    /// <summary>Refresh the profile when it changes on another of the user's devices.</summary>
+    public void SubscribeRealtime()
+    {
+        _realtime.UserEvent += OnUserEvent;
+        _ = _realtime.StartAsync();
+    }
+
+    public void UnsubscribeRealtime() => _realtime.UserEvent -= OnUserEvent;
+
+    private void OnUserEvent(RealtimeUserEvent e)
+    {
+        if (e.Category == "Profile")
+        {
+            LoadCommand.Execute(null);
+        }
+    }
 
     [RelayCommand]
     public Task LoadAsync() => RunAsync(async () =>

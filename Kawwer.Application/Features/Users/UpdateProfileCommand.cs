@@ -3,6 +3,7 @@ using Kawwer.Application.Common.Exceptions;
 using Kawwer.Application.Common.Interfaces;
 using Kawwer.Application.Common.Mappings;
 using Kawwer.Application.Common.Messaging;
+using Kawwer.Contracts.Realtime;
 using Kawwer.Contracts.Users;
 using Kawwer.Domain.Enums;
 
@@ -32,11 +33,13 @@ public sealed class UpdateProfileCommandValidator : AbstractValidator<UpdateProf
 public sealed class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand, UserDto>
 {
     private readonly IUserRepository _users;
+    private readonly IRealtimeNotifier _realtime;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateProfileCommandHandler(IUserRepository users, IUnitOfWork unitOfWork)
+    public UpdateProfileCommandHandler(IUserRepository users, IRealtimeNotifier realtime, IUnitOfWork unitOfWork)
     {
         _users = users;
+        _realtime = realtime;
         _unitOfWork = unitOfWork;
     }
 
@@ -56,6 +59,10 @@ public sealed class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileC
             request.Visibility);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Keep the user's other open sessions in sync without a profile-notification banner.
+        await _realtime.NotifyUserAsync(request.UserId, new RealtimeUserEvent("Profile"), cancellationToken);
+
         return user.ToDto();
     }
 }

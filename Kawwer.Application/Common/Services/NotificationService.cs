@@ -1,4 +1,5 @@
 using Kawwer.Application.Common.Interfaces;
+using Kawwer.Contracts.Realtime;
 using Kawwer.Domain.Entities;
 using Kawwer.Domain.Enums;
 
@@ -6,9 +7,10 @@ namespace Kawwer.Application.Common.Services;
 
 /// <summary>
 /// Default notification orchestration: persists an in-app <see cref="Notification"/> and pushes to
-/// every channel the user has registered — the native app's FCM device token and any web-push
-/// (PWA) subscriptions. Push failures are swallowed so a transient error never breaks the
-/// originating use case. Web-push subscriptions the push service reports as gone are pruned.
+/// every channel the user has registered — the native app's FCM device token, any web-push
+/// (PWA) subscriptions, and a live SignalR signal so a connected client refreshes instantly.
+/// Push failures are swallowed so a transient error never breaks the originating use case.
+/// Web-push subscriptions the push service reports as gone are pruned.
 /// </summary>
 public sealed class NotificationService : INotificationService
 {
@@ -17,19 +19,22 @@ public sealed class NotificationService : INotificationService
     private readonly IPushNotificationSender _push;
     private readonly IWebPushSender _webPush;
     private readonly IPushSubscriptionRepository _webPushSubscriptions;
+    private readonly IRealtimeNotifier _realtime;
 
     public NotificationService(
         INotificationRepository notifications,
         IUserRepository users,
         IPushNotificationSender push,
         IWebPushSender webPush,
-        IPushSubscriptionRepository webPushSubscriptions)
+        IPushSubscriptionRepository webPushSubscriptions,
+        IRealtimeNotifier realtime)
     {
         _notifications = notifications;
         _users = users;
         _push = push;
         _webPush = webPush;
         _webPushSubscriptions = webPushSubscriptions;
+        _realtime = realtime;
     }
 
     public async Task NotifyAsync(
@@ -71,6 +76,28 @@ public sealed class NotificationService : INotificationService
         }
 
         await SendWebPushAsync(userId, title, message, payload, cancellationToken);
+
+        // Nudge any connected client to refresh instantly over SignalR — this is what makes the UI
+        // feel real-time without polling (the tap-through push above still covers backgrounded and
+        // killed apps). Deliberately the LAST step: the caller commits the unit of work immediately
+        // after this returns, and that commit is far faster than the network round trip a client
+        // needs to react, so the client's re-fetch reliably sees the just-persisted change. Best
+        // effort — a missed live signal self-heals on the next screen load.
+        try
+        {
+            await _realtime.NotifyUserAsync(
+                userId,
+                new RealtimeUserEvent(
+                    Category: category.ToString(),
+                    Type: payload.GetValueOrDefault("type"),
+                    MatchId: relatedMatchId,
+                    FriendshipId: payload.GetValueOrDefault("friendshipId")),
+                cancellationToken);
+        }
+        catch
+        {
+            // The in-app notification is the source of truth; the live signal is a bonus.
+        }
     }
 
     public async Task NotifyManyAsync(

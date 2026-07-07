@@ -15,6 +15,13 @@ public partial class NotificationsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        _viewModel.SubscribeRealtime();
         _viewModel.LoadCommand.Execute(null);
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _viewModel.UnsubscribeRealtime();
     }
 }
