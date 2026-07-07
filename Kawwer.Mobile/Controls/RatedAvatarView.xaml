@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
+             x:Class="Kawwer.Mobile.Controls.RatedAvatarView"
+             HorizontalOptions="Center"
+             VerticalOptions="Center">
+    <!-- Circular avatar with the player's rating drawn as stars curving over the top edge.
+         The GraphicsView overlays the whole frame and is input-transparent so taps still reach
+         the avatar; the avatar sits pinned to the bottom so the star band has room above it. -->
+    <Grid x:Name="Root">
+        <GraphicsView x:Name="StarsCanvas" InputTransparent="True" />
+        <controls:AvatarView x:Name="Avatar"
+                             VerticalOptions="End"
+                             HorizontalOptions="Center" />
+    </Grid>
+</ContentView>

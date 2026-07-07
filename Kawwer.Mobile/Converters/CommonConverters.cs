@@ -51,3 +51,17 @@ public sealed class IntAtLeastConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>
+/// Coerces a numeric value (decimal/int/float) to a double. Ratings arrive from the API as
+/// <see cref="decimal"/>; the curved rating control exposes a <c>double</c> so we normalise here
+/// instead of relying on implicit binding coercion (which is culture-sensitive).
+/// </summary>
+public sealed class DecimalToDoubleConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is IConvertible c ? c.ToDouble(CultureInfo.InvariantCulture) : 0d;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

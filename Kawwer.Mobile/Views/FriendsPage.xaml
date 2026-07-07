@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.FriendsPage"
              x:Name="PageRoot"
              Title="Friends"
@@ -59,9 +60,7 @@
                                     CommandParameter="{Binding Id}" />
                             </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                                <Border Style="{StaticResource Avatar}">
-                                    <Label Style="{StaticResource AvatarLabel}" Text="{Binding Initials}" />
-                                </Border>
+                                <controls:AvatarView Size="44" ImageUrl="{Binding ProfilePictureUrl}" Initials="{Binding Initials}" />
                                 <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
                                     <Label Text="{Binding FullName}" FontAttributes="Bold" FontSize="15" />
                                     <Label Text="{Binding Username, StringFormat='@{0}'}" FontSize="12" TextColor="{StaticResource Gray500}" />
@@ -86,9 +85,7 @@
                     <DataTemplate>
                         <Border Margin="0,4" Style="{StaticResource StatTile}" Padding="10">
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
-                                <Border Style="{StaticResource Avatar}">
-                                    <Label Style="{StaticResource AvatarLabel}" Text="{Binding User.Initials}" />
-                                </Border>
+                                <controls:AvatarView Size="44" ImageUrl="{Binding User.ProfilePictureUrl}" Initials="{Binding User.Initials}" />
                                 <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
                                     <Label Text="{Binding User.FullName}" FontAttributes="Bold" FontSize="15" />
                                     <Label Text="Wants to be your friend" FontSize="12" TextColor="{StaticResource Gray500}"
@@ -127,17 +124,13 @@
             <Label Text="YOUR FRIENDS" Style="{StaticResource SectionTitle}" />
             <CollectionView ItemsSource="{Binding Friends}">
                 <CollectionView.EmptyView>
-                    <Border Style="{StaticResource StatTile}" Padding="20,24">
-                        <VerticalStackLayout Spacing="10">
-                            <Border Style="{StaticResource EmptyIconBubble}">
-                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconAccountPlus}" WidthRequest="24" HeightRequest="24"
-                                      Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                                      HorizontalOptions="Center" VerticalOptions="Center" />
-                            </Border>
-                            <Label Text="No friends yet" Style="{StaticResource EmptyTitle}" />
-                            <Label Text="Search for teammates above and build your squad." Style="{StaticResource EmptyBody}" />
-                        </VerticalStackLayout>
-                    </Border>
+                    <Grid>
+                        <controls:ListSkeletonView IsVisible="{Binding ShowSkeleton}" />
+                        <controls:EmptyStateView Illustration="empty_friends.png"
+                                                 Title="No friends yet"
+                                                 Message="Search for teammates above and build your squad."
+                                                 IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}" />
+                    </Grid>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
@@ -148,9 +141,7 @@
                                     CommandParameter="{Binding User.Id}" />
                             </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                                <Border Style="{StaticResource Avatar}">
-                                    <Label Style="{StaticResource AvatarLabel}" Text="{Binding User.Initials}" />
-                                </Border>
+                                <controls:AvatarView Size="44" ImageUrl="{Binding User.ProfilePictureUrl}" Initials="{Binding User.Initials}" />
                                 <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
                                     <Label Text="{Binding User.FullName}" FontAttributes="Bold" FontSize="15" />
                                     <Label Text="{Binding FriendsSince, StringFormat='Friends since {0:MMM yyyy}'}"

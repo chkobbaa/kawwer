@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.CalendarPage"
              x:Name="PageRoot"
              Title="Calendar"
@@ -16,16 +17,13 @@
         <RefreshView Grid.Row="1" IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
         <CollectionView ItemsSource="{Binding Matches}">
             <CollectionView.EmptyView>
-                <VerticalStackLayout Padding="32,40" Spacing="12">
-                    <Border Style="{StaticResource EmptyIconBubble}">
-                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconCalendar}" WidthRequest="26" HeightRequest="26"
-                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                              HorizontalOptions="Center" VerticalOptions="Center" />
-                    </Border>
-                    <Label Text="A free week" Style="{StaticResource EmptyTitle}" />
-                    <Label Text="Matches you accept will show up here, sorted by kick-off."
-                           Style="{StaticResource EmptyBody}" />
-                </VerticalStackLayout>
+                <Grid>
+                    <controls:ListSkeletonView IsVisible="{Binding ShowSkeleton}" />
+                    <controls:EmptyStateView Illustration="empty_calendar.png"
+                                             Title="A free week"
+                                             Message="Matches you accept will show up here, sorted by kick-off."
+                                             IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}" />
+                </Grid>
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
