@@ -14,25 +14,25 @@ public sealed record InvitePlayersCommand(
     Guid RequesterId,
     Guid MatchId,
     IReadOnlyList<Guid> UserIds,
-    IReadOnlyList<Guid> GroupIds) : IRequest<Unit>;
+    IReadOnlyList<Guid> TeamIds) : IRequest<Unit>;
 
 public sealed class InvitePlayersCommandHandler : IRequestHandler<InvitePlayersCommand, Unit>
 {
     private readonly IMatchRepository _matches;
-    private readonly IGroupRepository _groups;
+    private readonly ITeamRepository _teams;
     private readonly IUserRepository _users;
     private readonly INotificationService _notifications;
     private readonly IUnitOfWork _unitOfWork;
 
     public InvitePlayersCommandHandler(
         IMatchRepository matches,
-        IGroupRepository groups,
+        ITeamRepository teams,
         IUserRepository users,
         INotificationService notifications,
         IUnitOfWork unitOfWork)
     {
         _matches = matches;
-        _groups = groups;
+        _teams = teams;
         _users = users;
         _notifications = notifications;
         _unitOfWork = unitOfWork;
@@ -52,15 +52,15 @@ public sealed class InvitePlayersCommandHandler : IRequestHandler<InvitePlayersC
         }
 
         var inviteeIds = new HashSet<Guid>(request.UserIds);
-        foreach (var groupId in request.GroupIds)
+        foreach (var teamId in request.TeamIds)
         {
-            var group = await _groups.GetByIdAsync(groupId, cancellationToken);
-            if (group is null || group.OwnerId != request.RequesterId)
+            var team = await _teams.GetByIdAsync(teamId, cancellationToken);
+            if (team is null || team.OwnerId != request.RequesterId)
             {
                 continue;
             }
 
-            foreach (var member in group.Members)
+            foreach (var member in team.Members)
             {
                 inviteeIds.Add(member.UserId);
             }

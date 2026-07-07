@@ -29,7 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IFriendshipRepository, FriendshipRepository>();
-        services.AddScoped<IGroupRepository, GroupRepository>();
+        services.AddScoped<ITeamRepository, TeamRepository>();
         services.AddScoped<IFootballFieldRepository, FootballFieldRepository>();
         services.AddScoped<IMatchRepository, MatchRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();

@@ -15,7 +15,10 @@ public sealed record CreateMatchRequest(
     MatchVisibility Visibility,
     bool AutoAcceptPublic,
     IReadOnlyList<Guid> InvitedUserIds,
-    IReadOnlyList<Guid> InvitedGroupIds);
+    IReadOnlyList<Guid> InvitedTeamIds,
+    MatchFormat Format = MatchFormat.Pickup,
+    string? OpponentName = null,
+    Guid? OpponentTeamId = null);
 
 public sealed record UpdateMatchRequest(
     DateOnly MatchDate,
@@ -33,6 +36,9 @@ public sealed record MatchDto(
     string? Description,
     MatchVisibility Visibility,
     MatchStatus Status,
+    MatchFormat Format,
+    string? OpponentName,
+    Guid? OpponentTeamId,
     DateOnly MatchDate,
     TimeOnly StartTime,
     TimeOnly EndTime,

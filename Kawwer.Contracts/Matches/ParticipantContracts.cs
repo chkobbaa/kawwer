@@ -5,7 +5,7 @@ namespace Kawwer.Contracts.Matches;
 
 public sealed record InvitePlayersRequest(
     IReadOnlyList<Guid> UserIds,
-    IReadOnlyList<Guid> GroupIds);
+    IReadOnlyList<Guid> TeamIds);
 
 public sealed record RespondToInvitationRequest(bool Accept);
 

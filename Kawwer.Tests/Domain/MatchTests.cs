@@ -165,4 +165,118 @@ public sealed class MatchTests
         match.Finish();
         Assert.Throws<DomainException>(() => match.Cancel());
     }
+
+    [Fact]
+    public void NewMatch_DefaultsToPickupFormat_WithNoOpponent()
+    {
+        var match = CreateMatch();
+        Assert.Equal(MatchFormat.Pickup, match.Format);
+        Assert.Null(match.OpponentName);
+        Assert.Null(match.OpponentTeamId);
+    }
+
+    [Fact]
+    public void NewMatch_AgainstExternalTeam_TrimsAndStoresOpponentName()
+    {
+        var match = new Match(
+            organizerId: Guid.NewGuid(),
+            footballFieldId: Guid.NewGuid(),
+            title: "Derby",
+            matchDate: DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)),
+            startTime: new TimeOnly(20, 0),
+            durationMinutes: 90,
+            maxPlayers: 14,
+            totalFieldPrice: 90m,
+            reservationPaid: 5m,
+            visibility: MatchVisibility.Private,
+            format: MatchFormat.VsExternalTeam,
+            opponentName: "  FC United  ");
+
+        Assert.Equal(MatchFormat.VsExternalTeam, match.Format);
+        Assert.Equal("FC United", match.OpponentName);
+        Assert.Null(match.OpponentTeamId);
+    }
+
+    [Fact]
+    public void NewMatch_AgainstExternalTeam_WithoutName_Throws()
+    {
+        Assert.Throws<DomainException>(() => new Match(
+            organizerId: Guid.NewGuid(),
+            footballFieldId: Guid.NewGuid(),
+            title: "Derby",
+            matchDate: DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)),
+            startTime: new TimeOnly(20, 0),
+            durationMinutes: 90,
+            maxPlayers: 14,
+            totalFieldPrice: 90m,
+            reservationPaid: 5m,
+            visibility: MatchVisibility.Private,
+            format: MatchFormat.VsExternalTeam,
+            opponentName: "   "));
+    }
+
+    [Fact]
+    public void NewMatch_AgainstAppTeam_StoresOpponentTeamId()
+    {
+        var opponentTeamId = Guid.NewGuid();
+        var match = new Match(
+            organizerId: Guid.NewGuid(),
+            footballFieldId: Guid.NewGuid(),
+            title: "League game",
+            matchDate: DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)),
+            startTime: new TimeOnly(20, 0),
+            durationMinutes: 90,
+            maxPlayers: 14,
+            totalFieldPrice: 90m,
+            reservationPaid: 5m,
+            visibility: MatchVisibility.Private,
+            format: MatchFormat.VsAppTeam,
+            opponentTeamId: opponentTeamId);
+
+        Assert.Equal(MatchFormat.VsAppTeam, match.Format);
+        Assert.Equal(opponentTeamId, match.OpponentTeamId);
+        Assert.Null(match.OpponentName);
+    }
+
+    [Fact]
+    public void NewMatch_AgainstAppTeam_WithoutTeamId_Throws()
+    {
+        Assert.Throws<DomainException>(() => new Match(
+            organizerId: Guid.NewGuid(),
+            footballFieldId: Guid.NewGuid(),
+            title: "League game",
+            matchDate: DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)),
+            startTime: new TimeOnly(20, 0),
+            durationMinutes: 90,
+            maxPlayers: 14,
+            totalFieldPrice: 90m,
+            reservationPaid: 5m,
+            visibility: MatchVisibility.Private,
+            format: MatchFormat.VsAppTeam,
+            opponentTeamId: null));
+    }
+
+    [Fact]
+    public void SetOpponent_SwitchingBackToPickup_ClearsOpponentDetails()
+    {
+        var match = new Match(
+            organizerId: Guid.NewGuid(),
+            footballFieldId: Guid.NewGuid(),
+            title: "Derby",
+            matchDate: DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)),
+            startTime: new TimeOnly(20, 0),
+            durationMinutes: 90,
+            maxPlayers: 14,
+            totalFieldPrice: 90m,
+            reservationPaid: 5m,
+            visibility: MatchVisibility.Private,
+            format: MatchFormat.VsExternalTeam,
+            opponentName: "FC United");
+
+        match.SetOpponent(MatchFormat.Pickup, null, null);
+
+        Assert.Equal(MatchFormat.Pickup, match.Format);
+        Assert.Null(match.OpponentName);
+        Assert.Null(match.OpponentTeamId);
+    }
 }
