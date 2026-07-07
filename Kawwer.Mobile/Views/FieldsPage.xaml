@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.FieldsPage"
              x:Name="PageRoot"
              Title="Football fields"
@@ -31,18 +32,16 @@
                     </VerticalStackLayout>
                 </CollectionView.Header>
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout Padding="32,48" Spacing="12">
-                        <Border Style="{StaticResource EmptyIconBubble}">
-                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconFlag}" WidthRequest="26" HeightRequest="26"
-                                  Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                                  HorizontalOptions="Center" VerticalOptions="Center" />
-                        </Border>
-                        <Label Text="No fields found" Style="{StaticResource EmptyTitle}" />
-                        <Label Text="Add the field you usually play on so any organizer can use it."
-                               Style="{StaticResource EmptyBody}" />
-                        <Button Text="Add a field" Style="{StaticResource PrimaryButton}" HeightRequest="46"
-                                WidthRequest="180" HorizontalOptions="Center" Command="{Binding CreateFieldCommand}" />
-                    </VerticalStackLayout>
+                    <Grid>
+                        <controls:ListSkeletonView IsVisible="{Binding ShowSkeleton}" />
+                        <VerticalStackLayout Spacing="4" IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}">
+                            <controls:EmptyStateView Illustration="empty_fields.png"
+                                                     Title="No fields found"
+                                                     Message="Add the field you usually play on so any organizer can use it." />
+                            <Button Text="Add a field" Style="{StaticResource PrimaryButton}" HeightRequest="46"
+                                    WidthRequest="180" HorizontalOptions="Center" Command="{Binding CreateFieldCommand}" />
+                        </VerticalStackLayout>
+                    </Grid>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>

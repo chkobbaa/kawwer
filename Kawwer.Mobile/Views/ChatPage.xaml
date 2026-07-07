@@ -1,21 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.ChatPage"
              Title="Match chat"
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <Grid RowDefinitions="*,Auto">
         <CollectionView Grid.Row="0" ItemsSource="{Binding Messages}" Margin="12,8" ItemsUpdatingScrollMode="KeepLastItemInView">
             <CollectionView.EmptyView>
-                <VerticalStackLayout Padding="24,48" Spacing="12">
-                    <Border Style="{StaticResource EmptyIconBubble}">
-                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconChat}" WidthRequest="24" HeightRequest="24"
-                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                              HorizontalOptions="Center" VerticalOptions="Center" />
-                    </Border>
-                    <Label Text="No messages yet" Style="{StaticResource EmptyTitle}" />
-                    <Label Text="Say hi, confirm the plan, or hype the squad." Style="{StaticResource EmptyBody}" />
-                </VerticalStackLayout>
+                <controls:EmptyStateView Illustration="empty_chat.png"
+                                         Title="No messages yet"
+                                         Message="Say hi, confirm the plan, or hype the squad." />
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>

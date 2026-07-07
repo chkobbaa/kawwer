@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
+             x:Class="Kawwer.Mobile.Controls.ListSkeletonView">
+    <ContentView.Resources>
+        <!-- A neutral "bone": a rounded block that stands in for text/avatars while loading. -->
+        <Style x:Key="Bone" TargetType="Border">
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 6" />
+        </Style>
+        <Style x:Key="BoneCard" TargetType="Border" BasedOn="{StaticResource StatTile}">
+            <Setter Property="Padding" Value="12" />
+        </Style>
+    </ContentView.Resources>
+
+    <controls:SkeletonView>
+        <VerticalStackLayout Spacing="10" Padding="16,8">
+            <Border Style="{StaticResource BoneCard}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border Style="{StaticResource Bone}" WidthRequest="44" HeightRequest="44" StrokeShape="RoundRectangle 22" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                        <Border Style="{StaticResource Bone}" HeightRequest="14" WidthRequest="180" HorizontalOptions="Start" />
+                        <Border Style="{StaticResource Bone}" HeightRequest="12" WidthRequest="120" HorizontalOptions="Start" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+            <Border Style="{StaticResource BoneCard}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border Style="{StaticResource Bone}" WidthRequest="44" HeightRequest="44" StrokeShape="RoundRectangle 22" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                        <Border Style="{StaticResource Bone}" HeightRequest="14" WidthRequest="150" HorizontalOptions="Start" />
+                        <Border Style="{StaticResource Bone}" HeightRequest="12" WidthRequest="90" HorizontalOptions="Start" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+            <Border Style="{StaticResource BoneCard}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border Style="{StaticResource Bone}" WidthRequest="44" HeightRequest="44" StrokeShape="RoundRectangle 22" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                        <Border Style="{StaticResource Bone}" HeightRequest="14" WidthRequest="200" HorizontalOptions="Start" />
+                        <Border Style="{StaticResource Bone}" HeightRequest="12" WidthRequest="110" HorizontalOptions="Start" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+        </VerticalStackLayout>
+    </controls:SkeletonView>
+</ContentView>

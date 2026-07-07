@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.DiscoverPage"
              x:Name="PageRoot"
              Title="Discover"
@@ -20,16 +21,13 @@
         <RefreshView Grid.Row="1" IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
         <CollectionView ItemsSource="{Binding Matches}">
             <CollectionView.EmptyView>
-                <VerticalStackLayout Padding="32,40" Spacing="12">
-                    <Border Style="{StaticResource EmptyIconBubble}">
-                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconCompass}" WidthRequest="26" HeightRequest="26"
-                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                              HorizontalOptions="Center" VerticalOptions="Center" />
-                    </Border>
-                    <Label Text="Nothing nearby right now" Style="{StaticResource EmptyTitle}" />
-                    <Label Text="Pull to refresh, or create a public match and let players find you."
-                           Style="{StaticResource EmptyBody}" />
-                </VerticalStackLayout>
+                <Grid>
+                    <controls:ListSkeletonView IsVisible="{Binding ShowSkeleton}" />
+                    <controls:EmptyStateView Illustration="empty_discover.png"
+                                             Title="Nothing nearby right now"
+                                             Message="Pull to refresh, or create a public match and let players find you."
+                                             IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}" />
+                </Grid>
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
@@ -43,9 +41,7 @@
                         <VerticalStackLayout Spacing="10">
                             <!-- Organizer row -->
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                                <Border Style="{StaticResource Avatar}" WidthRequest="36" HeightRequest="36" StrokeShape="RoundRectangle 18">
-                                    <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding Organizer.Initials}" />
-                                </Border>
+                                <controls:AvatarView Size="36" ImageUrl="{Binding Organizer.ProfilePictureUrl}" Initials="{Binding Organizer.Initials}" />
                                 <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
                                     <Label Text="{Binding Organizer.FullName}" FontSize="13" FontAttributes="Bold" />
                                     <Label Text="Organizer" FontSize="11" TextColor="{StaticResource Gray500}" />

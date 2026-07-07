@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Controls.AvatarView"
+             HorizontalOptions="Center"
+             VerticalOptions="Center">
+    <!-- A single circular avatar: the uploaded photo when available, otherwise the person's
+         initials. The Border clips its content to the rounded shape, so the photo is masked
+         into a perfect circle. Sizing and the initials font are driven from code-behind. -->
+    <Border x:Name="Frame"
+            StrokeThickness="0"
+            BackgroundColor="{AppThemeBinding Light={StaticResource TintGreen}, Dark={StaticResource TintGreenDark}}"
+            WidthRequest="44"
+            HeightRequest="44">
+        <Border.StrokeShape>
+            <RoundRectangle x:Name="FrameShape" CornerRadius="22" />
+        </Border.StrokeShape>
+        <Grid>
+            <Label x:Name="InitialsLabel"
+                   FontAttributes="Bold"
+                   FontSize="15"
+                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+            <Image x:Name="PhotoImage"
+                   Aspect="AspectFill"
+                   IsVisible="False" />
+        </Grid>
+    </Border>
+</ContentView>

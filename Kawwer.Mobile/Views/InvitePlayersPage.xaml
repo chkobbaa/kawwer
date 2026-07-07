@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.InvitePlayersPage"
              Title="{Binding Title}"
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
@@ -16,17 +17,16 @@
 
         <CollectionView Grid.Row="1" ItemsSource="{Binding Friends}" SelectionMode="None">
             <CollectionView.EmptyView>
-                <Label Text="All of your friends are already part of this match, or you have no friends to invite yet."
-                       Style="{StaticResource EmptyBody}" Padding="0,16" />
+                <controls:EmptyStateView Illustration="empty_friends.png" IllustrationSize="120"
+                                         Title="No one to invite"
+                                         Message="All of your friends are already part of this match, or you have no friends to invite yet." />
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border Margin="0,3" Style="{StaticResource StatTile}" Padding="8,4">
                         <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
                             <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center" />
-                            <Border Grid.Column="1" Style="{StaticResource Avatar}" WidthRequest="34" HeightRequest="34" StrokeShape="RoundRectangle 17">
-                                <Label Style="{StaticResource AvatarLabel}" FontSize="12" Text="{Binding User.Initials}" />
-                            </Border>
+                            <controls:AvatarView Grid.Column="1" Size="34" ImageUrl="{Binding User.ProfilePictureUrl}" Initials="{Binding User.Initials}" />
                             <Label Grid.Column="2" Text="{Binding User.FullName}" FontSize="15" VerticalOptions="Center" />
                         </Grid>
                     </Border>

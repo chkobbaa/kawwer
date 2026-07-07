@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.HomePage"
              x:Name="PageRoot"
              Title="Home"
@@ -109,18 +110,13 @@
                     <Label Text="UPCOMING" Style="{StaticResource SectionTitle}" />
                     <CollectionView ItemsSource="{Binding Upcoming}">
                         <CollectionView.EmptyView>
-                            <Border Style="{StaticResource StatTile}" Padding="20,24">
-                                <VerticalStackLayout Spacing="10">
-                                    <Border Style="{StaticResource EmptyIconBubble}">
-                                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconCalendar}" WidthRequest="24" HeightRequest="24"
-                                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                                              HorizontalOptions="Center" VerticalOptions="Center" />
-                                    </Border>
-                                    <Label Text="No upcoming matches" Style="{StaticResource EmptyTitle}" />
-                                    <Label Text="Accept an invitation or create your own match to get started."
-                                           Style="{StaticResource EmptyBody}" />
-                                </VerticalStackLayout>
-                            </Border>
+                            <Grid>
+                                <controls:ListSkeletonView IsVisible="{Binding ShowSkeleton}" />
+                                <controls:EmptyStateView Illustration="empty_matches.png"
+                                                         Title="No upcoming matches"
+                                                         Message="Accept an invitation or create your own match to get started."
+                                                         IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}" />
+                            </Grid>
                         </CollectionView.EmptyView>
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
@@ -159,18 +155,10 @@
                     <Label Text="YOU'RE ORGANIZING" Style="{StaticResource SectionTitle}" />
                     <CollectionView ItemsSource="{Binding Dashboard}">
                         <CollectionView.EmptyView>
-                            <Border Style="{StaticResource StatTile}" Padding="20,24">
-                                <VerticalStackLayout Spacing="10">
-                                    <Border Style="{StaticResource EmptyIconBubble}">
-                                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconFlag}" WidthRequest="24" HeightRequest="24"
-                                              Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                                              HorizontalOptions="Center" VerticalOptions="Center" />
-                                    </Border>
-                                    <Label Text="Nothing on your plate" Style="{StaticResource EmptyTitle}" />
-                                    <Label Text="Organize a match and manage everything from here."
-                                           Style="{StaticResource EmptyBody}" />
-                                </VerticalStackLayout>
-                            </Border>
+                            <controls:EmptyStateView Illustration="empty_organizing.png"
+                                                     Title="Nothing on your plate"
+                                                     Message="Organize a match and manage everything from here."
+                                                     IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}" />
                         </CollectionView.EmptyView>
                         <CollectionView.ItemTemplate>
                             <DataTemplate>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.GroupsPage"
              x:Name="PageRoot"
              Title="Groups"
@@ -29,18 +30,13 @@
 
             <CollectionView ItemsSource="{Binding Groups}">
                 <CollectionView.EmptyView>
-                    <Border Style="{StaticResource StatTile}" Padding="20,24">
-                        <VerticalStackLayout Spacing="10">
-                            <Border Style="{StaticResource EmptyIconBubble}">
-                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconGroup}" WidthRequest="24" HeightRequest="24"
-                                      Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                                      HorizontalOptions="Center" VerticalOptions="Center" />
-                            </Border>
-                            <Label Text="No groups yet" Style="{StaticResource EmptyTitle}" />
-                            <Label Text="Create a group like 'Thursday Crew' to invite everyone at once."
-                                   Style="{StaticResource EmptyBody}" />
-                        </VerticalStackLayout>
-                    </Border>
+                    <Grid>
+                        <controls:ListSkeletonView IsVisible="{Binding ShowSkeleton}" />
+                        <controls:EmptyStateView Illustration="empty_groups.png"
+                                                 Title="No groups yet"
+                                                 Message="Create a group like 'Thursday Crew' to invite everyone at once."
+                                                 IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}" />
+                    </Grid>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
