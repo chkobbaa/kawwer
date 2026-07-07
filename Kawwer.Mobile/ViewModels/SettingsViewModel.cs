@@ -3,8 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Kawwer.Mobile.Models;
 using Kawwer.Mobile.Services;
-using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Graphics.Platform;
 
 namespace Kawwer.Mobile.ViewModels;
 
@@ -14,20 +12,19 @@ public sealed partial class SettingsViewModel : BaseViewModel
     private const string NotifyPaymentsKey = "pref_notify_payments";
     private const string NotifyFriendsKey = "pref_notify_friends";
 
-    // Largest edge (px) we upload; keeps avatars small and fast on mobile data.
-    private const int MaxAvatarDimension = 1024;
-
     private readonly KawwerApiClient _api;
     private readonly AuthService _auth;
     private readonly PushRegistrationService _push;
     private readonly UpdateService _update;
+    private readonly MediaService _media;
 
-    public SettingsViewModel(KawwerApiClient api, AuthService auth, PushRegistrationService push, UpdateService update)
+    public SettingsViewModel(KawwerApiClient api, AuthService auth, PushRegistrationService push, UpdateService update, MediaService media)
     {
         _api = api;
         _auth = auth;
         _push = push;
         _update = update;
+        _media = media;
         Title = "Settings";
 
         NotifyMatches = Preferences.Default.Get(NotifyMatchesKey, true);
@@ -133,46 +130,56 @@ public sealed partial class SettingsViewModel : BaseViewModel
         await Dialog.ShowSuccessAsync("Profile updated.");
     });
 
-    /// <summary>Pick a photo, downscale/compress it, and upload it as the profile picture.</summary>
+    /// <summary>
+    /// Let the user take a photo or choose one from the gallery, crop/zoom it in a circular editor,
+    /// then upload the result. Permission denials are surfaced inline rather than crashing.
+    /// </summary>
     [RelayCommand]
     private async Task PickPhotoAsync()
     {
+        var choice = await Shell.Current.DisplayActionSheetAsync(
+            "Profile photo", "Cancel", null, "Take photo", "Choose from gallery");
+
         FileResult? photo;
         try
         {
-            photo = await MediaPicker.Default.PickPhotoAsync();
+            photo = choice switch
+            {
+                "Take photo" => await _media.CapturePhotoAsync(),
+                "Choose from gallery" => await _media.PickPhotoAsync(),
+                _ => null
+            };
         }
-        catch (FeatureNotSupportedException)
+        catch (MediaAccessException ex)
         {
-            ErrorMessage = "Picking photos isn't supported on this device.";
-            return;
-        }
-        catch (PermissionException)
-        {
-            ErrorMessage = "Permission to access photos was denied.";
+            ErrorMessage = ex.Message;
             return;
         }
 
         if (photo is null)
         {
-            return; // user cancelled
+            return; // user cancelled the picker
+        }
+
+        byte[] original;
+        using (var source = await photo.OpenReadAsync())
+        {
+            using var buffer = new MemoryStream();
+            await source.CopyToAsync(buffer);
+            original = buffer.ToArray();
+        }
+
+        // Circular crop / zoom / reposition before upload.
+        var edited = await _media.EditPhotoAsync(original);
+        if (edited is null)
+        {
+            return; // user backed out of the editor
         }
 
         await RunAsync(async () =>
         {
-            byte[] jpeg;
-            using (var source = await photo.OpenReadAsync())
-            {
-                // Standard MAUI image pipeline: decode, downscale to a max edge, re-encode as JPEG.
-                var image = PlatformImage.FromStream(source);
-                using var resized = image.Downsize(MaxAvatarDimension, disposeOriginal: true);
-                using var buffer = new MemoryStream();
-                resized.Save(buffer, ImageFormat.Jpeg, quality: 0.8f);
-                jpeg = buffer.ToArray();
-            }
-
-            using var upload = new MemoryStream(jpeg);
-            var updated = await _api.UploadProfilePhotoAsync(upload, "avatar.jpg", "image/jpeg");
+            using var upload = new MemoryStream(edited);
+            var updated = await _api.UploadProfilePhotoAsync(upload, "avatar.png", "image/png");
 
             _auth.Session.CurrentUser = updated;
             ProfilePictureUrl = updated.ProfilePictureUrl;

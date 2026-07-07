@@ -18,7 +18,18 @@ public abstract partial class BaseViewModel : ObservableObject
         ?? throw new InvalidOperationException("The application service provider is not available yet.");
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowSkeleton))]
     private bool _isBusy;
+
+    /// <summary>
+    /// True until the first load completes. Combined with <see cref="IsBusy"/> it drives
+    /// <see cref="ShowSkeleton"/> so the shimmering skeleton only appears on the very first fetch;
+    /// later pull-to-refresh loads keep the existing content on screen.
+    /// </summary>
+    private bool _hasLoadedOnce;
+
+    /// <summary>True on the initial load, so pages can show a skeleton placeholder instead of a spinner.</summary>
+    public bool ShowSkeleton => IsBusy && !_hasLoadedOnce;
 
     /// <summary>
     /// Bound to RefreshView.IsRefreshing. Kept separate from IsBusy because RefreshView
@@ -60,6 +71,9 @@ public abstract partial class BaseViewModel : ObservableObject
         {
             await action();
             _lastLoadedUtc = DateTime.UtcNow;
+            // Set before IsBusy flips false in the finally block, so ShowSkeleton recomputes to
+            // false (and stays there) once we have content.
+            _hasLoadedOnce = true;
         }
         catch (Exception ex)
         {

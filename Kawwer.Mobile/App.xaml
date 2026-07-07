@@ -16,6 +16,7 @@
             <conv:IntGreaterThanZeroConverter x:Key="IntGreaterThanZero" />
             <conv:NotNullConverter x:Key="NotNull" />
             <conv:IntAtLeastConverter x:Key="IntAtLeast" />
+            <conv:DecimalToDoubleConverter x:Key="DecimalToDouble" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
