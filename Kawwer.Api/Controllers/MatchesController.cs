@@ -1,3 +1,4 @@
+using Kawwer.Application.Features.Lineup;
 using Kawwer.Application.Features.LiveMatch;
 using Kawwer.Application.Features.Matches;
 using Kawwer.Contracts.Matches;
@@ -131,6 +132,46 @@ public sealed class MatchesController : ApiControllerBase
     {
         var result = await Dispatcher.SendAsync(new GetWaitingListPositionQuery(CurrentUserId, id), cancellationToken);
         return Ok(result);
+    }
+
+    // ----- Tactical lineup & guest players -----
+
+    [HttpGet("{id:guid}/lineup")]
+    public async Task<IActionResult> GetLineup(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Dispatcher.SendAsync(new GetLineupQuery(CurrentUserId, id), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/lineup/auto-balance")]
+    public async Task<IActionResult> AutoBalanceLineup(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Dispatcher.SendAsync(new AutoBalanceLineupCommand(CurrentUserId, id), cancellationToken);
+        return Ok(result, "Teams balanced.");
+    }
+
+    [HttpPut("{id:guid}/lineup/slot")]
+    public async Task<IActionResult> UpdateLineupSlot(Guid id, UpdateLineupSlotRequest request, CancellationToken cancellationToken)
+    {
+        var command = new UpdateLineupSlotCommand(
+            CurrentUserId, id, request.Kind, request.TargetId, request.Team, request.PositionX, request.PositionY);
+        await Dispatcher.SendAsync(command, cancellationToken);
+        return OkMessage("Lineup updated.");
+    }
+
+    [HttpPost("{id:guid}/guests")]
+    public async Task<IActionResult> AddGuest(Guid id, AddGuestPlayerRequest request, CancellationToken cancellationToken)
+    {
+        var result = await Dispatcher.SendAsync(
+            new AddGuestPlayerCommand(CurrentUserId, id, request.Name, request.SkillLevel), cancellationToken);
+        return CreatedResponse(result, "Guest added.");
+    }
+
+    [HttpDelete("{id:guid}/guests/{guestId:guid}")]
+    public async Task<IActionResult> RemoveGuest(Guid id, Guid guestId, CancellationToken cancellationToken)
+    {
+        await Dispatcher.SendAsync(new RemoveGuestPlayerCommand(CurrentUserId, id, guestId), cancellationToken);
+        return OkMessage("Guest removed.");
     }
 
     // ----- Live Match -----

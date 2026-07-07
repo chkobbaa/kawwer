@@ -11,6 +11,10 @@ namespace Kawwer.Domain.Entities;
 public class Match : AggregateRoot
 {
     private readonly List<MatchParticipant> _participants = new();
+    private readonly List<GuestPlayer> _guests = new();
+
+    /// <summary>Upper bound on guests, a light guard against runaway input at the system boundary.</summary>
+    private const int MaxGuests = 40;
 
     private Match()
     {
@@ -78,7 +82,15 @@ public class Match : AggregateRoot
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
+    // ----- Lineup: the organizer is a player too, but is modelled implicitly (no participant row),
+    // so their board slot lives directly on the match. -----
+    public TeamSide OrganizerTeam { get; private set; }
+    public double? OrganizerPositionX { get; private set; }
+    public double? OrganizerPositionY { get; private set; }
+
     public IReadOnlyCollection<MatchParticipant> Participants => _participants.AsReadOnly();
+
+    public IReadOnlyCollection<GuestPlayer> Guests => _guests.AsReadOnly();
 
     /// <summary>Kickoff as a UTC datetime, treating stored values as UTC.</summary>
     public DateTime KickoffUtc => MatchDate.ToDateTime(StartTime, DateTimeKind.Utc);
@@ -516,6 +528,66 @@ public class Match : AggregateRoot
     public void PinMessage(Guid messageId)
     {
         PinnedMessageId = messageId;
+        Touch();
+    }
+
+    // ----- Guests & tactical lineup -----
+
+    /// <summary>
+    /// Adds a guest player (someone without the app) to the match by name. Guests appear in the
+    /// roster and on the lineup board but hold no account, payment or attendance state.
+    /// </summary>
+    public GuestPlayer AddGuest(string name, Guid addedByUserId, int? skillLevel = null)
+    {
+        EnsureNotClosed();
+
+        if (_guests.Count >= MaxGuests)
+        {
+            throw new DomainException($"A match cannot have more than {MaxGuests} guest players.");
+        }
+
+        var guest = new GuestPlayer(Id, name, addedByUserId, skillLevel);
+        _guests.Add(guest);
+        Touch();
+        return guest;
+    }
+
+    public GuestPlayer GetGuest(Guid guestId)
+        => _guests.FirstOrDefault(g => g.Id == guestId)
+           ?? throw new DomainException("The guest is not part of this match.");
+
+    public void RemoveGuest(Guid guestId)
+    {
+        var guest = GetGuest(guestId);
+        _guests.Remove(guest);
+        Touch();
+    }
+
+    /// <summary>Places an accepted player on a lineup team at a normalized board position.</summary>
+    public void PlaceParticipantInLineup(Guid userId, TeamSide team, double positionX, double positionY)
+    {
+        var participant = GetParticipant(userId);
+        if (participant.Status != ParticipantStatus.Accepted)
+        {
+            throw new DomainException("Only accepted players can be placed on the lineup board.");
+        }
+
+        participant.PlaceInLineup(team, positionX, positionY);
+        Touch();
+    }
+
+    public void PlaceGuestInLineup(Guid guestId, TeamSide team, double positionX, double positionY)
+    {
+        GetGuest(guestId).PlaceInLineup(team, positionX, positionY);
+        Touch();
+    }
+
+    /// <summary>Places the organizer (an implicit player) on a lineup team, clamping coordinates to 0..1.</summary>
+    public void PlaceOrganizerInLineup(TeamSide team, double positionX, double positionY)
+    {
+        OrganizerTeam = team;
+        OrganizerPositionX = Math.Clamp(positionX, 0d, 1d);
+        OrganizerPositionY = Math.Clamp(positionY, 0d, 1d);
         Touch();
     }
 

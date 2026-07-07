@@ -14,6 +14,7 @@ public sealed class MatchRepository : IMatchRepository
     public Task<Match?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => _context.Matches
             .Include(m => m.Participants)
+            .Include(m => m.Guests)
             .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Match>> GetForOrganizerAsync(Guid organizerId, CancellationToken cancellationToken = default)

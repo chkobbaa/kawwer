@@ -28,6 +28,7 @@ public class MatchParticipant : Entity
         SharedLocation = false;
         RatedOrganizer = false;
         RatedPlayers = false;
+        Team = TeamSide.Unassigned;
         CreatedAt = DateTime.UtcNow;
     }
 
@@ -53,6 +54,13 @@ public class MatchParticipant : Entity
     public bool RatedOrganizer { get; private set; }
     public bool RatedPlayers { get; private set; }
     public DateTime CreatedAt { get; private set; }
+
+    /// <summary>Which lineup team the player has been placed on. Unassigned until placed/balanced.</summary>
+    public TeamSide Team { get; private set; }
+
+    /// <summary>Normalized 0..1 position within the player's own team half (0 = own goal, 1 = halfway).</summary>
+    public double? PositionX { get; private set; }
+    public double? PositionY { get; private set; }
 
     public PaymentStatus PaymentStatus => PaymentCompleted
         ? PaymentStatus.Paid
@@ -201,4 +209,19 @@ public class MatchParticipant : Entity
     public void MarkRatedOrganizer() => RatedOrganizer = true;
 
     public void MarkRatedPlayers() => RatedPlayers = true;
+
+    /// <summary>Places the player on a lineup team at a normalized board position, clamping coordinates to 0..1.</summary>
+    public void PlaceInLineup(TeamSide team, double positionX, double positionY)
+    {
+        Team = team;
+        PositionX = Math.Clamp(positionX, 0d, 1d);
+        PositionY = Math.Clamp(positionY, 0d, 1d);
+    }
+
+    public void RemoveFromLineup()
+    {
+        Team = TeamSide.Unassigned;
+        PositionX = null;
+        PositionY = null;
+    }
 }

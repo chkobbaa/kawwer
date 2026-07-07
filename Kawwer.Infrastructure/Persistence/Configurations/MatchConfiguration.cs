@@ -29,5 +29,14 @@ public sealed class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.Metadata
             .FindNavigation(nameof(Match.Participants))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(m => m.Guests)
+            .WithOne()
+            .HasForeignKey(g => g.MatchId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Metadata
+            .FindNavigation(nameof(Match.Guests))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }
