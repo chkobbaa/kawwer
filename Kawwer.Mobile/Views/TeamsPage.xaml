@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Kawwer.Mobile.Views.GroupsPage"
+             x:Class="Kawwer.Mobile.Views.TeamsPage"
              x:Name="PageRoot"
-             Title="Groups"
+             Title="Teams"
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <ScrollView>
         <VerticalStackLayout Padding="16,12,16,24" Spacing="10">
             <VerticalStackLayout Spacing="2">
-                <Label Text="Groups" Style="{StaticResource ScreenTitle}" />
+                <Label Text="Teams" Style="{StaticResource ScreenTitle}" />
                 <Label Text="Invite a whole crew in one tap" FontSize="14" TextColor="{StaticResource Gray500}" />
             </VerticalStackLayout>
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Border Style="{StaticResource InputBorder}">
-                    <Entry Style="{StaticResource FormEntry}" Placeholder="New group name" Text="{Binding NewGroupName}" />
+                    <Entry Style="{StaticResource FormEntry}" Placeholder="New team name" Text="{Binding NewTeamName}" />
                 </Border>
                 <Button Grid.Column="1" Text="Create" FontAttributes="Bold" CornerRadius="14"
                         HeightRequest="48" Padding="18,0"
@@ -27,17 +27,17 @@
                 <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
             </Border>
 
-            <CollectionView ItemsSource="{Binding Groups}">
+            <CollectionView ItemsSource="{Binding Teams}">
                 <CollectionView.EmptyView>
                     <Border Style="{StaticResource StatTile}" Padding="20,24">
                         <VerticalStackLayout Spacing="10">
                             <Border Style="{StaticResource EmptyIconBubble}">
-                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconGroup}" WidthRequest="24" HeightRequest="24"
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource IconTeam}" WidthRequest="24" HeightRequest="24"
                                       Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                       HorizontalOptions="Center" VerticalOptions="Center" />
                             </Border>
-                            <Label Text="No groups yet" Style="{StaticResource EmptyTitle}" />
-                            <Label Text="Create a group like 'Thursday Crew' to invite everyone at once."
+                            <Label Text="No teams yet" Style="{StaticResource EmptyTitle}" />
+                            <Label Text="Create a team like 'Thursday Crew' to invite everyone at once."
                                    Style="{StaticResource EmptyBody}" />
                         </VerticalStackLayout>
                     </Border>
@@ -47,7 +47,7 @@
                         <Border Margin="0,4" Style="{StaticResource StatTile}" Padding="12">
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
                                 <Border Style="{StaticResource Avatar}">
-                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconGroup}" WidthRequest="18" HeightRequest="18"
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconTeam}" WidthRequest="18" HeightRequest="18"
                                           Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                           HorizontalOptions="Center" VerticalOptions="Center" />
                                 </Border>
@@ -58,7 +58,7 @@
                                 </VerticalStackLayout>
                                 <Border Grid.Column="2" Style="{StaticResource IconBubble}" WidthRequest="36" HeightRequest="36"
                                         BackgroundColor="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}" VerticalOptions="Center"
-                                        SemanticProperties.Description="Delete group">
+                                        SemanticProperties.Description="Delete team">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer
                                             Command="{Binding BindingContext.DeleteCommand, Source={x:Reference PageRoot}}"

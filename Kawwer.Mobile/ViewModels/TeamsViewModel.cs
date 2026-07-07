@@ -6,49 +6,49 @@ using Kawwer.Mobile.Services;
 
 namespace Kawwer.Mobile.ViewModels;
 
-public sealed partial class GroupsViewModel : BaseViewModel
+public sealed partial class TeamsViewModel : BaseViewModel
 {
     private readonly KawwerApiClient _api;
 
-    public GroupsViewModel(KawwerApiClient api)
+    public TeamsViewModel(KawwerApiClient api)
     {
         _api = api;
-        Title = "Groups";
+        Title = "Teams";
     }
 
-    public ObservableCollection<GroupDto> Groups { get; } = new();
+    public ObservableCollection<TeamDto> Teams { get; } = new();
 
-    [ObservableProperty] private string _newGroupName = string.Empty;
+    [ObservableProperty] private string _newTeamName = string.Empty;
 
     [RelayCommand]
     public Task LoadAsync() => RunAsync(async () =>
     {
-        var groups = await _api.GetGroupsAsync();
-        Groups.Clear();
-        foreach (var g in groups)
+        var teams = await _api.GetTeamsAsync();
+        Teams.Clear();
+        foreach (var t in teams)
         {
-            Groups.Add(g);
+            Teams.Add(t);
         }
     });
 
     [RelayCommand]
     private Task CreateAsync() => RunAsync(async () =>
     {
-        if (NewGroupName.Trim().Length < 2)
+        if (NewTeamName.Trim().Length < 2)
         {
-            ErrorMessage = "Group name must be at least 2 characters.";
+            ErrorMessage = "Team name must be at least 2 characters.";
             return;
         }
 
-        await _api.CreateGroupAsync(NewGroupName.Trim(), null);
-        NewGroupName = string.Empty;
+        await _api.CreateTeamAsync(NewTeamName.Trim(), null);
+        NewTeamName = string.Empty;
         await LoadAsync();
     });
 
     [RelayCommand]
     private Task DeleteAsync(Guid id) => RunAsync(async () =>
     {
-        await _api.DeleteGroupAsync(id);
+        await _api.DeleteTeamAsync(id);
         await LoadAsync();
     });
 }

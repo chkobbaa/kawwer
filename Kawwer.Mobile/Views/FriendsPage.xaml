@@ -13,12 +13,12 @@
             <Grid ColumnDefinitions="*,Auto">
                 <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                     <Label Text="Squad" Style="{StaticResource ScreenTitle}" />
-                    <Label Text="Friends, requests and groups" FontSize="14" TextColor="{StaticResource Gray500}" />
+                    <Label Text="Friends, requests and teams" FontSize="14" TextColor="{StaticResource Gray500}" />
                 </VerticalStackLayout>
-                <Button Grid.Column="1" Text="Groups" FontSize="13" FontAttributes="Bold" CornerRadius="20"
+                <Button Grid.Column="1" Text="Teams" FontSize="13" FontAttributes="Bold" CornerRadius="20"
                         HeightRequest="40" Padding="18,0" VerticalOptions="Center"
                         BackgroundColor="{StaticResource Ink}" TextColor="{StaticResource Volt}"
-                        Command="{Binding OpenGroupsCommand}" />
+                        Command="{Binding OpenTeamsCommand}" />
             </Grid>
 
             <!-- Error + retry: shown instead of leaving the screen blank when a load fails. -->

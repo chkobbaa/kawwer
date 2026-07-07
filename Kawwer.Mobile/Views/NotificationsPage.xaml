@@ -59,8 +59,8 @@
                                         <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="Friend">
                                             <Setter Property="Data" Value="{StaticResource IconAccount}" />
                                         </DataTrigger>
-                                        <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="Group">
-                                            <Setter Property="Data" Value="{StaticResource IconGroup}" />
+                                        <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="Team">
+                                            <Setter Property="Data" Value="{StaticResource IconTeam}" />
                                         </DataTrigger>
                                         <DataTrigger TargetType="Path" Binding="{Binding Category}" Value="WaitingList">
                                             <Setter Property="Data" Value="{StaticResource IconClock}" />

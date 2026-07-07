@@ -98,8 +98,8 @@
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" HeightRequest="52">
                         <VerticalStackLayout Spacing="0" VerticalOptions="Center">
-                            <Label Text="Friends and groups" FontSize="15" />
-                            <Label Text="Requests and group activity" Style="{StaticResource StatCaption}" />
+                            <Label Text="Friends and teams" FontSize="15" />
+                            <Label Text="Requests and team activity" Style="{StaticResource StatCaption}" />
                         </VerticalStackLayout>
                         <Switch Grid.Column="1" IsToggled="{Binding NotifyFriends}" VerticalOptions="Center" />
                     </Grid>

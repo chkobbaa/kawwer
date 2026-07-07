@@ -22,7 +22,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("chat", typeof(ChatPage));
         Routing.RegisterRoute("payments", typeof(PaymentsPage));
         Routing.RegisterRoute("notifications", typeof(NotificationsPage));
-        Routing.RegisterRoute("groups", typeof(GroupsPage));
+        Routing.RegisterRoute("teams", typeof(TeamsPage));
         Routing.RegisterRoute("fields", typeof(FieldsPage));
         Routing.RegisterRoute("createfield", typeof(CreateFieldPage));
         Routing.RegisterRoute("mappicker", typeof(MapPickerPage));

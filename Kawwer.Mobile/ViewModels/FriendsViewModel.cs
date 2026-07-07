@@ -147,7 +147,7 @@ public sealed partial class FriendsViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private Task OpenGroupsAsync() => Shell.Current.GoToAsync("groups");
+    private Task OpenTeamsAsync() => Shell.Current.GoToAsync("teams");
 
     /// <summary>Tapping any player row (search result or friend) opens their profile.</summary>
     [RelayCommand]
