@@ -19,7 +19,10 @@ public sealed record CreateMatchCommand(
     MatchVisibility Visibility,
     bool AutoAcceptPublic,
     IReadOnlyList<Guid> InvitedUserIds,
-    IReadOnlyList<Guid> InvitedGroupIds) : IRequest<Guid>;
+    IReadOnlyList<Guid> InvitedTeamIds,
+    MatchFormat Format = MatchFormat.Pickup,
+    string? OpponentName = null,
+    Guid? OpponentTeamId = null) : IRequest<Guid>;
 
 public sealed class CreateMatchCommandValidator : AbstractValidator<CreateMatchCommand>
 {
@@ -32,8 +35,16 @@ public sealed class CreateMatchCommandValidator : AbstractValidator<CreateMatchC
         RuleFor(x => x)
             .Must(x => x.Visibility != MatchVisibility.Private
                        || x.InvitedUserIds.Count > 0
-                       || x.InvitedGroupIds.Count > 0)
-            .WithMessage("An invitations-only match must invite at least one player or group.");
+                       || x.InvitedTeamIds.Count > 0)
+            .WithMessage("An invitations-only match must invite at least one player or team.");
+        RuleFor(x => x.OpponentName)
+            .NotEmpty()
+            .When(x => x.Format == MatchFormat.VsExternalTeam)
+            .WithMessage("Enter the opponent team's name.");
+        RuleFor(x => x.OpponentTeamId)
+            .NotNull()
+            .When(x => x.Format == MatchFormat.VsAppTeam)
+            .WithMessage("Select the opponent team.");
     }
 }
 
@@ -41,7 +52,7 @@ public sealed class CreateMatchCommandHandler : IRequestHandler<CreateMatchComma
 {
     private readonly IMatchRepository _matches;
     private readonly IFootballFieldRepository _fields;
-    private readonly IGroupRepository _groups;
+    private readonly ITeamRepository _teams;
     private readonly IChatRepository _chat;
     private readonly INotificationService _notifications;
     private readonly IUnitOfWork _unitOfWork;
@@ -49,14 +60,14 @@ public sealed class CreateMatchCommandHandler : IRequestHandler<CreateMatchComma
     public CreateMatchCommandHandler(
         IMatchRepository matches,
         IFootballFieldRepository fields,
-        IGroupRepository groups,
+        ITeamRepository teams,
         IChatRepository chat,
         INotificationService notifications,
         IUnitOfWork unitOfWork)
     {
         _matches = matches;
         _fields = fields;
-        _groups = groups;
+        _teams = teams;
         _chat = chat;
         _notifications = notifications;
         _unitOfWork = unitOfWork;
@@ -70,6 +81,13 @@ public sealed class CreateMatchCommandHandler : IRequestHandler<CreateMatchComma
         var maxPlayers = request.MaxPlayers ?? field.Capacity;
         var totalPrice = request.TotalFieldPrice ?? field.Price;
 
+        // For an in-app opponent, make sure the team really exists before locking it in.
+        if (request.Format == MatchFormat.VsAppTeam)
+        {
+            _ = await _teams.GetByIdAsync(request.OpponentTeamId!.Value, cancellationToken)
+                ?? throw NotFoundException.For("Team", request.OpponentTeamId!.Value);
+        }
+
         var match = new Match(
             request.OrganizerId,
             field.Id,
@@ -82,19 +100,22 @@ public sealed class CreateMatchCommandHandler : IRequestHandler<CreateMatchComma
             field.ReservationFee,
             request.Visibility,
             request.Description,
-            request.AutoAcceptPublic);
+            request.AutoAcceptPublic,
+            request.Format,
+            request.OpponentName,
+            request.OpponentTeamId);
 
-        // Resolve the set of invitees: explicit users plus members of the selected groups.
+        // Resolve the set of invitees: explicit users plus members of the selected teams.
         var inviteeIds = new HashSet<Guid>(request.InvitedUserIds);
-        foreach (var groupId in request.InvitedGroupIds)
+        foreach (var teamId in request.InvitedTeamIds)
         {
-            var group = await _groups.GetByIdAsync(groupId, cancellationToken);
-            if (group is null || group.OwnerId != request.OrganizerId)
+            var team = await _teams.GetByIdAsync(teamId, cancellationToken);
+            if (team is null || team.OwnerId != request.OrganizerId)
             {
                 continue;
             }
 
-            foreach (var member in group.Members)
+            foreach (var member in team.Members)
             {
                 inviteeIds.Add(member.UserId);
             }

@@ -3,23 +3,23 @@ using Kawwer.Domain.Common;
 namespace Kawwer.Domain.Entities;
 
 /// <summary>
-/// Membership of a user inside a group.
+/// Membership of a user inside a team.
 /// </summary>
-public class GroupMember : Entity
+public class TeamMember : Entity
 {
-    private GroupMember()
+    private TeamMember()
     {
     }
 
-    public GroupMember(Guid groupId, Guid userId)
+    public TeamMember(Guid teamId, Guid userId)
     {
         Id = Guid.NewGuid();
-        GroupId = groupId;
+        TeamId = teamId;
         UserId = userId;
         AddedAt = DateTime.UtcNow;
     }
 
-    public Guid GroupId { get; private set; }
+    public Guid TeamId { get; private set; }
     public Guid UserId { get; private set; }
     public DateTime AddedAt { get; private set; }
 }

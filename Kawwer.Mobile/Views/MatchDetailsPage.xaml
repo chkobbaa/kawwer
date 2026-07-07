@@ -53,6 +53,26 @@
                                        FontSize="12" FontAttributes="Bold" TextColor="White" />
                             </Border>
                         </HorizontalStackLayout>
+
+                        <!-- Opponent: shown when the match is played against an external or in-app team -->
+                        <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16" Padding="12,10" IsVisible="{Binding Match.HasOpponent}">
+                            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="10">
+                                <Label Text="VS" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Volt}"
+                                       VerticalOptions="Center" />
+                                <Border Grid.Column="1" WidthRequest="40" HeightRequest="40" StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 20" BackgroundColor="{StaticResource Volt}"
+                                        VerticalOptions="Center">
+                                    <Label Text="{Binding Match.OpponentInitials}" FontSize="14" FontAttributes="Bold"
+                                           TextColor="{StaticResource Ink}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="2" Spacing="1" VerticalOptions="Center">
+                                    <Label Text="{Binding Match.OpponentDisplayName}" FontSize="14" FontAttributes="Bold"
+                                           TextColor="White" LineBreakMode="TailTruncation" />
+                                    <Label Text="Opponent" FontSize="10" TextColor="{StaticResource Volt}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
                     </VerticalStackLayout>
                 </Border>
 

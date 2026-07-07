@@ -23,11 +23,19 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
     public const string VisibilityFriends = "Only friends";
     public const string VisibilityInvitations = "Invitations only";
 
+    public const string FormatPickup = "Pickup match";
+    public const string FormatExternalTeam = "Play against an external team";
+    public const string FormatAppTeam = "Play against an app Team";
+
     public ObservableCollection<FootballFieldDto> Fields { get; } = new();
     public ObservableCollection<SelectableUser> Friends { get; } = new();
+    public ObservableCollection<TeamDto> Teams { get; } = new();
 
     public ObservableCollection<string> VisibilityOptions { get; } =
         new() { VisibilityEveryone, VisibilityFriends, VisibilityInvitations };
+
+    public ObservableCollection<string> MatchFormatOptions { get; } =
+        new() { FormatPickup, FormatExternalTeam, FormatAppTeam };
 
     [ObservableProperty] private FootballFieldDto? _selectedField;
     [ObservableProperty] private string _matchTitle = "Football Match";
@@ -36,6 +44,9 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
     [ObservableProperty] private TimeSpan _startTime;
     [ObservableProperty] private int _maxPlayers;
     [ObservableProperty] private string _selectedVisibility = VisibilityInvitations;
+    [ObservableProperty] private string _selectedMatchFormat = FormatPickup;
+    [ObservableProperty] private string _opponentName = string.Empty;
+    [ObservableProperty] private TeamDto? _selectedOpponentTeam;
 
     public string VisibilityHint => SelectedVisibility switch
     {
@@ -46,11 +57,38 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
 
     partial void OnSelectedVisibilityChanged(string value) => OnPropertyChanged(nameof(VisibilityHint));
 
+    /// <summary>Shows the external-team name entry only when that format is picked.</summary>
+    public bool IsExternalOpponent => SelectedMatchFormat == FormatExternalTeam;
+
+    /// <summary>Shows the app-team picker only when that format is picked.</summary>
+    public bool IsAppTeamOpponent => SelectedMatchFormat == FormatAppTeam;
+
+    public string MatchFormatHint => SelectedMatchFormat switch
+    {
+        FormatExternalTeam => "Your accepted players line up against a team that doesn't use Kawwer.",
+        FormatAppTeam => "Your accepted players line up against one of your registered Teams.",
+        _ => "Everyone who joins is pooled into one game — no designated opponent."
+    };
+
+    partial void OnSelectedMatchFormatChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsExternalOpponent));
+        OnPropertyChanged(nameof(IsAppTeamOpponent));
+        OnPropertyChanged(nameof(MatchFormatHint));
+    }
+
     private MatchVisibility Visibility => SelectedVisibility switch
     {
         VisibilityEveryone => MatchVisibility.Public,
         VisibilityFriends => MatchVisibility.FriendsOnly,
         _ => MatchVisibility.Private
+    };
+
+    private MatchFormat Format => SelectedMatchFormat switch
+    {
+        FormatExternalTeam => MatchFormat.VsExternalTeam,
+        FormatAppTeam => MatchFormat.VsAppTeam,
+        _ => MatchFormat.Pickup
     };
 
     [RelayCommand]
@@ -70,6 +108,13 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
         foreach (var f in friends)
         {
             Friends.Add(new SelectableUser(f.User));
+        }
+
+        var teams = await _api.GetTeamsAsync();
+        Teams.Clear();
+        foreach (var t in teams)
+        {
+            Teams.Add(t);
         }
     });
 
@@ -92,6 +137,19 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
             return;
         }
 
+        var format = Format;
+        if (format == MatchFormat.VsExternalTeam && string.IsNullOrWhiteSpace(OpponentName))
+        {
+            ErrorMessage = "Enter the opponent team's name.";
+            return;
+        }
+
+        if (format == MatchFormat.VsAppTeam && SelectedOpponentTeam is null)
+        {
+            ErrorMessage = "Select the opponent team.";
+            return;
+        }
+
         var matchId = await _api.CreateMatchAsync(new
         {
             footballFieldId = SelectedField.Id,
@@ -107,7 +165,10 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
             // matches the API already restricts joining to the organizer's friends.
             autoAcceptPublic = Visibility != MatchVisibility.Private,
             invitedUserIds = invited,
-            invitedGroupIds = Array.Empty<Guid>()
+            invitedTeamIds = Array.Empty<Guid>(),
+            format = (int)format,
+            opponentName = format == MatchFormat.VsExternalTeam ? OpponentName.Trim() : null,
+            opponentTeamId = format == MatchFormat.VsAppTeam ? SelectedOpponentTeam?.Id : null
         });
 
         await Shell.Current.GoToAsync($"matchdetails?matchId={matchId}");

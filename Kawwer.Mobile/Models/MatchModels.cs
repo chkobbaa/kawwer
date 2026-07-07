@@ -8,6 +8,9 @@ public sealed class MatchDto
     public string? Description { get; set; }
     public MatchVisibility Visibility { get; set; }
     public MatchStatus Status { get; set; }
+    public MatchFormat Format { get; set; }
+    public string? OpponentName { get; set; }
+    public Guid? OpponentTeamId { get; set; }
     public DateOnly MatchDate { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
@@ -34,6 +37,32 @@ public sealed class MatchDto
     public string DayLabel => MatchDate.ToString("dd");
     public string MonthLabel => MatchDate.ToString("MMM").ToUpperInvariant();
     public string TimeLabel => StartTime.ToString("HH\\:mm");
+
+    /// <summary>True when the match is played against a designated opponent (external or in-app team).</summary>
+    public bool HasOpponent => Format is MatchFormat.VsExternalTeam or MatchFormat.VsAppTeam;
+
+    /// <summary>Name to show for the opponent. In-app teams don't carry a name here, so fall back to a generic label.</summary>
+    public string OpponentDisplayName => !string.IsNullOrWhiteSpace(OpponentName)
+        ? OpponentName!
+        : Format == MatchFormat.VsAppTeam ? "Opponent team" : string.Empty;
+
+    /// <summary>Initials for the default opponent avatar (e.g. "FC United" -> "FU").</summary>
+    public string OpponentInitials
+    {
+        get
+        {
+            var name = OpponentDisplayName.Trim();
+            if (name.Length == 0)
+            {
+                return "VS";
+            }
+
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length >= 2
+                ? $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[1][0])}"
+                : name[..Math.Min(2, name.Length)].ToUpperInvariant();
+        }
+    }
 }
 
 public sealed class MatchParticipantDto
@@ -224,7 +253,7 @@ public sealed class NotificationDto
         NotificationCategory.Payment => "💰",
         NotificationCategory.LiveMatch => "📍",
         NotificationCategory.Friend => "🤝",
-        NotificationCategory.Group => "👥",
+        NotificationCategory.Team => "👥",
         NotificationCategory.WaitingList => "⏳",
         _ => "🔔"
     };
@@ -243,5 +272,5 @@ public sealed class PlayerStatisticsDto
     public decimal Reputation { get; set; }
     public ReliabilityBadge ReliabilityBadge { get; set; }
     public int Friends { get; set; }
-    public int GroupsCreated { get; set; }
+    public int TeamsCreated { get; set; }
 }

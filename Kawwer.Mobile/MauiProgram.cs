@@ -80,7 +80,7 @@ public static class MauiProgram
         builder.Services.AddTransient<DiscoverViewModel>();
         builder.Services.AddTransient<CalendarViewModel>();
         builder.Services.AddTransient<FriendsViewModel>();
-        builder.Services.AddTransient<GroupsViewModel>();
+        builder.Services.AddTransient<TeamsViewModel>();
         builder.Services.AddTransient<ProfileViewModel>();
         builder.Services.AddTransient<CreateMatchViewModel>();
         builder.Services.AddTransient<MatchDetailsViewModel>();
@@ -103,7 +103,7 @@ public static class MauiProgram
         builder.Services.AddTransient<DiscoverPage>();
         builder.Services.AddTransient<CalendarPage>();
         builder.Services.AddTransient<FriendsPage>();
-        builder.Services.AddTransient<GroupsPage>();
+        builder.Services.AddTransient<TeamsPage>();
         builder.Services.AddTransient<ProfilePage>();
         builder.Services.AddTransient<CreateMatchPage>();
         builder.Services.AddTransient<MatchDetailsPage>();

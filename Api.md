@@ -14,7 +14,7 @@ paginated. OpenAPI/Swagger documents every endpoint.
 | Auth | `POST /api/v1/auth/{register,login,refresh,logout}` |
 | Users & Statistics | `/api/v1/users` (`/me`, `/me/statistics`, …) |
 | Friends | `/api/v1/friends` |
-| Groups | `/api/v1/groups` |
+| Teams | `/api/v1/teams` |
 | Football Fields | `/api/v1/football-fields` |
 | Matches & Live Match | `/api/v1/matches` (`/upcoming`, `/{id}`, `/{id}/live/*`, …) |
 | Invitations & Waiting List | `/api/v1/matches/{id}/{invitations,respond,leave,waiting-list}` |

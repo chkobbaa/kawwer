@@ -7,6 +7,6 @@ public enum NotificationCategory
     Payment = 3,
     LiveMatch = 4,
     Friend = 5,
-    Group = 6,
+    Team = 6,
     WaitingList = 7
 }

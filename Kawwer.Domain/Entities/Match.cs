@@ -29,7 +29,10 @@ public class Match : AggregateRoot
         decimal reservationPaid,
         MatchVisibility visibility,
         string? description = null,
-        bool autoAcceptPublic = false)
+        bool autoAcceptPublic = false,
+        MatchFormat format = MatchFormat.Pickup,
+        string? opponentName = null,
+        Guid? opponentTeamId = null)
     {
         if (maxPlayers < 2)
         {
@@ -50,6 +53,7 @@ public class Match : AggregateRoot
         ReservationPaid = reservationPaid;
         Visibility = visibility;
         AutoAcceptPublic = autoAcceptPublic;
+        SetOpponent(format, opponentName, opponentTeamId);
         Status = MatchStatus.Draft;
         PaymentCollectionStarted = false;
         PaymentCompleted = false;
@@ -63,6 +67,15 @@ public class Match : AggregateRoot
     public string? Description { get; private set; }
     public MatchVisibility Visibility { get; private set; }
     public MatchStatus Status { get; private set; }
+
+    /// <summary>How the match is contested: a pickup pool, or against a designated opponent.</summary>
+    public MatchFormat Format { get; private set; }
+
+    /// <summary>Display name of the opponent for a <see cref="MatchFormat.VsExternalTeam"/> match.</summary>
+    public string? OpponentName { get; private set; }
+
+    /// <summary>The opposing in-app <see cref="Team"/> for a <see cref="MatchFormat.VsAppTeam"/> match.</summary>
+    public Guid? OpponentTeamId { get; private set; }
     public DateOnly MatchDate { get; private set; }
     public TimeOnly StartTime { get; private set; }
     public TimeOnly EndTime { get; private set; }
@@ -197,6 +210,46 @@ public class Match : AggregateRoot
         EnsureNotClosed();
         LiveMatchStarted = true;
         Touch();
+    }
+
+    /// <summary>
+    /// Sets who the match is played against and enforces the invariants for each format:
+    /// an external match needs a display name, an in-app match needs the opposing team id,
+    /// and a pickup match has neither.
+    /// </summary>
+    public void SetOpponent(MatchFormat format, string? opponentName, Guid? opponentTeamId)
+    {
+        switch (format)
+        {
+            case MatchFormat.VsExternalTeam:
+                var trimmed = opponentName?.Trim();
+                if (string.IsNullOrEmpty(trimmed))
+                {
+                    throw new DomainException("An external-team match must have an opponent name.");
+                }
+
+                OpponentName = trimmed;
+                OpponentTeamId = null;
+                break;
+
+            case MatchFormat.VsAppTeam:
+                if (opponentTeamId is null || opponentTeamId == Guid.Empty)
+                {
+                    throw new DomainException("An in-app team match must reference an opponent team.");
+                }
+
+                OpponentTeamId = opponentTeamId;
+                OpponentName = null;
+                break;
+
+            default:
+                OpponentName = null;
+                OpponentTeamId = null;
+                format = MatchFormat.Pickup;
+                break;
+        }
+
+        Format = format;
     }
 
     // ----- Participants & invitations -----
