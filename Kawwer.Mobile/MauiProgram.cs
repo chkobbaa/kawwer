@@ -57,6 +57,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<PushRegistrationService>();
         builder.Services.AddSingleton<MatchReminderService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
+        builder.Services.AddSingleton<MediaService>();
         builder.Services.AddTransient<UpdateService>();
         builder.Services.AddTransient<AuthHeaderHandler>();
 
