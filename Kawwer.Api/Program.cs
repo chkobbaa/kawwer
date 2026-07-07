@@ -1,4 +1,5 @@
 using System.Text;
+using Kawwer.Api.Logging;
 using Kawwer.Api.Middleware;
 using Kawwer.Api.Realtime;
 using Microsoft.AspNetCore.StaticFiles;
@@ -13,6 +14,21 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ----- In-memory log capture -----
+// A shared ring buffer that mirrors recent log entries so the password-gated /logs viewer can read
+// them from any device. Registered as a singleton and hooked into the logging pipeline.
+var logStore = new InMemoryLogStore();
+builder.Services.AddSingleton(logStore);
+builder.Logging.AddProvider(new InMemoryLoggerProvider(logStore));
+
+// Development fallback for the logs viewer password (SHA-256 hex of "kawwer-logs"). Override in
+// production with Logs__PasswordHash (the SHA-256 hex of your chosen password).
+if (string.IsNullOrWhiteSpace(builder.Configuration["Logs:PasswordHash"]))
+{
+    builder.Configuration["Logs:PasswordHash"] =
+        "4062FD4EF3CBF42EBEBBDF06BD92FA973D2963642A3C87FF941F2E1055B236F9";
+}
 
 // ----- Services -----
 builder.Services.AddControllers()
@@ -119,6 +135,21 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // ----- Pipeline -----
+// Honour X-Forwarded-* from the reverse proxy (Caddy) so Request.Scheme/Host reflect the public
+// HTTPS endpoint. Without this, generated absolute URLs (e.g. uploaded avatar links) come out as
+// "http://…", which Android blocks as cleartext — so the photo silently fails to load and the
+// avatar falls back to initials. KnownProxies/Networks are cleared because the proxy sits on the
+// container network (not localhost), and only our own proxy fronts the app.
+var forwardedOptions = new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+                       | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedHost
+                       | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+};
+forwardedOptions.KnownNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -153,6 +184,18 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<MatchHub>("/hubs/match");
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).AllowAnonymous();
+
+// Serve the password-gated log viewer at a clean /logs URL. Returned directly (rather than a
+// redirect) because routing treats "/logs" and "/logs/" as the same route, and a redirect to
+// "/logs/" would loop. The page's assets live under wwwroot/logs/.
+app.MapGet("/logs", (IWebHostEnvironment env) =>
+{
+    var webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
+    var path = Path.Combine(webRoot, "logs", "index.html");
+    return File.Exists(path)
+        ? Results.File(path, "text/html; charset=utf-8")
+        : Results.NotFound();
+}).AllowAnonymous();
 
 // Apply migrations on startup. Logged (not fatal) so the host still boots if the DB is unavailable.
 await ApplyMigrationsAsync(app);

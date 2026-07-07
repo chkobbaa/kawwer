@@ -12,6 +12,7 @@ public sealed class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.ToTable("matches");
         builder.HasKey(m => m.Id);
 
+        builder.Property(m => m.Sport).HasDefaultValue(Kawwer.Domain.Enums.SportType.Football);
         builder.Property(m => m.Title).IsRequired().HasMaxLength(150);
         builder.Property(m => m.Description).HasMaxLength(1000);
         builder.Property(m => m.TotalFieldPrice).HasPrecision(10, 2);

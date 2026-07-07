@@ -16,7 +16,7 @@ paginated. OpenAPI/Swagger documents every endpoint.
 | Friends | `/api/v1/friends` |
 | Teams | `/api/v1/teams` |
 | Football Fields | `/api/v1/football-fields` |
-| Matches & Live Match | `/api/v1/matches` (`/upcoming`, `/{id}`, `/{id}/live/*`, …) |
+| Matches & Live Match | `/api/v1/matches` (`/upcoming`, `/{id}`, `/{id}/reschedule`, `/{id}/live/*`, …) |
 | Invitations & Waiting List | `/api/v1/matches/{id}/{invitations,respond,leave,waiting-list}` |
 | Lineup & Guest Players | `/api/v1/matches/{id}/{lineup,lineup/slot,lineup/auto-balance,guests}` |
 | Payments | `/api/v1/matches/{id}/payments/*` |
@@ -25,6 +25,7 @@ paginated. OpenAPI/Swagger documents every endpoint.
 | Public Matches | `/api/v1/public-matches` (`/discover`, `/{id}/join`, …) |
 | Notifications | `/api/v1/notifications` |
 | Real-time hub | `GET /hubs/match` (SignalR, JWT via `access_token`) |
+| Server logs | `POST /api/v1/logs` (+ `/auth`), hashed-password gate; viewer at `GET /logs` |
 | Health | `GET /health` |
 
 **→ Full API standards (versioning, status codes, pagination, filtering, validation, idempotency,

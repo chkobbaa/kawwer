@@ -191,14 +191,39 @@ public sealed partial class OnboardingViewModel : BaseViewModel
 
         // Final data step: persist to the backend, which stamps the "onboarding completed" marker,
         // then reveal the "find friends" screen.
-        var updated = await _api.CompleteOnboardingAsync(new
+        var answers = new
         {
             birthDate = DateOnly.FromDateTime(BirthDate),
             preferredPosition = SelectedPosition,
             preferredFoot = SelectedFoot
-        });
+        };
 
-        _auth.Session.CurrentUser = updated; // flips the persisted onboarding flag to true
+        try
+        {
+            var updated = await _api.CompleteOnboardingAsync(answers);
+            _auth.Session.CurrentUser = updated; // flips the persisted onboarding flag to true
+        }
+        catch (ApiException)
+        {
+            // The dedicated onboarding endpoint may be unavailable if the backend deployment is
+            // briefly behind the app. Rather than trap the user on a dead-end screen, save the same
+            // answers through the standard profile-update endpoint and mark onboarding complete
+            // locally so they can get into the app. The server marker reconciles on the next deploy.
+            var me = _auth.Session.CurrentUser;
+            await _api.UpdateProfileAsync(new
+            {
+                firstName = me?.FirstName ?? me?.DisplayFirstName ?? "Player",
+                lastName = me?.LastName ?? string.Empty,
+                phoneNumber = me?.PhoneNumber,
+                birthDate = DateOnly.FromDateTime(BirthDate),
+                preferredPosition = SelectedPosition,
+                preferredFoot = SelectedFoot,
+                skillLevel = (int?)null,
+                visibility = me?.Visibility ?? ProfileVisibility.Public
+            });
+            _auth.Session.MarkOnboardingCompleted();
+        }
+
         ClearDraft();
         GoToStep(DoneStep);
     });

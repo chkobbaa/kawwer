@@ -101,6 +101,19 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- Delivery mode: Notify vs Call for important, easy-to-miss updates -->
+            <Label Text="DELIVERY MODE" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource StatTile}" Padding="14,10">
+                <VerticalStackLayout Spacing="6">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Text="Notify" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" />
+                        <Switch Grid.Column="1" IsToggled="{Binding CallMode}" HorizontalOptions="Center" VerticalOptions="Center" />
+                        <Label Grid.Column="2" Text="Call" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" />
+                    </Grid>
+                    <Label Text="{Binding DeliveryModeLabel}" Style="{StaticResource StatCaption}" />
+                </VerticalStackLayout>
+            </Border>
+
             <Label Text="ABOUT" Style="{StaticResource SectionTitle}" />
             <Border Style="{StaticResource StatTile}" Padding="4">
                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Padding="10,8">

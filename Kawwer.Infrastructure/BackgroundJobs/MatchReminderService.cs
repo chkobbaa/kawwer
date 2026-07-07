@@ -62,14 +62,18 @@ public sealed class MatchReminderService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<KawwerDbContext>();
         var notifications = scope.ServiceProvider.GetRequiredService<INotificationService>();
+        var clock = scope.ServiceProvider.GetRequiredService<IDateTimeProvider>();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        var now = DateTime.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var now = clock.UtcNow;
+        var zone = clock.AppTimeZone;
+        // Look one day back too: a match's wall-clock date can still be "today" in UTC terms while
+        // its real kickoff (offset by the app time zone) is imminent.
+        var earliest = DateOnly.FromDateTime(now.AddDays(-1));
 
         var matches = await context.Matches
             .Include(m => m.Participants)
-            .Where(m => m.MatchDate >= today
+            .Where(m => m.MatchDate >= earliest
                         && (m.Status == MatchStatus.Published || m.Status == MatchStatus.Full))
             .ToListAsync(cancellationToken);
 
@@ -77,7 +81,7 @@ public sealed class MatchReminderService : BackgroundService
 
         foreach (var match in matches)
         {
-            var kickoff = match.MatchDate.ToDateTime(match.StartTime, DateTimeKind.Utc);
+            var kickoff = match.KickoffInstant(zone);
             var untilKickoff = kickoff - now;
 
             foreach (var (label, before) in Windows)

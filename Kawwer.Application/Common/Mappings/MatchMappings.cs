@@ -14,6 +14,7 @@ public static class MatchMappings
         match.Visibility,
         match.Status,
         match.Format,
+        match.Sport,
         match.OpponentName,
         match.OpponentTeamId,
         match.MatchDate,

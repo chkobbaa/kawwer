@@ -9,6 +9,7 @@ public sealed class MatchDto
     public MatchVisibility Visibility { get; set; }
     public MatchStatus Status { get; set; }
     public MatchFormat Format { get; set; }
+    public SportType Sport { get; set; } = SportType.Football;
     public string? OpponentName { get; set; }
     public Guid? OpponentTeamId { get; set; }
     public DateOnly MatchDate { get; set; }
@@ -34,6 +35,23 @@ public sealed class MatchDto
 
     /// <summary>Player counter including the organizer, e.g. a fresh 14-player match shows 1/14.</summary>
     public string PlayersLabel => $"{AcceptedCount + 1}/{MaxPlayers} players";
+
+    /// <summary>The sport as a display string (e.g. "Basketball").</summary>
+    public string SportLabel => Sport.ToString();
+
+    /// <summary>True once the match is over: cancelled, finished, or expired past its scheduled end.</summary>
+    public bool IsClosed => Status is MatchStatus.Cancelled or MatchStatus.Finished or MatchStatus.Expired;
+
+    /// <summary>A short status word for closed matches, shown as a banner on the details screen.</summary>
+    public string StatusLabel => Status switch
+    {
+        MatchStatus.Cancelled => "Cancelled",
+        MatchStatus.Finished => "Finished",
+        MatchStatus.Expired => "Expired",
+        MatchStatus.Playing => "Live",
+        MatchStatus.Full => "Full",
+        _ => string.Empty
+    };
     public string DayLabel => MatchDate.ToString("dd");
     public string MonthLabel => MatchDate.ToString("MMM").ToUpperInvariant();
     public string TimeLabel => StartTime.ToString("HH\\:mm");
@@ -237,14 +255,34 @@ public sealed class NotificationDto
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>Machine-readable kind (e.g. "match_invitation", "friend_request", "match_rescheduled").</summary>
+    public string? Type { get; set; }
+
+    /// <summary>The friendship this notification acts on (friend-request Accept/Decline).</summary>
+    public Guid? RelatedFriendshipId { get; set; }
+
+    /// <summary>High-priority notifications the app may escalate (e.g. a simulated call in Call mode).</summary>
+    public bool Important { get; set; }
+
     /// <summary>
-    /// True for a match invitation addressed to the viewer, which gets inline
-    /// Accept/Decline buttons. Matches the exact title produced by the API.
+    /// True for a match invitation addressed to the viewer, which gets inline Accept/Decline
+    /// buttons. Prefers the stable <see cref="Type"/> flag, with a title fallback for older data.
     /// </summary>
     public bool IsMatchInvitation =>
-        Category == NotificationCategory.Invitation
-        && RelatedMatchId is not null
-        && Title.Equals("New match invitation", StringComparison.OrdinalIgnoreCase);
+        RelatedMatchId is not null
+        && (string.Equals(Type, "match_invitation", StringComparison.OrdinalIgnoreCase)
+            || (Category == NotificationCategory.Invitation
+                && Title.Equals("New match invitation", StringComparison.OrdinalIgnoreCase)));
+
+    /// <summary>
+    /// True for an incoming friend request addressed to the viewer, which gets inline
+    /// Accept/Decline buttons wired to the friendship.
+    /// </summary>
+    public bool IsFriendRequest =>
+        RelatedFriendshipId is not null
+        && (string.Equals(Type, "friend_request", StringComparison.OrdinalIgnoreCase)
+            || (Category == NotificationCategory.Friend
+                && Title.Equals("New friend request", StringComparison.OrdinalIgnoreCase)));
 
     public string Icon => Category switch
     {

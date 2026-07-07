@@ -30,6 +30,7 @@ public sealed partial class SettingsViewModel : BaseViewModel
         NotifyMatches = Preferences.Default.Get(NotifyMatchesKey, true);
         NotifyPayments = Preferences.Default.Get(NotifyPaymentsKey, true);
         NotifyFriends = Preferences.Default.Get(NotifyFriendsKey, true);
+        CallMode = DeliveryPreference.CallMode;
 
         // Pre-fill from the cached session user so the form is never empty while loading.
         if (auth.Session.CurrentUser is { } cached)
@@ -65,9 +66,22 @@ public sealed partial class SettingsViewModel : BaseViewModel
     [ObservableProperty] private bool _notifyPayments;
     [ObservableProperty] private bool _notifyFriends;
 
+    /// <summary>
+    /// When on, important updates (like a match reschedule) trigger a simulated call instead of a
+    /// silent notification — then the normal notification still lands. Off = plain notifications.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DeliveryModeLabel))]
+    private bool _callMode;
+
+    public string DeliveryModeLabel => CallMode
+        ? "Call — important updates ring like an incoming call, then notify."
+        : "Notify — important updates arrive as normal notifications.";
+
     partial void OnNotifyMatchesChanged(bool value) => Preferences.Default.Set(NotifyMatchesKey, value);
     partial void OnNotifyPaymentsChanged(bool value) => Preferences.Default.Set(NotifyPaymentsKey, value);
     partial void OnNotifyFriendsChanged(bool value) => Preferences.Default.Set(NotifyFriendsKey, value);
+    partial void OnCallModeChanged(bool value) => DeliveryPreference.CallMode = value;
 
     private DateOnly? _birthDate;
 
@@ -169,9 +183,15 @@ public sealed partial class SettingsViewModel : BaseViewModel
             original = buffer.ToArray();
         }
 
+        if (original.Length == 0)
+        {
+            ErrorMessage = "That image couldn't be read. Try another photo.";
+            return;
+        }
+
         // Circular crop / zoom / reposition before upload.
         var edited = await _media.EditPhotoAsync(original);
-        if (edited is null)
+        if (edited is null || edited.Length == 0)
         {
             return; // user backed out of the editor
         }
@@ -181,7 +201,16 @@ public sealed partial class SettingsViewModel : BaseViewModel
             using var upload = new MemoryStream(edited);
             var updated = await _api.UploadProfilePhotoAsync(upload, "avatar.png", "image/png");
 
+            if (string.IsNullOrWhiteSpace(updated.ProfilePictureUrl))
+            {
+                // The server accepted the upload but returned no URL — don't wipe the current photo.
+                ErrorMessage = "The photo upload didn't complete. Please try again.";
+                return;
+            }
+
             _auth.Session.CurrentUser = updated;
+            // The server appends a cache-busting ?v= token, so assigning the new URL forces the
+            // avatar to re-render with the freshly uploaded image rather than a stale cache hit.
             ProfilePictureUrl = updated.ProfilePictureUrl;
             await Dialog.ShowSuccessAsync("Profile picture updated.");
         });

@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddSingleton<IWebPushSender, WebPushNotificationSender>();
 
         services.AddHostedService<MatchReminderService>();
+        services.AddHostedService<MatchLifecycleService>();
 
         return services;
     }

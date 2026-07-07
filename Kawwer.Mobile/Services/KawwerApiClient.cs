@@ -138,6 +138,14 @@ public sealed class KawwerApiClient
 
     public Task CancelAsync(Guid matchId, CancellationToken ct = default) => PostAsync($"matches/{matchId}/cancel", null, ct);
 
+    /// <summary>Moves a match to a new date/time. The API notifies the whole roster and waiting list.</summary>
+    public Task RescheduleAsync(Guid matchId, DateOnly matchDate, TimeOnly startTime, CancellationToken ct = default)
+        => PostAsync($"matches/{matchId}/reschedule", new
+        {
+            matchDate = matchDate.ToString("yyyy-MM-dd"),
+            startTime = startTime.ToString(@"hh\:mm\:ss")
+        }, ct);
+
     public Task FinishAsync(Guid matchId, CancellationToken ct = default) => PostAsync($"matches/{matchId}/finish", null, ct);
 
     public Task StartLiveAsync(Guid matchId, CancellationToken ct = default) => PostAsync($"matches/{matchId}/live/start", null, ct);

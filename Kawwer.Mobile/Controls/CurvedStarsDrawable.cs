@@ -40,29 +40,39 @@ public sealed class CurvedStarsDrawable : IDrawable
         }
 
         var a = (float)AvatarDiameter;
-        var outerR = a * 0.12f;        // star outer radius
+        var outerR = a * 0.088f;       // star outer radius — smaller, more refined than before
         var innerR = outerR * 0.42f;   // star inner radius (classic 5-point ratio)
-        var gap = a * 0.05f;           // breathing room between avatar edge and stars
+        var gap = a * 0.015f;          // hug the avatar edge closely
         var arcR = a / 2f + gap + outerR;
 
         var cx = dirtyRect.Width / 2f;
         var cy = dirtyRect.Height - a / 2f; // avatar centre sits at the bottom of the canvas
 
         // Spread the stars symmetrically around the 12 o'clock position.
-        var stepDeg = glyphs <= 1 ? 0.0 : Math.Min(24.0, 108.0 / glyphs);
+        var stepDeg = glyphs <= 1 ? 0.0 : Math.Min(26.0, 116.0 / glyphs);
         var startOffset = -(glyphs - 1) / 2.0;
+        // Largest absolute offset from centre, used to normalise the side-star "warp".
+        var maxOffset = Math.Max(Math.Abs(startOffset), 1e-6);
 
         for (var i = 0; i < glyphs; i++)
         {
-            var angleDeg = -90.0 + (startOffset + i) * stepDeg; // -90° = straight up
+            var offset = startOffset + i;
+            var angleDeg = -90.0 + offset * stepDeg; // -90° = straight up
             var angleRad = angleDeg * Math.PI / 180.0;
             var starX = cx + arcR * (float)Math.Cos(angleRad);
             var starY = cy + arcR * (float)Math.Sin(angleRad);
             var fill = (float)Math.Clamp(rounded - i, 0, 1);
 
+            // Warp the side stars: the further from the centre, the more they lean outward and
+            // flatten slightly, so the band reads as a gentle curved crown rather than a flat row.
+            var t = offset / maxOffset;                 // -1 (far left) .. 0 (centre) .. 1 (far right)
+            var lean = (float)(t * 9.0);                // extra outward tilt in degrees
+            var squash = (float)(1.0 - 0.16 * Math.Abs(t)); // subtle vertical compression at the edges
+
             canvas.SaveState();
             canvas.Translate(starX, starY);
-            canvas.Rotate((float)(angleDeg + 90.0)); // rotate each star so it follows the arc tangent
+            canvas.Rotate((float)(angleDeg + 90.0) + lean); // follow the arc tangent, plus the lean
+            canvas.Scale(1f, squash);
             DrawStar(canvas, outerR, innerR, fill);
             canvas.RestoreState();
         }

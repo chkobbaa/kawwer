@@ -17,7 +17,7 @@ public partial class CropPhotoPage : ContentPage
 
     private readonly TaskCompletionSource<byte[]?> _result = new();
     private readonly byte[] _sourceBytes;
-    private IImage? _source;
+    private Microsoft.Maui.Graphics.IImage? _source;
 
     private double _scale = 1;
     private double _startScale = 1;
@@ -152,7 +152,10 @@ public partial class CropPhotoPage : ContentPage
         var top = (CropSize / 2) + _translationY - (displayH / 2);
         var k = (double)OutputSize / CropSize;
 
-        using var context = GraphicsPlatform.CurrentService.CreateBitmapExportContext(OutputSize, OutputSize);
+        // Create an off-screen bitmap the size of the exported avatar. (MAUI 10 replaced the old
+        // GraphicsPlatform.CurrentService.CreateBitmapExportContext helper with the platform bitmap
+        // export service; a display scale of 1 keeps the drawing coordinates 1:1 with pixels.)
+        using var context = new PlatformBitmapExportService().CreateContext(OutputSize, OutputSize, 1f);
         var canvas = context.Canvas;
 
         // Clip to a circle so the exported PNG is genuinely circular (transparent corners).
@@ -164,7 +167,11 @@ public partial class CropPhotoPage : ContentPage
 
         using var memory = new MemoryStream();
         context.WriteToStream(memory);
-        return memory.ToArray();
+        var bytes = memory.ToArray();
+
+        // Guard against a degenerate render (e.g. a platform hiccup produced an empty/near-empty
+        // bitmap): fall back to the untouched source so the user never loses their photo.
+        return bytes.Length > 256 ? bytes : _sourceBytes;
     }
 }
 

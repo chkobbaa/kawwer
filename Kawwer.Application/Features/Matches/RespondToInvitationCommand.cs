@@ -16,6 +16,7 @@ public sealed class RespondToInvitationCommandHandler : IRequestHandler<RespondT
     private readonly IUserRepository _users;
     private readonly INotificationService _notifications;
     private readonly IRealtimeNotifier _realtime;
+    private readonly IDateTimeProvider _clock;
     private readonly IUnitOfWork _unitOfWork;
 
     public RespondToInvitationCommandHandler(
@@ -24,6 +25,7 @@ public sealed class RespondToInvitationCommandHandler : IRequestHandler<RespondT
         IUserRepository users,
         INotificationService notifications,
         IRealtimeNotifier realtime,
+        IDateTimeProvider clock,
         IUnitOfWork unitOfWork)
     {
         _matches = matches;
@@ -31,6 +33,7 @@ public sealed class RespondToInvitationCommandHandler : IRequestHandler<RespondT
         _users = users;
         _notifications = notifications;
         _realtime = realtime;
+        _clock = clock;
         _unitOfWork = unitOfWork;
     }
 
@@ -40,7 +43,14 @@ public sealed class RespondToInvitationCommandHandler : IRequestHandler<RespondT
         var match = await _matches.GetByIdAsync(request.MatchId, cancellationToken)
                     ?? throw NotFoundException.For("Match", request.MatchId);
 
-        if (match.Status is MatchStatus.Cancelled or MatchStatus.Finished)
+        // Defensive expiry: even if the periodic sweep hasn't run yet, a match whose scheduled end
+        // has already passed must not accept (or notify anyone about) a late response.
+        if (match.TryExpire(_clock.UtcNow, _clock.AppTimeZone))
+        {
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        if (match.Status is MatchStatus.Cancelled or MatchStatus.Finished or MatchStatus.Expired)
         {
             throw new ConflictException("This match is no longer accepting responses.");
         }

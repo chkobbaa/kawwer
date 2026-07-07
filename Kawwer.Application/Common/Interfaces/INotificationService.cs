@@ -15,7 +15,10 @@ public interface INotificationService
         string message,
         Guid? relatedMatchId = null,
         CancellationToken cancellationToken = default,
-        IReadOnlyDictionary<string, string>? data = null);
+        IReadOnlyDictionary<string, string>? data = null,
+        string? type = null,
+        Guid? relatedFriendshipId = null,
+        bool important = false);
 
     Task NotifyManyAsync(
         IEnumerable<Guid> userIds,
@@ -24,5 +27,7 @@ public interface INotificationService
         string message,
         Guid? relatedMatchId = null,
         CancellationToken cancellationToken = default,
-        IReadOnlyDictionary<string, string>? data = null);
+        IReadOnlyDictionary<string, string>? data = null,
+        string? type = null,
+        bool important = false);
 }

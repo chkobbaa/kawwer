@@ -29,7 +29,8 @@ public sealed class MatchesController : ApiControllerBase
             request.InvitedTeamIds,
             request.Format,
             request.OpponentName,
-            request.OpponentTeamId);
+            request.OpponentTeamId,
+            request.Sport);
 
         var id = await Dispatcher.SendAsync(command, cancellationToken);
         return CreatedResponse(id, "Match published.");
@@ -70,6 +71,14 @@ public sealed class MatchesController : ApiControllerBase
             CurrentUserId, id, request.MatchDate, request.StartTime, request.DurationMinutes, request.Description, request.Visibility);
         await Dispatcher.SendAsync(command, cancellationToken);
         return OkMessage("Match updated.");
+    }
+
+    [HttpPost("{id:guid}/reschedule")]
+    public async Task<IActionResult> Reschedule(Guid id, RescheduleMatchRequest request, CancellationToken cancellationToken)
+    {
+        await Dispatcher.SendAsync(
+            new RescheduleMatchCommand(CurrentUserId, id, request.MatchDate, request.StartTime), cancellationToken);
+        return OkMessage("Match rescheduled. Everyone was notified.");
     }
 
     [HttpPut("{id:guid}/capacity")]

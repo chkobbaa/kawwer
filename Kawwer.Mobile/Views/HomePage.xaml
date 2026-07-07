@@ -108,16 +108,12 @@
                     </Grid>
 
                     <Label Text="UPCOMING" Style="{StaticResource SectionTitle}" />
-                    <CollectionView ItemsSource="{Binding Upcoming}">
-                        <CollectionView.EmptyView>
-                            <Grid>
-                                <controls:ListSkeletonView IsVisible="{Binding ShowSkeleton}" />
-                                <controls:EmptyStateView Illustration="empty_matches.png"
-                                                         Title="No upcoming matches"
-                                                         Message="Accept an invitation or create your own match to get started."
-                                                         IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}" />
-                            </Grid>
-                        </CollectionView.EmptyView>
+                    <controls:ListSkeletonView IsVisible="{Binding ShowSkeleton}" />
+                    <controls:EmptyStateView Illustration="empty_matches.png"
+                                             Title="No upcoming matches"
+                                             Message="Accept an invitation or create your own match to get started."
+                                             IsVisible="{Binding ShowUpcomingEmpty}" />
+                    <CollectionView ItemsSource="{Binding Upcoming}" IsVisible="{Binding HasUpcoming}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,4" Style="{StaticResource StatTile}" StrokeShape="RoundRectangle 18" Padding="12">
@@ -153,13 +149,11 @@
                     </CollectionView>
 
                     <Label Text="YOU'RE ORGANIZING" Style="{StaticResource SectionTitle}" />
-                    <CollectionView ItemsSource="{Binding Dashboard}">
-                        <CollectionView.EmptyView>
-                            <controls:EmptyStateView Illustration="empty_organizing.png"
-                                                     Title="Nothing on your plate"
-                                                     Message="Organize a match and manage everything from here."
-                                                     IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}" />
-                        </CollectionView.EmptyView>
+                    <controls:EmptyStateView Illustration="empty_organizing.png"
+                                             Title="Nothing on your plate"
+                                             Message="Organize a match and manage everything from here."
+                                             IsVisible="{Binding ShowDashboardEmpty}" />
+                    <CollectionView ItemsSource="{Binding Dashboard}" IsVisible="{Binding HasDashboard}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,4" Style="{StaticResource StatTile}" StrokeShape="RoundRectangle 18" Padding="14">

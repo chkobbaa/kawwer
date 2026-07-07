@@ -9,4 +9,7 @@ public sealed record NotificationDto(
     string Message,
     Guid? RelatedMatchId,
     bool IsRead,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string? Type = null,
+    Guid? RelatedFriendshipId = null,
+    bool Important = false);

@@ -36,7 +36,8 @@ public class Match : AggregateRoot
         bool autoAcceptPublic = false,
         MatchFormat format = MatchFormat.Pickup,
         string? opponentName = null,
-        Guid? opponentTeamId = null)
+        Guid? opponentTeamId = null,
+        SportType sport = SportType.Football)
     {
         if (maxPlayers < 2)
         {
@@ -46,6 +47,7 @@ public class Match : AggregateRoot
         Id = Guid.NewGuid();
         OrganizerId = organizerId;
         FootballFieldId = footballFieldId;
+        Sport = sport;
         Title = title;
         Description = description;
         MatchDate = matchDate;
@@ -67,6 +69,9 @@ public class Match : AggregateRoot
 
     public Guid OrganizerId { get; private set; }
     public Guid FootballFieldId { get; private set; }
+
+    /// <summary>The sport being played. Defaults to <see cref="SportType.Football"/>.</summary>
+    public SportType Sport { get; private set; }
     public string Title { get; private set; }
     public string? Description { get; private set; }
     public MatchVisibility Visibility { get; private set; }
@@ -107,6 +112,46 @@ public class Match : AggregateRoot
 
     /// <summary>Kickoff as a UTC datetime, treating stored values as UTC.</summary>
     public DateTime KickoffUtc => MatchDate.ToDateTime(StartTime, DateTimeKind.Utc);
+
+    /// <summary>Kickoff as an unspecified wall-clock time (local to the app's time zone).</summary>
+    public DateTime KickoffLocal => MatchDate.ToDateTime(StartTime, DateTimeKind.Unspecified);
+
+    /// <summary>Scheduled end as an unspecified wall-clock time (kickoff + duration).</summary>
+    public DateTime EndLocal => KickoffLocal.AddMinutes(DurationMinutes);
+
+    /// <summary>The real UTC instant the match kicks off, interpreting its wall-clock time in <paramref name="appZone"/>.</summary>
+    public DateTime KickoffInstant(TimeZoneInfo appZone)
+        => TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(KickoffLocal, DateTimeKind.Unspecified), appZone);
+
+    /// <summary>The real UTC instant the match is scheduled to end.</summary>
+    public DateTime EndInstant(TimeZoneInfo appZone)
+        => TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(EndLocal, DateTimeKind.Unspecified), appZone);
+
+    /// <summary>True once the match's scheduled end has passed in real time.</summary>
+    public bool HasEnded(DateTime utcNow, TimeZoneInfo appZone) => EndInstant(appZone) <= utcNow;
+
+    /// <summary>
+    /// Transitions a still-open match (draft, published, full or in-play) to
+    /// <see cref="MatchStatus.Expired"/> once its scheduled end has passed. Returns true if the
+    /// status actually changed, so the caller can persist and clean up stale invitations.
+    /// Terminal matches (finished, cancelled, already expired) are left untouched.
+    /// </summary>
+    public bool TryExpire(DateTime utcNow, TimeZoneInfo appZone)
+    {
+        if (Status is MatchStatus.Finished or MatchStatus.Cancelled or MatchStatus.Expired)
+        {
+            return false;
+        }
+
+        if (!HasEnded(utcNow, appZone))
+        {
+            return false;
+        }
+
+        Status = MatchStatus.Expired;
+        Touch();
+        return true;
+    }
 
     /// <summary>Spots available to invited players (the organizer occupies one slot).</summary>
     public int SpotsForInvitees => Math.Max(MaxPlayers - 1, 0);
@@ -169,6 +214,27 @@ public class Match : AggregateRoot
         Touch();
     }
 
+    /// <summary>
+    /// Moves the match to a new date and/or kick-off time, keeping its duration, description,
+    /// visibility and roster. Returns false when nothing actually changed so the caller can skip
+    /// notifying everyone about a no-op edit.
+    /// </summary>
+    public bool Reschedule(DateOnly matchDate, TimeOnly startTime)
+    {
+        EnsureNotClosed();
+
+        if (MatchDate == matchDate && StartTime == startTime)
+        {
+            return false;
+        }
+
+        MatchDate = matchDate;
+        StartTime = startTime;
+        EndTime = startTime.Add(TimeSpan.FromMinutes(DurationMinutes));
+        Touch();
+        return true;
+    }
+
     public void ChangeMaxPlayers(int maxPlayers)
     {
         EnsureNotClosed();
@@ -186,9 +252,9 @@ public class Match : AggregateRoot
 
     public void Cancel()
     {
-        if (Status is MatchStatus.Finished or MatchStatus.Cancelled)
+        if (Status is MatchStatus.Finished or MatchStatus.Cancelled or MatchStatus.Expired)
         {
-            throw new DomainException("A finished or already cancelled match cannot be cancelled.");
+            throw new DomainException("A finished, expired or already cancelled match cannot be cancelled.");
         }
 
         Status = MatchStatus.Cancelled;
@@ -303,7 +369,7 @@ public class Match : AggregateRoot
             throw new DomainException("This match is invitation-only and does not accept join requests.");
         }
 
-        if (Status is MatchStatus.Cancelled or MatchStatus.Finished)
+        if (Status is MatchStatus.Cancelled or MatchStatus.Finished or MatchStatus.Expired)
         {
             throw new DomainException("This match is no longer open to join requests.");
         }
@@ -513,7 +579,7 @@ public class Match : AggregateRoot
 
     private void RecalculateStatus()
     {
-        if (Status is MatchStatus.Draft or MatchStatus.Cancelled or MatchStatus.Finished or MatchStatus.Playing)
+        if (Status is MatchStatus.Draft or MatchStatus.Cancelled or MatchStatus.Finished or MatchStatus.Playing or MatchStatus.Expired)
         {
             return;
         }
@@ -646,7 +712,7 @@ public class Match : AggregateRoot
 
     private void EnsureNotClosed()
     {
-        if (Status is MatchStatus.Cancelled or MatchStatus.Finished)
+        if (Status is MatchStatus.Cancelled or MatchStatus.Finished or MatchStatus.Expired)
         {
             throw new DomainException("The match is closed and can no longer be modified.");
         }

@@ -23,9 +23,13 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
     public const string VisibilityFriends = "Only friends";
     public const string VisibilityInvitations = "Invitations only";
 
-    public const string FormatPickup = "Pickup match";
+    public const string FormatPickup = "Friendly - Local players";
     public const string FormatExternalTeam = "Play against an external team";
     public const string FormatAppTeam = "Play against an app Team";
+
+    public const string SportFootball = "Football";
+    public const string SportBasketball = "Basketball";
+    public const string SportTennis = "Tennis";
 
     public ObservableCollection<FootballFieldDto> Fields { get; } = new();
     public ObservableCollection<SelectableUser> Friends { get; } = new();
@@ -37,16 +41,27 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
     public ObservableCollection<string> MatchFormatOptions { get; } =
         new() { FormatPickup, FormatExternalTeam, FormatAppTeam };
 
+    public ObservableCollection<string> SportOptions { get; } =
+        new() { SportFootball, SportBasketball, SportTennis };
+
     [ObservableProperty] private FootballFieldDto? _selectedField;
-    [ObservableProperty] private string _matchTitle = "Football Match";
+    [ObservableProperty] private string _selectedSport = SportFootball;
+    [ObservableProperty] private string _matchTitle = string.Empty;
     [ObservableProperty] private string _description = string.Empty;
     [ObservableProperty] private DateTime _matchDate;
     [ObservableProperty] private TimeSpan _startTime;
-    [ObservableProperty] private int _maxPlayers;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PerTeamLabel))]
+    private int _maxPlayers;
+
     [ObservableProperty] private string _selectedVisibility = VisibilityInvitations;
     [ObservableProperty] private string _selectedMatchFormat = FormatPickup;
     [ObservableProperty] private string _opponentName = string.Empty;
     [ObservableProperty] private TeamDto? _selectedOpponentTeam;
+
+    /// <summary>e.g. "7 per Team." — half of the total roster, rounded down.</summary>
+    public string PerTeamLabel => $"{MaxPlayers / 2} per Team.";
 
     public string VisibilityHint => SelectedVisibility switch
     {
@@ -89,6 +104,13 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
         FormatExternalTeam => MatchFormat.VsExternalTeam,
         FormatAppTeam => MatchFormat.VsAppTeam,
         _ => MatchFormat.Pickup
+    };
+
+    private SportType Sport => SelectedSport switch
+    {
+        SportBasketball => SportType.Basketball,
+        SportTennis => SportType.Tennis,
+        _ => SportType.Football
     };
 
     [RelayCommand]
@@ -153,7 +175,8 @@ public sealed partial class CreateMatchViewModel : BaseViewModel
         var matchId = await _api.CreateMatchAsync(new
         {
             footballFieldId = SelectedField.Id,
-            title = MatchTitle,
+            title = string.IsNullOrWhiteSpace(MatchTitle) ? null : MatchTitle.Trim(),
+            sport = (int)Sport,
             description = string.IsNullOrWhiteSpace(Description) ? null : Description,
             matchDate = MatchDate.ToString("yyyy-MM-dd"),
             startTime = StartTime.ToString(@"hh\:mm\:ss"),

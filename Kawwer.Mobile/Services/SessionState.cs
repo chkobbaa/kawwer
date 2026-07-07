@@ -174,6 +174,13 @@ public sealed class SessionState
         }
     }
 
+    /// <summary>
+    /// Records that onboarding is complete on this device, so the user is never trapped in the flow
+    /// even if the server-side completion marker couldn't be saved (e.g. the backend deployment is
+    /// briefly behind and the onboarding endpoint isn't available yet).
+    /// </summary>
+    public void MarkOnboardingCompleted() => PersistOnboardingFlag(true);
+
     public void Clear()
     {
         AccessToken = null;
