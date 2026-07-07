@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.RatingsPage"
              Title="Rate the match"
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
@@ -14,22 +15,15 @@
                 </VerticalStackLayout>
             </CollectionView.Header>
             <CollectionView.EmptyView>
-                <VerticalStackLayout Padding="32,48" Spacing="12">
-                    <Border Style="{StaticResource EmptyIconBubble}">
-                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconStar}" WidthRequest="26" HeightRequest="26"
-                              Fill="{StaticResource Warning}" HorizontalOptions="Center" VerticalOptions="Center" />
-                    </Border>
-                    <Label Text="Nobody to rate" Style="{StaticResource EmptyTitle}" />
-                    <Label Text="Only confirmed players from this match can be rated." Style="{StaticResource EmptyBody}" />
-                </VerticalStackLayout>
+                <controls:EmptyStateView Illustration="empty_ratings.png"
+                                         Title="Nobody to rate"
+                                         Message="Only confirmed players from this match can be rated." />
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border Margin="16,4" Style="{StaticResource StatTile}" Padding="14">
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                            <Border Style="{StaticResource Avatar}">
-                                <Label Style="{StaticResource AvatarLabel}" Text="{Binding User.Initials}" />
-                            </Border>
+                            <controls:AvatarView Size="44" ImageUrl="{Binding User.ProfilePictureUrl}" Initials="{Binding User.Initials}" />
                             <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <Label Text="{Binding User.FullName}" FontAttributes="Bold" FontSize="15" LineBreakMode="TailTruncation" />
