@@ -16,6 +16,7 @@ public sealed class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.Property(m => m.Description).HasMaxLength(1000);
         builder.Property(m => m.TotalFieldPrice).HasPrecision(10, 2);
         builder.Property(m => m.ReservationPaid).HasPrecision(10, 2);
+        builder.Property(m => m.OpponentName).HasMaxLength(100);
 
         builder.HasIndex(m => m.OrganizerId);
         builder.HasIndex(m => m.FootballFieldId);

@@ -26,7 +26,10 @@ public sealed class MatchesController : ApiControllerBase
             request.Visibility,
             request.AutoAcceptPublic,
             request.InvitedUserIds,
-            request.InvitedGroupIds);
+            request.InvitedTeamIds,
+            request.Format,
+            request.OpponentName,
+            request.OpponentTeamId);
 
         var id = await Dispatcher.SendAsync(command, cancellationToken);
         return CreatedResponse(id, "Match published.");
@@ -93,7 +96,7 @@ public sealed class MatchesController : ApiControllerBase
     [HttpPost("{id:guid}/invitations")]
     public async Task<IActionResult> Invite(Guid id, InvitePlayersRequest request, CancellationToken cancellationToken)
     {
-        await Dispatcher.SendAsync(new InvitePlayersCommand(CurrentUserId, id, request.UserIds, request.GroupIds), cancellationToken);
+        await Dispatcher.SendAsync(new InvitePlayersCommand(CurrentUserId, id, request.UserIds, request.TeamIds), cancellationToken);
         return OkMessage("Invitations sent.");
     }
 

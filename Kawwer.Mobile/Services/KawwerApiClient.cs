@@ -93,16 +93,16 @@ public sealed class KawwerApiClient
     public Task<List<UserSummaryDto>> SearchUsersAsync(string term, CancellationToken ct = default)
         => GetAsync<List<UserSummaryDto>>($"friends/search?term={Uri.EscapeDataString(term)}", ct);
 
-    // ----- Groups -----
-    public Task<List<GroupDto>> GetGroupsAsync(CancellationToken ct = default) => GetAsync<List<GroupDto>>("groups", ct);
+    // ----- Teams -----
+    public Task<List<TeamDto>> GetTeamsAsync(CancellationToken ct = default) => GetAsync<List<TeamDto>>("teams", ct);
 
-    public Task<Guid> CreateGroupAsync(string name, string? description, CancellationToken ct = default)
-        => PostAsync<Guid>("groups", new { name, description }, ct);
+    public Task<Guid> CreateTeamAsync(string name, string? description, CancellationToken ct = default)
+        => PostAsync<Guid>("teams", new { name, description }, ct);
 
-    public Task DeleteGroupAsync(Guid id, CancellationToken ct = default) => DeleteAsync($"groups/{id}", ct);
+    public Task DeleteTeamAsync(Guid id, CancellationToken ct = default) => DeleteAsync($"teams/{id}", ct);
 
-    public Task AddGroupMemberAsync(Guid groupId, Guid userId, CancellationToken ct = default)
-        => PostAsync($"groups/{groupId}/members", new { userId }, ct);
+    public Task AddTeamMemberAsync(Guid teamId, Guid userId, CancellationToken ct = default)
+        => PostAsync($"teams/{teamId}/members", new { userId }, ct);
 
     // ----- Football fields -----
     public Task<PagedResult<FootballFieldDto>> SearchFieldsAsync(string? search, CancellationToken ct = default)
@@ -179,8 +179,8 @@ public sealed class KawwerApiClient
     public Task SubmitRatingsAsync(Guid matchId, object body, CancellationToken ct = default)
         => PostAsync($"matches/{matchId}/ratings", body, ct);
 
-    public Task InviteAsync(Guid matchId, IEnumerable<Guid> userIds, IEnumerable<Guid> groupIds, CancellationToken ct = default)
-        => PostAsync($"matches/{matchId}/invitations", new { userIds, groupIds }, ct);
+    public Task InviteAsync(Guid matchId, IEnumerable<Guid> userIds, IEnumerable<Guid> teamIds, CancellationToken ct = default)
+        => PostAsync($"matches/{matchId}/invitations", new { userIds, teamIds }, ct);
 
     // ----- Payments -----
     public Task<PaymentSummaryDto> GetPaymentSummaryAsync(Guid matchId, CancellationToken ct = default)

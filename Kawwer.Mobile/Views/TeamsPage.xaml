@@ -2,20 +2,20 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
-             x:Class="Kawwer.Mobile.Views.GroupsPage"
+             x:Class="Kawwer.Mobile.Views.TeamsPage"
              x:Name="PageRoot"
-             Title="Groups"
+             Title="Teams"
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <ScrollView>
         <VerticalStackLayout Padding="16,12,16,24" Spacing="10">
             <VerticalStackLayout Spacing="2">
-                <Label Text="Groups" Style="{StaticResource ScreenTitle}" />
+                <Label Text="Teams" Style="{StaticResource ScreenTitle}" />
                 <Label Text="Invite a whole crew in one tap" FontSize="14" TextColor="{StaticResource Gray500}" />
             </VerticalStackLayout>
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <Border Style="{StaticResource InputBorder}">
-                    <Entry Style="{StaticResource FormEntry}" Placeholder="New group name" Text="{Binding NewGroupName}" />
+                    <Entry Style="{StaticResource FormEntry}" Placeholder="New team name" Text="{Binding NewTeamName}" />
                 </Border>
                 <Button Grid.Column="1" Text="Create" FontAttributes="Bold" CornerRadius="14"
                         HeightRequest="48" Padding="18,0"
@@ -28,13 +28,13 @@
                 <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
             </Border>
 
-            <CollectionView ItemsSource="{Binding Groups}">
+            <CollectionView ItemsSource="{Binding Teams}">
                 <CollectionView.EmptyView>
                     <Grid>
                         <controls:ListSkeletonView IsVisible="{Binding ShowSkeleton}" />
-                        <controls:EmptyStateView Illustration="empty_groups.png"
-                                                 Title="No groups yet"
-                                                 Message="Create a group like 'Thursday Crew' to invite everyone at once."
+                        <controls:EmptyStateView Illustration="empty_teams.png"
+                                                 Title="No teams yet"
+                                                 Message="Create a team like 'Thursday Crew' to invite everyone at once."
                                                  IsVisible="{Binding ShowSkeleton, Converter={StaticResource InvertedBool}}" />
                     </Grid>
                 </CollectionView.EmptyView>
@@ -43,7 +43,7 @@
                         <Border Margin="0,4" Style="{StaticResource StatTile}" Padding="12">
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
                                 <Border Style="{StaticResource Avatar}">
-                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconGroup}" WidthRequest="18" HeightRequest="18"
+                                    <Path Style="{StaticResource Icon}" Data="{StaticResource IconTeam}" WidthRequest="18" HeightRequest="18"
                                           Fill="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                           HorizontalOptions="Center" VerticalOptions="Center" />
                                 </Border>
@@ -54,7 +54,7 @@
                                 </VerticalStackLayout>
                                 <Border Grid.Column="2" Style="{StaticResource IconBubble}" WidthRequest="36" HeightRequest="36"
                                         BackgroundColor="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}" VerticalOptions="Center"
-                                        SemanticProperties.Description="Delete group">
+                                        SemanticProperties.Description="Delete team">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer
                                             Command="{Binding BindingContext.DeleteCommand, Source={x:Reference PageRoot}}"

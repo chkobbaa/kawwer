@@ -23,7 +23,7 @@ public sealed record PlayerStatisticsDto(
     decimal Reputation,
     ReliabilityBadge ReliabilityBadge,
     int Friends,
-    int GroupsCreated);
+    int TeamsCreated);
 
 public sealed record OrganizerStatisticsDto(
     Guid UserId,

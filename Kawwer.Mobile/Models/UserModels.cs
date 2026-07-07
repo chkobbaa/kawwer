@@ -82,7 +82,7 @@ public sealed class FriendRequestDto
     public DateTime CreatedAt { get; set; }
 }
 
-public sealed class GroupDto
+public sealed class TeamDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;

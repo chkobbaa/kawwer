@@ -24,7 +24,9 @@ public enum AttendanceStatus { Unknown = 1, Travelling = 2, Present = 3, Late = 
 
 public enum PaymentStatus { NotPaid = 1, PartiallyPaid = 2, Paid = 3 }
 
-public enum NotificationCategory { Match = 1, Invitation = 2, Payment = 3, LiveMatch = 4, Friend = 5, Group = 6, WaitingList = 7 }
+public enum NotificationCategory { Match = 1, Invitation = 2, Payment = 3, LiveMatch = 4, Friend = 5, Team = 6, WaitingList = 7 }
+
+public enum MatchFormat { Pickup = 1, VsExternalTeam = 2, VsAppTeam = 3 }
 
 public enum RatingType { Organizer = 1, Player = 2 }
 

@@ -2,11 +2,11 @@ using Kawwer.Mobile.ViewModels;
 
 namespace Kawwer.Mobile.Views;
 
-public partial class GroupsPage : ContentPage
+public partial class TeamsPage : ContentPage
 {
-    private readonly GroupsViewModel _viewModel;
+    private readonly TeamsViewModel _viewModel;
 
-    public GroupsPage(GroupsViewModel viewModel)
+    public TeamsPage(TeamsViewModel viewModel)
     {
         InitializeComponent();
         BindingContext = _viewModel = viewModel;

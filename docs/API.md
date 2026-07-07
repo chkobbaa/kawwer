@@ -356,7 +356,7 @@ Examples
 
 /matches
 
-/groups
+/teams
 
 /football-fields
 

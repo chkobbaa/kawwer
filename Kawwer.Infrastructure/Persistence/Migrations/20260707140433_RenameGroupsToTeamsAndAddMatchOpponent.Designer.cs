@@ -3,6 +3,7 @@ using System;
 using Kawwer.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kawwer.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(KawwerDbContext))]
-    partial class KawwerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260707140433_RenameGroupsToTeamsAndAddMatchOpponent")]
+    partial class RenameGroupsToTeamsAndAddMatchOpponent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -170,44 +173,6 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                     b.ToTable("friendships", (string)null);
                 });
 
-            modelBuilder.Entity("Kawwer.Domain.Entities.GuestPlayer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AddedByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("MatchId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("character varying(60)");
-
-                    b.Property<double?>("PositionX")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("PositionY")
-                        .HasColumnType("double precision");
-
-                    b.Property<int?>("SkillLevel")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Team")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MatchId");
-
-                    b.ToTable("match_guest_players", (string)null);
-                });
-
             modelBuilder.Entity("Kawwer.Domain.Entities.Match", b =>
                 {
                     b.Property<Guid>("Id")
@@ -253,15 +218,6 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("OrganizerId")
                         .HasColumnType("uuid");
-
-                    b.Property<double?>("OrganizerPositionX")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("OrganizerPositionY")
-                        .HasColumnType("double precision");
-
-                    b.Property<int>("OrganizerTeam")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("PaymentCollectionStarted")
                         .HasColumnType("boolean");
@@ -352,12 +308,6 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                     b.Property<bool>("PaymentCompleted")
                         .HasColumnType("boolean");
 
-                    b.Property<double?>("PositionX")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("PositionY")
-                        .HasColumnType("double precision");
-
                     b.Property<bool>("RatedOrganizer")
                         .HasColumnType("boolean");
 
@@ -374,9 +324,6 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Team")
                         .HasColumnType("integer");
 
                     b.Property<Guid>("UserId")
@@ -705,15 +652,6 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("Kawwer.Domain.Entities.GuestPlayer", b =>
-                {
-                    b.HasOne("Kawwer.Domain.Entities.Match", null)
-                        .WithMany("Guests")
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Kawwer.Domain.Entities.MatchParticipant", b =>
                 {
                     b.HasOne("Kawwer.Domain.Entities.Match", null)
@@ -734,8 +672,6 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Kawwer.Domain.Entities.Match", b =>
                 {
-                    b.Navigation("Guests");
-
                     b.Navigation("Participants");
                 });
 

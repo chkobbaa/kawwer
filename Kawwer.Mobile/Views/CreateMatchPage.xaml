@@ -56,6 +56,30 @@
             </Border>
             <Label Text="{Binding VisibilityHint}" Style="{StaticResource StatCaption}" Margin="4,0,4,4" />
 
+            <Label Text="OPPONENT" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource InputBorder}">
+                <Picker Title="Match format"
+                        ItemsSource="{Binding MatchFormatOptions}"
+                        SelectedItem="{Binding SelectedMatchFormat}" />
+            </Border>
+            <Label Text="{Binding MatchFormatHint}" Style="{StaticResource StatCaption}" Margin="4,0,4,4" />
+
+            <!-- External team: prompt for the opponent's name -->
+            <Border Style="{StaticResource InputBorder}" IsVisible="{Binding IsExternalOpponent}">
+                <Entry Style="{StaticResource FormEntry}" Placeholder="Opponent team name" Text="{Binding OpponentName}" />
+            </Border>
+
+            <!-- App team: pick one of the organizer's registered Teams -->
+            <Border Style="{StaticResource InputBorder}" IsVisible="{Binding IsAppTeamOpponent}">
+                <Picker Title="Select a Team"
+                        ItemsSource="{Binding Teams}"
+                        ItemDisplayBinding="{Binding Name}"
+                        SelectedItem="{Binding SelectedOpponentTeam}" />
+            </Border>
+            <Label Text="Pick one of your Teams. You can create and manage Teams from Friends › Teams."
+                   Style="{StaticResource StatCaption}" Margin="4,0,4,4"
+                   IsVisible="{Binding IsAppTeamOpponent}" />
+
             <Label Text="INVITE FRIENDS" Style="{StaticResource SectionTitle}" />
             <CollectionView ItemsSource="{Binding Friends}" SelectionMode="None">
                 <CollectionView.EmptyView>

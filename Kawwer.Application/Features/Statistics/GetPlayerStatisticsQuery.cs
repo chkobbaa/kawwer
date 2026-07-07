@@ -15,20 +15,20 @@ public sealed class GetPlayerStatisticsQueryHandler : IRequestHandler<GetPlayerS
     private readonly IMatchRepository _matches;
     private readonly IRatingRepository _ratings;
     private readonly IFriendshipRepository _friendships;
-    private readonly IGroupRepository _groups;
+    private readonly ITeamRepository _teams;
 
     public GetPlayerStatisticsQueryHandler(
         IUserRepository users,
         IMatchRepository matches,
         IRatingRepository ratings,
         IFriendshipRepository friendships,
-        IGroupRepository groups)
+        ITeamRepository teams)
     {
         _users = users;
         _matches = matches;
         _ratings = ratings;
         _friendships = friendships;
-        _groups = groups;
+        _teams = teams;
     }
 
     public async Task<PlayerStatisticsDto> HandleAsync(GetPlayerStatisticsQuery request, CancellationToken cancellationToken)
@@ -40,7 +40,7 @@ public sealed class GetPlayerStatisticsQueryHandler : IRequestHandler<GetPlayerS
         var organized = await _matches.GetForOrganizerAsync(request.UserId, cancellationToken);
         var ratings = await _ratings.GetForRateeAsync(request.UserId, cancellationToken);
         var friends = await _friendships.GetAcceptedForUserAsync(request.UserId, cancellationToken);
-        var groups = await _groups.GetForOwnerAsync(request.UserId, cancellationToken);
+        var teams = await _teams.GetForOwnerAsync(request.UserId, cancellationToken);
 
         var myParticipant = participations
             .Select(m => m.Participants.FirstOrDefault(p => p.UserId == request.UserId))
@@ -96,7 +96,7 @@ public sealed class GetPlayerStatisticsQueryHandler : IRequestHandler<GetPlayerS
             Reputation: user.Reputation,
             ReliabilityBadge: user.GetReliabilityBadge(),
             Friends: friends.Count,
-            GroupsCreated: groups.Count);
+            TeamsCreated: teams.Count);
     }
 
     private static decimal Average(IEnumerable<int> values)

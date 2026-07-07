@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kawwer.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(KawwerDbContext))]
-    [Migration("20260707140837_AddLineupAndGuestPlayers")]
+    [Migration("20260707150856_AddLineupAndGuestPlayers")]
     partial class AddLineupAndGuestPlayers
     {
         /// <inheritdoc />
@@ -173,55 +173,6 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                     b.ToTable("friendships", (string)null);
                 });
 
-            modelBuilder.Entity("Kawwer.Domain.Entities.Group", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
-
-                    b.ToTable("groups", (string)null);
-                });
-
-            modelBuilder.Entity("Kawwer.Domain.Entities.GroupMember", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GroupId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("group_members", (string)null);
-                });
-
             modelBuilder.Entity("Kawwer.Domain.Entities.GuestPlayer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -284,6 +235,9 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("FootballFieldId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("Format")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("LiveMatchStarted")
                         .HasColumnType("boolean");
 
@@ -292,6 +246,13 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("MaxPlayers")
                         .HasColumnType("integer");
+
+                    b.Property<string>("OpponentName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("OpponentTeamId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("OrganizerId")
                         .HasColumnType("uuid");
@@ -609,6 +570,55 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                     b.ToTable("refresh_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("Kawwer.Domain.Entities.Team", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("teams", (string)null);
+                });
+
+            modelBuilder.Entity("Kawwer.Domain.Entities.TeamMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("team_members", (string)null);
+                });
+
             modelBuilder.Entity("Kawwer.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -698,15 +708,6 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("Kawwer.Domain.Entities.GroupMember", b =>
-                {
-                    b.HasOne("Kawwer.Domain.Entities.Group", null)
-                        .WithMany("Members")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Kawwer.Domain.Entities.GuestPlayer", b =>
                 {
                     b.HasOne("Kawwer.Domain.Entities.Match", null)
@@ -725,9 +726,13 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Kawwer.Domain.Entities.Group", b =>
+            modelBuilder.Entity("Kawwer.Domain.Entities.TeamMember", b =>
                 {
-                    b.Navigation("Members");
+                    b.HasOne("Kawwer.Domain.Entities.Team", null)
+                        .WithMany("Members")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Kawwer.Domain.Entities.Match", b =>
@@ -735,6 +740,11 @@ namespace Kawwer.Infrastructure.Persistence.Migrations
                     b.Navigation("Guests");
 
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("Kawwer.Domain.Entities.Team", b =>
+                {
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

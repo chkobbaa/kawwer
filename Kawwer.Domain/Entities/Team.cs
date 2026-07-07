@@ -4,18 +4,19 @@ using Kawwer.Domain.Exceptions;
 namespace Kawwer.Domain.Entities;
 
 /// <summary>
-/// A private, owner-scoped collection of friends used to speed up match invitations.
+/// A private, owner-scoped collection of friends used to speed up match invitations
+/// and to line up as an opponent in an in-app match.
 /// </summary>
-public class Group : AggregateRoot
+public class Team : AggregateRoot
 {
-    private readonly List<GroupMember> _members = new();
+    private readonly List<TeamMember> _members = new();
 
-    private Group()
+    private Team()
     {
         Name = string.Empty;
     }
 
-    public Group(Guid ownerId, string name, string? description = null)
+    public Team(Guid ownerId, string name, string? description = null)
     {
         Id = Guid.NewGuid();
         OwnerId = ownerId;
@@ -29,7 +30,7 @@ public class Group : AggregateRoot
     public string? Description { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
-    public IReadOnlyCollection<GroupMember> Members => _members.AsReadOnly();
+    public IReadOnlyCollection<TeamMember> Members => _members.AsReadOnly();
 
     public void Rename(string name, string? description)
     {
@@ -41,10 +42,10 @@ public class Group : AggregateRoot
     {
         if (_members.Any(m => m.UserId == userId))
         {
-            throw new DomainException("The user is already a member of this group.");
+            throw new DomainException("The user is already a member of this team.");
         }
 
-        _members.Add(new GroupMember(Id, userId));
+        _members.Add(new TeamMember(Id, userId));
     }
 
     public void RemoveMember(Guid userId)

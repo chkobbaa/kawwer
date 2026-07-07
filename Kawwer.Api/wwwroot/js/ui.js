@@ -86,7 +86,7 @@ export function notificationIcon(category) {
     case "Payment": return "💰";
     case "LiveMatch": return "📍";
     case "Friend": return "🤝";
-    case "Group": return "👥";
+    case "Team": return "👥";
     case "WaitingList": return "⏳";
     default: return "🔔";
   }
