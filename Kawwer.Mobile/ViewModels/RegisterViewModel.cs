@@ -42,7 +42,8 @@ public sealed partial class RegisterViewModel : BaseViewModel
             phoneNumber = string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim()
         });
 
-        await Shell.Current.GoToAsync("//main/hometab");
+        // A brand-new account has not been onboarded yet, so it always starts in the onboarding flow.
+        await Shell.Current.GoToAsync(_auth.RequiresOnboarding ? "//onboarding" : "//main/hometab");
     });
 
     [RelayCommand]

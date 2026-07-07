@@ -12,6 +12,12 @@
         ContentTemplate="{DataTemplate views:LoginPage}"
         Shell.NavBarIsVisible="False" />
 
+    <!-- Full-screen first-run onboarding flow (no tabs, no nav bar). -->
+    <ShellContent
+        Route="onboarding"
+        ContentTemplate="{DataTemplate views:OnboardingPage}"
+        Shell.NavBarIsVisible="False" />
+
     <!-- Icon-only bottom navigation (labels are hidden by KawwerShellRenderer); Home sits in the middle. -->
     <TabBar Route="main">
         <Tab Title="Discover" Route="discovertab" Icon="tab_discover.png">

@@ -17,7 +17,8 @@ public sealed record UserDto(
     decimal Reputation,
     ReliabilityBadge ReliabilityBadge,
     ProfileVisibility Visibility,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    bool OnboardingCompleted);
 
 public sealed record UserSummaryDto(
     Guid Id,
@@ -39,3 +40,9 @@ public sealed record UpdateProfileRequest(
     ProfileVisibility Visibility);
 
 public sealed record UpdateDeviceTokenRequest(string? DeviceToken);
+
+/// <summary>Payload for the first-run onboarding flow (PUT /users/onboarding).</summary>
+public sealed record CompleteOnboardingRequest(
+    DateOnly? BirthDate,
+    PreferredPosition? PreferredPosition,
+    PreferredFoot? PreferredFoot);

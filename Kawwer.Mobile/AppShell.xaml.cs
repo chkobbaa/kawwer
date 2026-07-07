@@ -37,8 +37,35 @@ public partial class AppShell : Shell
         // If a session was persisted, skip the login screen entirely - no "thinking" flash.
         if (_auth.Session.HasPersistedSession)
         {
-            ShowMainTabs();
+            RouteAuthenticatedStart();
             _initialized = true;
+        }
+    }
+
+    /// <summary>
+    /// Sends an already-authenticated user to the right place at startup: users who still need to
+    /// finish the first-run onboarding flow land on it, everyone else goes straight to the tabs.
+    /// The decision uses the fast persisted flag; the onboarding page double-checks with the server.
+    /// </summary>
+    private void RouteAuthenticatedStart()
+    {
+        if (_auth.RequiresOnboarding)
+        {
+            ShowOnboarding();
+        }
+        else
+        {
+            ShowMainTabs();
+        }
+    }
+
+    /// <summary>Switches to the full-screen onboarding flow.</summary>
+    public void ShowOnboarding()
+    {
+        var onboarding = Items.FirstOrDefault(i => i.Route == "onboarding");
+        if (onboarding is not null)
+        {
+            CurrentItem = onboarding;
         }
     }
 
@@ -96,7 +123,7 @@ public partial class AppShell : Shell
             await _sessionLoad;
             if (_auth.Session.IsAuthenticated)
             {
-                ShowMainTabs();
+                RouteAuthenticatedStart();
             }
         }
         catch (Exception ex)

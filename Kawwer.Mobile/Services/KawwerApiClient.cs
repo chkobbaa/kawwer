@@ -33,6 +33,10 @@ public sealed class KawwerApiClient
     public Task<UserDto> UpdateProfileAsync(object body, CancellationToken ct = default)
         => PutAsync<UserDto>("users/me", body, ct);
 
+    /// <summary>Saves the first-run onboarding answers and returns the refreshed profile.</summary>
+    public Task<UserDto> CompleteOnboardingAsync(object body, CancellationToken ct = default)
+        => PutAsync<UserDto>("users/onboarding", body, ct);
+
     public Task<PlayerStatisticsDto> GetMyStatisticsAsync(CancellationToken ct = default)
         => GetAsync<PlayerStatisticsDto>("users/me/statistics", ct);
 

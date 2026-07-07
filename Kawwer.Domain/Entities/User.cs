@@ -62,6 +62,11 @@ public class User : AggregateRoot
     public DateTime CreatedAt { get; private set; }
     public DateTime? LastLogin { get; private set; }
 
+    // Stamped the first time the user finishes the first-run onboarding flow. Null means the
+    // onboarding flow has not been completed yet, which is what the mobile app uses to decide
+    // whether to route a freshly authenticated user into onboarding.
+    public DateTime? OnboardingCompletedAt { get; private set; }
+
     // Lockout handling for failed login attempts.
     public int FailedLoginAttempts { get; private set; }
     public DateTime? LockedUntil { get; private set; }
@@ -70,6 +75,9 @@ public class User : AggregateRoot
     public string? DeviceToken { get; private set; }
 
     public bool IsActive => Status == AccountStatus.Active;
+
+    /// <summary>True once the user has finished the first-run onboarding flow.</summary>
+    public bool OnboardingCompleted => OnboardingCompletedAt.HasValue;
 
     public string FullName => $"{FirstName} {LastName}".Trim();
 
@@ -93,6 +101,22 @@ public class User : AggregateRoot
         PreferredFoot = preferredFoot;
         SkillLevel = skillLevel;
         Visibility = visibility;
+    }
+
+    /// <summary>
+    /// Persists the profile answers gathered during the first-run onboarding flow and stamps the
+    /// completion time. The stamp is only set once, so replaying the command (e.g. a retried
+    /// request) never resets the "already onboarded" state.
+    /// </summary>
+    public void CompleteOnboarding(
+        DateOnly? birthDate,
+        PreferredPosition? preferredPosition,
+        PreferredFoot? preferredFoot)
+    {
+        BirthDate = birthDate;
+        PreferredPosition = preferredPosition;
+        PreferredFoot = preferredFoot;
+        OnboardingCompletedAt ??= DateTime.UtcNow;
     }
 
     public void SetProfilePicture(string url) => ProfilePictureUrl = url;
