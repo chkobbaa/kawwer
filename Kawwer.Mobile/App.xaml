@@ -16,6 +16,7 @@
             <conv:IntGreaterThanZeroConverter x:Key="IntGreaterThanZero" />
             <conv:NotNullConverter x:Key="NotNull" />
             <conv:IntAtLeastConverter x:Key="IntAtLeast" />
+            <conv:BoolToColorConverter x:Key="BoolToColor" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

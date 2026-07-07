@@ -84,6 +84,7 @@ public static class MauiProgram
         builder.Services.AddTransient<CreateMatchViewModel>();
         builder.Services.AddTransient<MatchDetailsViewModel>();
         builder.Services.AddTransient<InvitePlayersViewModel>();
+        builder.Services.AddTransient<LineupViewModel>();
         builder.Services.AddTransient<ChatViewModel>();
         builder.Services.AddTransient<PaymentsViewModel>();
         builder.Services.AddTransient<NotificationsViewModel>();
@@ -107,6 +108,7 @@ public static class MauiProgram
         builder.Services.AddTransient<CreateMatchPage>();
         builder.Services.AddTransient<MatchDetailsPage>();
         builder.Services.AddTransient<InvitePlayersPage>();
+        builder.Services.AddTransient<LineupPage>();
         builder.Services.AddTransient<ChatPage>();
         builder.Services.AddTransient<PaymentsPage>();
         builder.Services.AddTransient<NotificationsPage>();
