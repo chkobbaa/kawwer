@@ -9,7 +9,9 @@ namespace Kawwer.Mobile.ViewModels;
 /// <summary>
 /// Invite (or suggest) players to an existing match. The organizer's invitations go out
 /// directly; a regular member's picks are sent to the organizer as suggestions that need
-/// their confirmation before the players are added.
+/// their confirmation before the players are added. The organizer (or an accepted member) can
+/// also add "guest" players by name — people who don't have the app but will show up in the
+/// roster and on the tactical lineup board.
 /// </summary>
 [QueryProperty(nameof(MatchIdQuery), "matchId")]
 public sealed partial class InvitePlayersViewModel : BaseViewModel
@@ -38,10 +40,17 @@ public sealed partial class InvitePlayersViewModel : BaseViewModel
 
     public ObservableCollection<SelectableUser> Friends { get; } = new();
 
+    /// <summary>Guest players already added to this match.</summary>
+    public ObservableCollection<GuestPlayerDto> Guests { get; } = new();
+
     [ObservableProperty] private Guid _matchId;
     [ObservableProperty] private bool _isOrganizer;
     [ObservableProperty] private string _hint = string.Empty;
     [ObservableProperty] private string _sendButtonText = "Send invitations";
+
+    /// <summary>Draft name for a new guest player.</summary>
+    [ObservableProperty] private string _guestName = string.Empty;
+    [ObservableProperty] private bool _hasGuests;
 
     partial void OnMatchIdChanged(Guid value) => _ = LoadAsync();
 
@@ -79,6 +88,61 @@ public sealed partial class InvitePlayersViewModel : BaseViewModel
         {
             Friends.Add(new SelectableUser(friend.User));
         }
+
+        await LoadGuestsAsync();
+    });
+
+    private async Task LoadGuestsAsync()
+    {
+        try
+        {
+            var lineup = await _api.GetLineupAsync(MatchId);
+            Guests.Clear();
+            foreach (var slot in lineup.Slots.Where(s => s.IsGuest).OrderBy(s => s.DisplayName))
+            {
+                Guests.Add(new GuestPlayerDto
+                {
+                    Id = slot.Id,
+                    MatchId = MatchId,
+                    Name = slot.DisplayName,
+                    SkillLevel = slot.SkillLevel,
+                    Team = slot.Team,
+                    PositionX = slot.PositionX,
+                    PositionY = slot.PositionY
+                });
+            }
+
+            HasGuests = Guests.Count > 0;
+        }
+        catch
+        {
+            // The guest list is a nice-to-have on this screen; never block inviting because of it.
+        }
+    }
+
+    [RelayCommand]
+    private Task AddGuestAsync() => RunAsync(async () =>
+    {
+        var name = GuestName?.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            ErrorMessage = "Enter the guest's name.";
+            return;
+        }
+
+        var guest = await _api.AddGuestAsync(MatchId, name, skillLevel: null);
+        Guests.Add(guest);
+        HasGuests = Guests.Count > 0;
+        GuestName = string.Empty;
+        ErrorMessage = string.Empty;
+    });
+
+    [RelayCommand]
+    private Task RemoveGuestAsync(GuestPlayerDto guest) => RunAsync(async () =>
+    {
+        await _api.RemoveGuestAsync(MatchId, guest.Id);
+        Guests.Remove(guest);
+        HasGuests = Guests.Count > 0;
     });
 
     [RelayCommand]

@@ -165,6 +165,27 @@
                     </Border>
                 </Grid>
 
+                <!-- Tactical lineup board: a coach's-eye view of the two teams -->
+                <Border Style="{StaticResource StatTile}" Padding="0" StrokeThickness="0" StrokeShape="RoundRectangle 18"
+                        BackgroundColor="{StaticResource Ink}" IsVisible="{Binding CanViewLineup}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenLineupCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="14,12">
+                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource InkSoft}" VerticalOptions="Center">
+                            <Path Style="{StaticResource Icon}" Data="{StaticResource IconStrategy}" Fill="{StaticResource Volt}"
+                                  HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                            <Label Text="Tactical lineup" FontSize="15" FontAttributes="Bold" TextColor="White" />
+                            <Label Text="Drag &amp; drop players, auto-balance the teams" FontSize="12" TextColor="#9DB5A5" />
+                        </VerticalStackLayout>
+                        <Path Grid.Column="2" Style="{StaticResource Icon}" Data="{StaticResource IconChevronRight}"
+                              Fill="{StaticResource Volt}" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
                 <!-- Organizer controls -->
                 <Border Style="{StaticResource StatTile}" IsVisible="{Binding ShowOrganizerActions}" Padding="14">
                     <VerticalStackLayout Spacing="10">

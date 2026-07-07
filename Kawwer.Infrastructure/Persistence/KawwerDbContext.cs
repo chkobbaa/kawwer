@@ -17,6 +17,7 @@ public sealed class KawwerDbContext : DbContext
     public DbSet<FootballField> FootballFields => Set<FootballField>();
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<MatchParticipant> MatchParticipants => Set<MatchParticipant>();
+    public DbSet<GuestPlayer> GuestPlayers => Set<GuestPlayer>();
     public DbSet<PaymentRecord> PaymentRecords => Set<PaymentRecord>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();

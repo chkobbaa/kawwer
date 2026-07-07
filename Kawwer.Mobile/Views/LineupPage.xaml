@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Kawwer.Mobile.Views.LineupPage"
+             x:Name="PageRoot"
+             Title="Lineup"
+             BackgroundColor="{StaticResource Ink}">
+
+    <Grid>
+        <!-- ===== Portrait board: one team's half at a time ===== -->
+        <Grid RowDefinitions="Auto,*,Auto" Padding="14,10,14,12" RowSpacing="10"
+              IsVisible="{Binding ShowFullPitch, Converter={StaticResource InvertedBool}}">
+
+            <!-- Header -->
+            <VerticalStackLayout Spacing="10">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="TACTICAL BOARD" FontSize="12" FontAttributes="Bold" CharacterSpacing="1.6"
+                               TextColor="{StaticResource Volt}" />
+                        <Label Text="{Binding CountsLabel}" FontSize="13" TextColor="White" />
+                    </VerticalStackLayout>
+                    <Border Grid.Column="1" Style="{StaticResource IconBubble}" BackgroundColor="{StaticResource InkSoft}"
+                            WidthRequest="44" HeightRequest="44" SemanticProperties.Description="View full pitch">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleFullPitchCommand}" />
+                        </Border.GestureRecognizers>
+                        <Path Style="{StaticResource Icon}" Data="{StaticResource IconFullscreen}" Fill="{StaticResource Volt}"
+                              HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                </Grid>
+
+                <Border Style="{StaticResource ErrorBanner}"
+                        IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
+                    <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
+                </Border>
+
+                <!-- Team toggle -->
+                <Border BackgroundColor="{StaticResource InkSoft}" StrokeThickness="0" StrokeShape="RoundRectangle 14" Padding="4">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="4">
+                        <Button Text="TEAM A" FontSize="13" FontAttributes="Bold" CornerRadius="10" HeightRequest="38"
+                                Command="{Binding ShowTeamACommand}"
+                                BackgroundColor="{Binding ViewingTeamIsA, Converter={StaticResource BoolToColor}, ConverterParameter=#CDF564|#00000000}"
+                                TextColor="{Binding ViewingTeamIsA, Converter={StaticResource BoolToColor}, ConverterParameter=#0C2014|#8FA79A}" />
+                        <Button Grid.Column="1" Text="TEAM B" FontSize="13" FontAttributes="Bold" CornerRadius="10" HeightRequest="38"
+                                Command="{Binding ShowTeamBCommand}"
+                                BackgroundColor="{Binding ViewingTeamIsA, Converter={StaticResource BoolToColor}, ConverterParameter=#00000000|#FB8C00}"
+                                TextColor="{Binding ViewingTeamIsA, Converter={StaticResource BoolToColor}, ConverterParameter=#8FA79A|#0C2014}" />
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Board surface -->
+            <Border Grid.Row="1" StrokeThickness="0" StrokeShape="RoundRectangle 18" Padding="0">
+                <Grid>
+                    <GraphicsView x:Name="HalfPitchView" />
+                    <AbsoluteLayout x:Name="HalfSurface" />
+                    <Label x:Name="HalfEmptyLabel" Text="No players on this team yet. Tap someone below, or Auto-Balance."
+                           TextColor="#B9CFC0" FontSize="13" HorizontalOptions="Center" VerticalOptions="Center"
+                           HorizontalTextAlignment="Center" Margin="30" IsVisible="False" />
+                </Grid>
+            </Border>
+
+            <!-- Footer: available players + actions -->
+            <VerticalStackLayout Grid.Row="2" Spacing="8">
+                <Label Text="{Binding BenchLabel}" FontSize="12" FontAttributes="Bold" CharacterSpacing="1.4"
+                       TextColor="#8FA79A" IsVisible="{Binding HasBench}" />
+                <CollectionView ItemsSource="{Binding Bench}" HeightRequest="72" IsVisible="{Binding HasBench}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border StrokeThickness="0" StrokeShape="RoundRectangle 14" BackgroundColor="{StaticResource InkSoft}"
+                                    Padding="8,6" WidthRequest="72">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding BindingContext.AssignToViewingTeamCommand, Source={x:Reference PageRoot}}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                                    <Border WidthRequest="34" HeightRequest="34" StrokeThickness="0" StrokeShape="RoundRectangle 17"
+                                            BackgroundColor="{StaticResource Ink}" HorizontalOptions="Center">
+                                        <Label Text="{Binding Initials}" FontSize="12" FontAttributes="Bold"
+                                               TextColor="{StaticResource Volt}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <Label Text="{Binding ShortName}" FontSize="10" TextColor="White" HorizontalOptions="Center"
+                                           LineBreakMode="TailTruncation" MaxLines="1" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Button Text="⚡  Auto-Balance teams" Style="{StaticResource PrimaryButton}" HeightRequest="48"
+                        IsVisible="{Binding IsOrganizer}" Command="{Binding AutoBalanceCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+                <Label Text="Drag players to position them. Tap an available player to add them to this team."
+                       Style="{StaticResource StatCaption}" TextColor="#8FA79A" HorizontalTextAlignment="Center"
+                       IsVisible="{Binding IsOrganizer}" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- ===== Simulated landscape: full pitch via a UI rotation transform (OS stays portrait) ===== -->
+        <Grid IsVisible="{Binding ShowFullPitch}" BackgroundColor="{StaticResource Ink}">
+            <Grid x:Name="FullPitchContainer" Rotation="90" HorizontalOptions="Center" VerticalOptions="Center">
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 18" Padding="0">
+                    <Grid>
+                        <GraphicsView x:Name="FullPitchView" />
+                        <AbsoluteLayout x:Name="FullSurface" />
+                    </Grid>
+                </Border>
+
+                <!-- These controls live inside the rotated container so they read upright when the
+                     phone is physically held in landscape. -->
+                <Label Text="TEAM A" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Volt}"
+                       HorizontalOptions="Start" VerticalOptions="Start" Margin="18,12" />
+                <Label Text="TEAM B" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Warning}"
+                       HorizontalOptions="End" VerticalOptions="Start" Margin="18,12" />
+                <Button Text="✕  Exit full pitch" FontSize="13" FontAttributes="Bold" CornerRadius="14" HeightRequest="40"
+                        Padding="14,0" BackgroundColor="{StaticResource InkSoft}" TextColor="White"
+                        HorizontalOptions="Center" VerticalOptions="End" Margin="0,0,0,14"
+                        Command="{Binding ToggleFullPitchCommand}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentPage>

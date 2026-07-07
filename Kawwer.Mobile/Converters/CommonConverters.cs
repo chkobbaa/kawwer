@@ -53,6 +53,23 @@ public sealed class IntAtLeastConverter : IValueConverter
 }
 
 /// <summary>
+/// Maps a boolean to one of two colors, given as "trueHex|falseHex" in the ConverterParameter
+/// (e.g. "#CDF564|#00000000"). Used to light up the active side of a segmented toggle.
+/// </summary>
+public sealed class BoolToColorConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var parts = (parameter as string ?? "|").Split('|');
+        var hex = value is true ? parts[0] : parts.Length > 1 ? parts[1] : parts[0];
+        return Color.FromArgb(hex);
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>
 /// Coerces a numeric value (decimal/int/float) to a double. Ratings arrive from the API as
 /// <see cref="decimal"/>; the curved rating control exposes a <c>double</c> so we normalise here
 /// instead of relying on implicit binding coercion (which is culture-sensitive).

@@ -19,6 +19,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("creatematch", typeof(CreateMatchPage));
         Routing.RegisterRoute("matchdetails", typeof(MatchDetailsPage));
         Routing.RegisterRoute("inviteplayers", typeof(InvitePlayersPage));
+        Routing.RegisterRoute("lineup", typeof(LineupPage));
         Routing.RegisterRoute("chat", typeof(ChatPage));
         Routing.RegisterRoute("payments", typeof(PaymentsPage));
         Routing.RegisterRoute("notifications", typeof(NotificationsPage));

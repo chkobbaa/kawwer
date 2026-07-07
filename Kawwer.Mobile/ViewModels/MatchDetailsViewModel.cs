@@ -84,6 +84,9 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
     [ObservableProperty] private bool _canInvite;
     [ObservableProperty] private string _inviteButtonText = "Invite players";
 
+    /// <summary>The tactical lineup board is available to the organizer and accepted players.</summary>
+    [ObservableProperty] private bool _canViewLineup;
+
     /// <summary>Players list layout: grid of image cards (default) vs. a compact list.</summary>
     [ObservableProperty] private bool _isGridView = true;
 
@@ -162,6 +165,8 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
         // directly, while regular members suggest players the organizer must confirm.
         CanInvite = !isClosed && (IsOrganizer || Me is { Status: ParticipantStatus.Accepted });
         InviteButtonText = IsOrganizer ? "Invite players" : "Suggest players";
+
+        CanViewLineup = IsOrganizer || Me is { Status: ParticipantStatus.Accepted };
 
         // Waiting list details for the viewer (docs/WaitingList.md).
         WaitingPosition = null;
@@ -267,6 +272,10 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
     /// <summary>Opens the invite/suggest players screen.</summary>
     [RelayCommand]
     private Task OpenInviteAsync() => Shell.Current.GoToAsync($"inviteplayers?matchId={MatchId}");
+
+    /// <summary>Opens the 2D tactical lineup board.</summary>
+    [RelayCommand]
+    private Task OpenLineupAsync() => Shell.Current.GoToAsync($"lineup?matchId={MatchId}");
 
     [RelayCommand]
     private Task ApproveJoinAsync(Guid userId) => RunAsync(async () =>

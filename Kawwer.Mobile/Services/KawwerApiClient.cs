@@ -145,6 +145,23 @@ public sealed class KawwerApiClient
     public Task<WaitingListPositionDto> GetWaitingListPositionAsync(Guid matchId, CancellationToken ct = default)
         => GetAsync<WaitingListPositionDto>($"matches/{matchId}/waiting-list", ct);
 
+    // ----- Tactical lineup & guest players -----
+    public Task<LineupDto> GetLineupAsync(Guid matchId, CancellationToken ct = default)
+        => GetAsync<LineupDto>($"matches/{matchId}/lineup", ct);
+
+    public Task<LineupDto> AutoBalanceLineupAsync(Guid matchId, CancellationToken ct = default)
+        => PostAsync<LineupDto>($"matches/{matchId}/lineup/auto-balance", null, ct);
+
+    public Task UpdateLineupSlotAsync(
+        Guid matchId, LineupSlotKind kind, Guid targetId, TeamSide team, double positionX, double positionY, CancellationToken ct = default)
+        => PutAsync($"matches/{matchId}/lineup/slot", new { kind, targetId, team, positionX, positionY }, ct);
+
+    public Task<GuestPlayerDto> AddGuestAsync(Guid matchId, string name, int? skillLevel, CancellationToken ct = default)
+        => PostAsync<GuestPlayerDto>($"matches/{matchId}/guests", new { name, skillLevel }, ct);
+
+    public Task RemoveGuestAsync(Guid matchId, Guid guestId, CancellationToken ct = default)
+        => DeleteAsync($"matches/{matchId}/guests/{guestId}", ct);
+
     // ----- Live match -----
     public Task UpdateAttendanceAsync(Guid matchId, Guid userId, AttendanceStatus attendance, CancellationToken ct = default)
         => PostAsync($"matches/{matchId}/live/attendance", new { userId, attendance }, ct);

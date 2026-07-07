@@ -18,6 +18,7 @@ paginated. OpenAPI/Swagger documents every endpoint.
 | Football Fields | `/api/v1/football-fields` |
 | Matches & Live Match | `/api/v1/matches` (`/upcoming`, `/{id}`, `/{id}/live/*`, …) |
 | Invitations & Waiting List | `/api/v1/matches/{id}/{invitations,respond,leave,waiting-list}` |
+| Lineup & Guest Players | `/api/v1/matches/{id}/{lineup,lineup/slot,lineup/auto-balance,guests}` |
 | Payments | `/api/v1/matches/{id}/payments/*` |
 | Chat | `/api/v1/matches/{id}/chat/messages` |
 | Ratings | `/api/v1/matches/{id}/ratings` |

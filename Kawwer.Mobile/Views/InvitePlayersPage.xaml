@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:Kawwer.Mobile.Controls"
              x:Class="Kawwer.Mobile.Views.InvitePlayersPage"
+             x:Name="PageRoot"
              Title="{Binding Title}"
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}">
     <Grid RowDefinitions="Auto,*,Auto" Padding="16,8,16,16" RowSpacing="10">
@@ -13,6 +14,53 @@
                     IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmpty}}">
                 <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource Error}" FontSize="13" />
             </Border>
+
+            <!-- Guest players: people without the app, added by name. -->
+            <Label Text="GUEST PLAYERS" Style="{StaticResource SectionTitle}" Margin="4,4,0,0" />
+            <Border Style="{StaticResource StatTile}" Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Add someone who doesn't have the app. They'll appear in the roster and on the lineup board."
+                           Style="{StaticResource StatCaption}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Border Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="12,0">
+                            <Entry Placeholder="Guest name (e.g. John Doe)" Text="{Binding GuestName}"
+                                   Style="{StaticResource FormEntry}" ReturnCommand="{Binding AddGuestCommand}" />
+                        </Border>
+                        <Button Grid.Column="1" Text="Add" Style="{StaticResource PrimaryButton}"
+                                HeightRequest="46" Padding="18,0" FontSize="14"
+                                Command="{Binding AddGuestCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+                    </Grid>
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Guests}" Spacing="6" IsVisible="{Binding HasGuests}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                                    <Border Style="{StaticResource Avatar}" WidthRequest="34" HeightRequest="34"
+                                            StrokeShape="RoundRectangle 17"
+                                            BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}">
+                                        <Label Style="{StaticResource AvatarLabel}" FontSize="13" Text="{Binding Initial}"
+                                               TextColor="{StaticResource Warning}" />
+                                    </Border>
+                                    <Label Grid.Column="1" Text="{Binding Name}" FontSize="15" FontAttributes="Bold"
+                                           VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                    <Border Grid.Column="2" Style="{StaticResource Pill}" VerticalOptions="Center"
+                                            BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3D2E1A}">
+                                        <Label Style="{StaticResource PillLabel}" Text="GUEST" TextColor="{StaticResource Warning}" />
+                                    </Border>
+                                    <Button Grid.Column="3" Text="✕" FontSize="14" WidthRequest="34" HeightRequest="34" Padding="0"
+                                            BackgroundColor="Transparent" TextColor="{StaticResource Error}" VerticalOptions="Center"
+                                            Command="{Binding BindingContext.RemoveGuestCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="INVITE FRIENDS" Style="{StaticResource SectionTitle}" Margin="4,4,0,0" />
         </VerticalStackLayout>
 
         <CollectionView Grid.Row="1" ItemsSource="{Binding Friends}" SelectionMode="None">

@@ -31,3 +31,7 @@ public enum MatchFormat { Pickup = 1, VsExternalTeam = 2, VsAppTeam = 3 }
 public enum RatingType { Organizer = 1, Player = 2 }
 
 public enum ReliabilityBadge { VeryReliable = 1, Reliable = 2, OccasionallyCancels = 3, OftenLate = 4, FrequentNoShow = 5 }
+
+public enum TeamSide { Unassigned = 0, TeamA = 1, TeamB = 2 }
+
+public enum LineupSlotKind { Organizer = 1, Participant = 2, Guest = 3 }
