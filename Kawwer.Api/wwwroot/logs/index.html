@@ -222,7 +222,8 @@
             });
             if (res.status === 401) { lock(); return; }
             if (!res.ok) return;
-            const entries = await res.json();
+            const json = await res.json();
+            const entries = json.data || json;
             render(entries, reset);
         }
 
