@@ -13,7 +13,9 @@ public enum SurfaceType { ArtificialTurf = 1, NaturalGrass = 2, Concrete = 3 }
 
 public enum MatchVisibility { Private = 1, Public = 2, FriendsOnly = 3 }
 
-public enum MatchStatus { Draft = 1, Published = 2, Full = 3, Playing = 4, Finished = 5, Cancelled = 6 }
+public enum MatchStatus { Draft = 1, Published = 2, Full = 3, Playing = 4, Finished = 5, Cancelled = 6, Expired = 7 }
+
+public enum SportType { Football = 1, Basketball = 2, Tennis = 3 }
 
 public enum ParticipantStatus
 {

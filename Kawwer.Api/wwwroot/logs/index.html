@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Kawwer · Server logs</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --panel: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --accent: #cdf564;
+            --trace: #6e7681;
+            --debug: #58a6ff;
+            --info: #3fb950;
+            --warning: #d29922;
+            --error: #f85149;
+            --critical: #ff6a69;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .login {
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .login form {
+            width: 100%;
+            max-width: 360px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px 22px;
+        }
+
+        h1 { font-size: 20px; margin: 0 0 4px; }
+        .sub { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+
+        input, select, button {
+            font: inherit;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #0d1117;
+            color: var(--text);
+            padding: 11px 13px;
+        }
+
+        .login input { width: 100%; margin-bottom: 12px; }
+
+        button {
+            cursor: pointer;
+            background: var(--accent);
+            color: #0d1117;
+            font-weight: 700;
+            border: none;
+        }
+        button.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); font-weight: 600; }
+
+        .login button { width: 100%; }
+
+        .error { color: var(--error); font-size: 13px; min-height: 18px; margin-top: 8px; }
+
+        .app { display: none; height: 100dvh; flex-direction: column; }
+        .app.active { display: flex; }
+
+        header {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+        }
+        header .title { font-weight: 700; margin-right: auto; }
+        header label { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+
+        main { flex: 1; overflow: auto; padding: 8px 10px 32px; }
+
+        .row {
+            display: grid;
+            grid-template-columns: 92px 74px 1fr;
+            gap: 10px;
+            padding: 6px 8px;
+            border-bottom: 1px solid #21262d;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 12.5px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .row .ts { color: var(--muted); }
+        .row .lvl { font-weight: 700; }
+        .row .msg .cat { color: var(--muted); display: block; font-size: 11px; }
+        .row .exc { color: var(--error); display: block; margin-top: 4px; opacity: .9; }
+
+        .lvl.Trace { color: var(--trace); }
+        .lvl.Debug { color: var(--debug); }
+        .lvl.Information { color: var(--info); }
+        .lvl.Warning { color: var(--warning); }
+        .lvl.Error { color: var(--error); }
+        .lvl.Critical { color: var(--critical); }
+
+        .empty { color: var(--muted); text-align: center; padding: 40px 12px; }
+        @media (max-width: 520px) { .row { grid-template-columns: 66px 60px 1fr; font-size: 12px; } }
+    </style>
+</head>
+<body>
+    <div class="login" id="login">
+        <form id="loginForm">
+            <h1>Server logs</h1>
+            <p class="sub">Enter the logs password to continue.</p>
+            <input type="password" id="password" placeholder="Password" autocomplete="current-password" autofocus />
+            <button type="submit">Unlock</button>
+            <div class="error" id="loginError"></div>
+        </form>
+    </div>
+
+    <div class="app" id="app">
+        <header>
+            <span class="title">Kawwer · Logs</span>
+            <label>Level
+                <select id="level">
+                    <option value="Trace">Trace+</option>
+                    <option value="Debug">Debug+</option>
+                    <option value="Information" selected>Info+</option>
+                    <option value="Warning">Warning+</option>
+                    <option value="Error">Error+</option>
+                </select>
+            </label>
+            <label><input type="checkbox" id="auto" checked /> Auto-refresh</label>
+            <button type="button" id="refresh" class="ghost">Refresh</button>
+            <button type="button" id="clear" class="ghost">Clear view</button>
+            <button type="button" id="logout" class="ghost">Lock</button>
+        </header>
+        <main id="log"><div class="empty" id="emptyState">Waiting for log entries…</div></main>
+    </div>
+
+    <script>
+        const state = { password: null, lastSequence: 0, timer: null };
+        const $ = (id) => document.getElementById(id);
+
+        const loginForm = $("loginForm");
+        const app = $("app");
+        const login = $("login");
+        const logEl = $("log");
+
+        async function post(path, body) {
+            const res = await fetch(path, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            return res;
+        }
+
+        loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            $("loginError").textContent = "";
+            const password = $("password").value;
+            const res = await post("/api/v1/logs/auth", { password });
+            if (!res.ok) {
+                $("loginError").textContent = "Incorrect password.";
+                return;
+            }
+            state.password = password;
+            login.style.display = "none";
+            app.classList.add("active");
+            await refresh(true);
+            startAuto();
+        });
+
+        function levelClass(level) { return "lvl " + level; }
+
+        function render(entries, reset) {
+            if (reset) { logEl.innerHTML = ""; state.lastSequence = 0; }
+            const emptyState = $("emptyState");
+            if (emptyState && entries.length) emptyState.remove();
+
+            const atBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 60;
+            for (const e of entries) {
+                state.lastSequence = Math.max(state.lastSequence, e.sequence);
+                const row = document.createElement("div");
+                row.className = "row";
+                const ts = new Date(e.timestampUtc).toLocaleTimeString();
+                const exc = e.exception ? `<span class="exc">${escapeHtml(e.exception)}</span>` : "";
+                row.innerHTML =
+                    `<span class="ts">${ts}</span>` +
+                    `<span class="${levelClass(e.level)}">${e.level}</span>` +
+                    `<span class="msg"><span class="cat">${escapeHtml(e.category)}</span>${escapeHtml(e.message)}${exc}</span>`;
+                logEl.appendChild(row);
+            }
+            if (atBottom) logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function escapeHtml(s) {
+            return (s ?? "").replace(/[&<>"']/g, (c) =>
+                ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        }
+
+        async function refresh(reset) {
+            if (!state.password) return;
+            const res = await post("/api/v1/logs", {
+                password: state.password,
+                minLevel: $("level").value,
+                limit: reset ? 500 : 200,
+                afterSequence: reset ? 0 : state.lastSequence
+            });
+            if (res.status === 401) { lock(); return; }
+            if (!res.ok) return;
+            const entries = await res.json();
+            render(entries, reset);
+        }
+
+        function startAuto() {
+            stopAuto();
+            if ($("auto").checked) state.timer = setInterval(() => refresh(false), 2500);
+        }
+        function stopAuto() { if (state.timer) { clearInterval(state.timer); state.timer = null; } }
+
+        function lock() {
+            stopAuto();
+            state.password = null;
+            state.lastSequence = 0;
+            app.classList.remove("active");
+            login.style.display = "flex";
+            $("password").value = "";
+            logEl.innerHTML = '<div class="empty" id="emptyState">Waiting for log entries…</div>';
+        }
+
+        $("refresh").addEventListener("click", () => refresh(true));
+        $("clear").addEventListener("click", () => { logEl.innerHTML = ""; });
+        $("logout").addEventListener("click", lock);
+        $("auto").addEventListener("change", startAuto);
+        $("level").addEventListener("change", () => refresh(true));
+    </script>
+</body>
+</html>

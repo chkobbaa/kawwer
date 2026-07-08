@@ -91,6 +91,21 @@
                                             Command="{Binding BindingContext.DeclineInvitationCommand, Source={x:Reference PageRoot}}"
                                             CommandParameter="{Binding .}" />
                                 </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="8" Margin="0,6,0,2" IsVisible="{Binding IsFriendRequest}">
+                                    <Button Text="Accept" FontSize="13" FontAttributes="Bold"
+                                            HeightRequest="34" Padding="16,0" CornerRadius="17"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                            TextColor="White"
+                                            Command="{Binding BindingContext.AcceptFriendRequestCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding .}" />
+                                    <Button Text="Decline" FontSize="13" FontAttributes="Bold"
+                                            HeightRequest="34" Padding="16,0" CornerRadius="17"
+                                            BackgroundColor="Transparent"
+                                            BorderColor="{StaticResource Gray400}" BorderWidth="1"
+                                            TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                                            Command="{Binding BindingContext.DeclineFriendRequestCommand, Source={x:Reference PageRoot}}"
+                                            CommandParameter="{Binding .}" />
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
                             <Ellipse Grid.Column="2" WidthRequest="10" HeightRequest="10" Fill="{StaticResource VoltDim}"
                                      VerticalOptions="Center"

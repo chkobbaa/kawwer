@@ -76,10 +76,10 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Cancelled banner -->
+                <!-- Closed banner: cancelled / finished / expired -->
                 <Border BackgroundColor="{AppThemeBinding Light=#FDECEA, Dark=#3B1F1E}" StrokeThickness="0"
-                        StrokeShape="RoundRectangle 16" Padding="14,12" IsVisible="{Binding IsCancelled}">
-                    <Label Text="This match has been cancelled." FontSize="14" FontAttributes="Bold"
+                        StrokeShape="RoundRectangle 16" Padding="14,12" IsVisible="{Binding IsClosed}">
+                    <Label Text="{Binding ClosedLabel}" FontSize="14" FontAttributes="Bold"
                            TextColor="{StaticResource Error}" HorizontalOptions="Center" />
                 </Border>
 
@@ -196,6 +196,23 @@
                             <Button Grid.Column="1" Text="Finish match" Style="{StaticResource OutlineButton}" HeightRequest="44" FontSize="14"
                                     Command="{Binding FinishCommand}" />
                         </Grid>
+
+                        <!-- Reschedule: pick a new date/time and notify everyone (participants + waitlist) -->
+                        <BoxView HeightRequest="1" Color="{StaticResource Gray200}" Margin="0,2" />
+                        <Label Text="Reschedule" FontSize="13" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Border Style="{StaticResource InputBorder}">
+                                <DatePicker Date="{Binding RescheduleDate}" />
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource InputBorder}">
+                                <TimePicker Time="{Binding RescheduleTime}" />
+                            </Border>
+                        </Grid>
+                        <Button Text="Reschedule &amp; notify" Style="{StaticResource OutlineButton}" HeightRequest="44" FontSize="14"
+                                Command="{Binding RescheduleCommand}" />
+
+                        <BoxView HeightRequest="1" Color="{StaticResource Gray200}" Margin="0,2" />
                         <Button Text="Cancel match" Style="{StaticResource DangerOutlineButton}" HeightRequest="44" FontSize="14"
                                 Command="{Binding CancelCommand}" />
                     </VerticalStackLayout>

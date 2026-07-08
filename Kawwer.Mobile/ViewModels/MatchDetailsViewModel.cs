@@ -77,7 +77,17 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
     [ObservableProperty] private bool _isLive;
     [ObservableProperty] private bool _isFinished;
     [ObservableProperty] private bool _isCancelled;
+    [ObservableProperty] private bool _isExpired;
+
+    /// <summary>Any terminal state (cancelled/finished/expired): drives the closed banner.</summary>
+    [ObservableProperty] private bool _isClosed;
+
+    /// <summary>Short status word for the closed banner ("Cancelled", "Finished", "Expired").</summary>
+    [ObservableProperty] private string _closedLabel = string.Empty;
     [ObservableProperty] private bool _showOrganizerActions;
+    [ObservableProperty] private bool _canReschedule;
+    [ObservableProperty] private DateTime _rescheduleDate = DateTime.Today.AddDays(1);
+    [ObservableProperty] private TimeSpan _rescheduleTime = new(20, 0, 0);
     [ObservableProperty] private bool _hasWaitlist;
     [ObservableProperty] private bool _hasPending;
     [ObservableProperty] private WaitingListPositionDto? _waitingPosition;
@@ -110,7 +120,20 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
         IsOrganizer = _session.UserId == Match.OrganizerId;
         IsCancelled = Match.Status == MatchStatus.Cancelled;
         IsFinished = Match.Status == MatchStatus.Finished;
-        var isClosed = IsCancelled || IsFinished;
+        IsExpired = Match.Status == MatchStatus.Expired;
+        var isClosed = IsCancelled || IsFinished || IsExpired;
+        IsClosed = isClosed;
+        ClosedLabel = Match.Status switch
+        {
+            MatchStatus.Cancelled => "This match has been cancelled.",
+            MatchStatus.Finished => "This match has finished.",
+            MatchStatus.Expired => "This match has expired — its start time has passed.",
+            _ => string.Empty
+        };
+
+        // Seed the reschedule pickers with the match's current slot.
+        RescheduleDate = Match.MatchDate.ToDateTime(TimeOnly.MinValue);
+        RescheduleTime = Match.StartTime.ToTimeSpan();
 
         var participants = await _api.GetParticipantsAsync(MatchId);
         Participants.Clear();
@@ -159,6 +182,7 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
                   && (Me is null or { Status: ParticipantStatus.Declined or ParticipantStatus.Cancelled or ParticipantStatus.Removed });
 
         ShowOrganizerActions = IsOrganizer && !isClosed;
+        CanReschedule = IsOrganizer && !isClosed;
         IsLive = Match.LiveMatchStarted && !isClosed;
 
         // Inviting stays available after the match is created: the organizer invites
@@ -321,6 +345,41 @@ public sealed partial class MatchDetailsViewModel : BaseViewModel
                 await LoadCoreAsync();
             });
         }
+    }
+
+    /// <summary>
+    /// Moves the match to the date/time chosen in the reschedule pickers. The API notifies every
+    /// participant and the waiting list; in "Call" mode they get a simulated call instead of a
+    /// silent notification.
+    /// </summary>
+    [RelayCommand]
+    private async Task RescheduleAsync()
+    {
+        var newDate = DateOnly.FromDateTime(RescheduleDate);
+        var newTime = TimeOnly.FromTimeSpan(RescheduleTime);
+
+        if (Match is { } m && m.MatchDate == newDate && m.StartTime == newTime)
+        {
+            ErrorMessage = "Pick a different date or time to reschedule.";
+            return;
+        }
+
+        var confirm = await Shell.Current.DisplayAlertAsync(
+            "Reschedule match",
+            $"Move the match to {newDate:ddd dd MMM} at {newTime:HH\\:mm}? Everyone will be notified.",
+            "Reschedule",
+            "Cancel");
+        if (!confirm)
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            await _api.RescheduleAsync(MatchId, newDate, newTime);
+            await LoadCoreAsync();
+            await Dialog.ShowSuccessAsync("Match rescheduled. Everyone was notified.");
+        });
     }
 
     [RelayCommand]

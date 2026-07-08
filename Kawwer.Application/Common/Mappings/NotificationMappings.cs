@@ -12,5 +12,8 @@ public static class NotificationMappings
         notification.Message,
         notification.RelatedMatchId,
         notification.IsRead,
-        notification.CreatedAt);
+        notification.CreatedAt,
+        notification.Type,
+        notification.RelatedFriendshipId,
+        notification.Important);
 }

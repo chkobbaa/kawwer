@@ -18,7 +18,8 @@ public sealed record CreateMatchRequest(
     IReadOnlyList<Guid> InvitedTeamIds,
     MatchFormat Format = MatchFormat.Pickup,
     string? OpponentName = null,
-    Guid? OpponentTeamId = null);
+    Guid? OpponentTeamId = null,
+    SportType Sport = SportType.Football);
 
 public sealed record UpdateMatchRequest(
     DateOnly MatchDate,
@@ -26,6 +27,11 @@ public sealed record UpdateMatchRequest(
     int DurationMinutes,
     string? Description,
     MatchVisibility Visibility);
+
+/// <summary>Moves a match to a new date/time, keeping everything else. Notifies the whole roster.</summary>
+public sealed record RescheduleMatchRequest(
+    DateOnly MatchDate,
+    TimeOnly StartTime);
 
 public sealed record ChangeCapacityRequest(int MaxPlayers);
 
@@ -37,6 +43,7 @@ public sealed record MatchDto(
     MatchVisibility Visibility,
     MatchStatus Status,
     MatchFormat Format,
+    SportType Sport,
     string? OpponentName,
     Guid? OpponentTeamId,
     DateOnly MatchDate,

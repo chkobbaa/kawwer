@@ -22,7 +22,8 @@ public sealed record CreateMatchCommand(
     IReadOnlyList<Guid> InvitedTeamIds,
     MatchFormat Format = MatchFormat.Pickup,
     string? OpponentName = null,
-    Guid? OpponentTeamId = null) : IRequest<Guid>;
+    Guid? OpponentTeamId = null,
+    SportType Sport = SportType.Football) : IRequest<Guid>;
 
 public sealed class CreateMatchCommandValidator : AbstractValidator<CreateMatchCommand>
 {
@@ -91,7 +92,7 @@ public sealed class CreateMatchCommandHandler : IRequestHandler<CreateMatchComma
         var match = new Match(
             request.OrganizerId,
             field.Id,
-            string.IsNullOrWhiteSpace(request.Title) ? "Football Match" : request.Title!.Trim(),
+            string.IsNullOrWhiteSpace(request.Title) ? $"{request.Sport} match" : request.Title!.Trim(),
             request.MatchDate,
             request.StartTime,
             field.MatchDurationMinutes,
@@ -103,7 +104,8 @@ public sealed class CreateMatchCommandHandler : IRequestHandler<CreateMatchComma
             request.AutoAcceptPublic,
             request.Format,
             request.OpponentName,
-            request.OpponentTeamId);
+            request.OpponentTeamId,
+            request.Sport);
 
         // Resolve the set of invitees: explicit users plus members of the selected teams.
         var inviteeIds = new HashSet<Guid>(request.InvitedUserIds);
@@ -140,8 +142,8 @@ public sealed class CreateMatchCommandHandler : IRequestHandler<CreateMatchComma
             $"You've been invited to \"{match.Title}\" on {match.MatchDate:dd MMM} at {match.StartTime:HH\\:mm}.",
             match.Id,
             cancellationToken,
-            // Tells the mobile app to render Accept/Decline action buttons on the push.
-            new Dictionary<string, string> { ["type"] = "match_invitation" });
+            // Tells the mobile app to render Accept/Decline action buttons (push + in-app list).
+            type: "match_invitation");
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return match.Id;

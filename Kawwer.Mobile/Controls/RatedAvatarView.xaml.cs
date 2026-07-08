@@ -68,13 +68,15 @@ public partial class RatedAvatarView : ContentView
     private void ApplyLayout()
     {
         var a = Size;
-        var starSize = a * 0.24;
-        var gap = a * 0.05;
+        // Mirror the drawable's geometry (outer radius 0.088·a, gap 0.015·a) so the reserved band
+        // is just tall/wide enough for the smaller, tighter star crown.
+        var starHeight = a * 0.088 * 2;
+        var gap = a * 0.015;
 
         // Reserve enough height above the avatar for the tallest (centre) star, and enough width
         // for the outermost stars to sit inside the canvas.
-        Root.WidthRequest = a * 1.85;
-        Root.HeightRequest = a + gap + starSize + 6;
+        Root.WidthRequest = a * 1.7;
+        Root.HeightRequest = a + gap + starHeight + 4;
 
         Avatar.Size = a;
         _drawable.AvatarDiameter = a;

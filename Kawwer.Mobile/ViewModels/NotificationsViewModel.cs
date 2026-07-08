@@ -80,6 +80,54 @@ public sealed partial class NotificationsViewModel : BaseViewModel
     [RelayCommand]
     private Task DeclineInvitationAsync(NotificationDto notification) => RespondAsync(notification, accept: false);
 
+    [RelayCommand]
+    private Task AcceptFriendRequestAsync(NotificationDto notification) => RespondToFriendAsync(notification, accept: true);
+
+    [RelayCommand]
+    private Task DeclineFriendRequestAsync(NotificationDto notification) => RespondToFriendAsync(notification, accept: false);
+
+    private Task RespondToFriendAsync(NotificationDto notification, bool accept) => RunAsync(async () =>
+    {
+        if (notification.RelatedFriendshipId is not { } friendshipId)
+        {
+            return;
+        }
+
+        try
+        {
+            if (accept)
+            {
+                await _api.AcceptFriendRequestAsync(friendshipId);
+            }
+            else
+            {
+                await _api.RejectFriendRequestAsync(friendshipId);
+            }
+        }
+        catch (ApiException)
+        {
+            // The request may have been withdrawn/handled elsewhere; reload so it disappears.
+            await LoadCoreAsync();
+            throw;
+        }
+
+        try
+        {
+            await _api.MarkNotificationReadAsync(notification.Id);
+        }
+        catch
+        {
+            // Best effort.
+        }
+
+        await LoadCoreAsync();
+
+        if (accept)
+        {
+            await Dialog.ShowSuccessAsync("Friend request accepted.");
+        }
+    });
+
     private Task RespondAsync(NotificationDto notification, bool accept) => RunAsync(async () =>
     {
         if (notification.RelatedMatchId is not { } matchId)

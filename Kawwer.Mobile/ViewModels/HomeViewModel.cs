@@ -54,6 +54,28 @@ public sealed partial class HomeViewModel : BaseViewModel
     [ObservableProperty] private string _greeting = "Welcome";
     [ObservableProperty] private int _unreadNotifications;
 
+    // Drive explicit empty states. CollectionView.EmptyView collapses to zero height inside a
+    // ScrollView (a long-standing MAUI quirk), so the home screen showed only bare section titles.
+    // These flags let us render a real EmptyStateView placed directly in the layout instead.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowUpcomingEmpty))]
+    [NotifyPropertyChangedFor(nameof(ShowDashboardEmpty))]
+    private bool _contentLoaded;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowUpcomingEmpty))]
+    private bool _hasUpcoming;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowDashboardEmpty))]
+    private bool _hasDashboard;
+
+    /// <summary>Show the "no upcoming matches" illustration once loaded and the list is empty.</summary>
+    public bool ShowUpcomingEmpty => ContentLoaded && !HasUpcoming;
+
+    /// <summary>Show the "nothing on your plate" illustration once loaded and there's nothing to organize.</summary>
+    public bool ShowDashboardEmpty => ContentLoaded && !HasDashboard;
+
     [RelayCommand]
     public Task LoadAsync() => RunAsync(async () =>
     {
@@ -87,6 +109,7 @@ public sealed partial class HomeViewModel : BaseViewModel
         }
 
         NextMatch = upcoming.FirstOrDefault();
+        HasUpcoming = Upcoming.Count > 0;
 
         // Permanent countdown notification when a match starts within 24 hours.
         try
@@ -105,6 +128,9 @@ public sealed partial class HomeViewModel : BaseViewModel
             Dashboard.Add(item);
         }
 
+        HasDashboard = Dashboard.Count > 0;
+        ContentLoaded = true;
+
         try
         {
             UnreadNotifications = await _api.GetUnreadCountAsync();
@@ -121,6 +147,24 @@ public sealed partial class HomeViewModel : BaseViewModel
             _ = _update.CheckForUpdateAsync();
         }
     });
+
+    /// <summary>
+    /// Refreshes just the unread badge. Called on every appearance so the bell is correct the
+    /// moment the user returns to Home, even if a notification arrived while another tab was open
+    /// (the live signal only reloads the dashboard while Home itself is on screen).
+    /// </summary>
+    [RelayCommand]
+    public async Task RefreshUnreadAsync()
+    {
+        try
+        {
+            UnreadNotifications = await _api.GetUnreadCountAsync();
+        }
+        catch
+        {
+            // Best effort; the full load will reconcile it.
+        }
+    }
 
     [RelayCommand]
     private Task CreateMatchAsync() => Shell.Current.GoToAsync("creatematch");

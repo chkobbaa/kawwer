@@ -65,12 +65,9 @@ public sealed class SendFriendRequestCommandHandler : IRequestHandler<SendFriend
             "New friend request",
             $"{requester.FullName} sent you a friend request.",
             cancellationToken: cancellationToken,
-            // Tells the mobile app to render Accept/Decline action buttons on the push.
-            data: new Dictionary<string, string>
-            {
-                ["type"] = "friend_request",
-                ["friendshipId"] = friendship.Id.ToString()
-            });
+            // Tells the mobile app to render Accept/Decline action buttons (push + in-app list).
+            type: "friend_request",
+            relatedFriendshipId: friendship.Id);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return friendship.Id;

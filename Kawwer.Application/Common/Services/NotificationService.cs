@@ -44,14 +44,33 @@ public sealed class NotificationService : INotificationService
         string message,
         Guid? relatedMatchId = null,
         CancellationToken cancellationToken = default,
-        IReadOnlyDictionary<string, string>? data = null)
+        IReadOnlyDictionary<string, string>? data = null,
+        string? type = null,
+        Guid? relatedFriendshipId = null,
+        bool important = false)
     {
-        _notifications.Add(new Notification(userId, category, title, message, relatedMatchId));
+        _notifications.Add(new Notification(
+            userId, category, title, message, relatedMatchId, type, relatedFriendshipId, important));
 
         var payload = new Dictionary<string, string> { ["category"] = category.ToString() };
         if (relatedMatchId is not null)
         {
             payload["matchId"] = relatedMatchId.Value.ToString();
+        }
+
+        if (type is not null)
+        {
+            payload["type"] = type;
+        }
+
+        if (relatedFriendshipId is not null)
+        {
+            payload["friendshipId"] = relatedFriendshipId.Value.ToString();
+        }
+
+        if (important)
+        {
+            payload["important"] = "true";
         }
 
         if (data is not null)
@@ -91,7 +110,10 @@ public sealed class NotificationService : INotificationService
                     Category: category.ToString(),
                     Type: payload.GetValueOrDefault("type"),
                     MatchId: relatedMatchId,
-                    FriendshipId: payload.GetValueOrDefault("friendshipId")),
+                    FriendshipId: payload.GetValueOrDefault("friendshipId"),
+                    Important: important,
+                    Title: title,
+                    Message: message),
                 cancellationToken);
         }
         catch
@@ -107,11 +129,15 @@ public sealed class NotificationService : INotificationService
         string message,
         Guid? relatedMatchId = null,
         CancellationToken cancellationToken = default,
-        IReadOnlyDictionary<string, string>? data = null)
+        IReadOnlyDictionary<string, string>? data = null,
+        string? type = null,
+        bool important = false)
     {
         foreach (var userId in userIds.Distinct())
         {
-            await NotifyAsync(userId, category, title, message, relatedMatchId, cancellationToken, data);
+            await NotifyAsync(
+                userId, category, title, message, relatedMatchId, cancellationToken, data,
+                type: type, important: important);
         }
     }
 
